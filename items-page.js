@@ -6,6 +6,13 @@
     const formTitle = document.querySelector('#form-title');
     const saveButton = document.querySelector('#save-item');
     const newItemButton = document.querySelector('#new-item');
+
+    const locationsPanel = document.querySelector('#locations-panel');
+    const locationsHint = document.querySelector('#locations-hint');
+    const locationList = document.querySelector('#location-list');
+    const locationCount = document.querySelector('#location-count');
+    const locationForm = document.querySelector('#location-form');
+
     let editingUpc = null;
     let editingItem = null;
     let formBaseline = '';
@@ -48,7 +55,10 @@
 
             const details = document.createElement('div');
             const rangeLabels = { 'in-range': 'In range', 'soon-ending': 'Soon to be ending', ended: 'Ended', 'soon-in-range': 'Soon to be in range' };
-            details.innerHTML = `<h3>${item.description}</h3><p>UPC ${item.upc} · Dept ${item.department}</p><p>${item.aisle || '—'}-${item.aisleSide || '—'}-${item.bay || '—'} · Case ${item.caseSize ?? 0}</p><p>Range: ${rangeLabels[item.rangeStatus] || 'In range'}</p>`;
+            const locationSummary = (item.aisle || item.aisleSide || item.bay)
+                ? `${item.aisle || '—'}-${item.aisleSide || '—'}-${item.bay || '—'}`
+                : 'No location set';
+            details.innerHTML = `<h3>${item.description}</h3><p>UPC ${item.upc} · Dept ${item.department}</p><p>${locationSummary} · Case ${item.caseSize ?? 0}</p><p>Range: ${rangeLabels[item.rangeStatus] || 'In range'}</p>`;
             row.appendChild(details);
 
             const actions = document.createElement('div');
@@ -80,6 +90,109 @@
         });
     };
 
+    /*
+     * LOCATIONS PANEL
+     *
+     * Renders every location for the item currently being edited. An item
+     * can have zero locations (shows an empty state + the add form), one,
+     * or many — each with its own optional aisle/aisleSide/bay/shelf/
+     * modularId, and one may be flagged primary.
+     */
+    const renderLocations = async () => {
+        if (!editingUpc) {
+            locationsPanel.hidden = true;
+            locationsHint.hidden = false;
+            return;
+        }
+
+        locationsPanel.hidden = false;
+        locationsHint.hidden = true;
+
+        const locations = await window.inventoryDatabase.getLocations(editingUpc);
+        locationCount.textContent = `${locations.length} location${locations.length === 1 ? '' : 's'}`;
+        locationList.replaceChildren();
+
+        if (!locations.length) {
+            locationList.innerHTML = '<p class="location-empty">No locations set for this item yet.</p>';
+            return;
+        }
+
+        locations.forEach((location) => {
+            const row = document.createElement('div');
+            row.className = `location-row${location.isPrimary ? ' is-primary' : ''}`;
+
+            const codeParts = [location.aisle, location.aisleSide, location.bay].filter(Boolean);
+            const codeText = codeParts.length ? codeParts.join('-') : 'No aisle/bay set';
+            const metaParts = [];
+            if (location.shelf) metaParts.push(`Shelf ${location.shelf}`);
+            if (location.modularId) metaParts.push(`Modular ${location.modularId}`);
+
+            const details = document.createElement('div');
+            details.className = 'location-row-details';
+            details.innerHTML = `
+                <span class="location-row-code">${codeText}${location.isPrimary ? '<span class="location-primary-badge">PRIMARY</span>' : ''}</span>
+                <span class="location-row-meta">${metaParts.length ? metaParts.join(' · ') : 'No shelf/modular set'}</span>
+            `;
+            row.appendChild(details);
+
+            const rowActions = document.createElement('div');
+            rowActions.className = 'location-row-actions';
+
+            const makePrimaryButton = document.createElement('button');
+            makePrimaryButton.type = 'button';
+            makePrimaryButton.className = 'make-primary';
+            makePrimaryButton.textContent = 'Make primary';
+            makePrimaryButton.disabled = location.isPrimary;
+            makePrimaryButton.addEventListener('click', async () => {
+                await window.inventoryDatabase.setPrimaryLocation(editingUpc, location.id);
+                message.textContent = 'Primary location updated.';
+                await renderLocations();
+                await renderItems();
+            });
+            rowActions.appendChild(makePrimaryButton);
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'remove-location';
+            removeButton.textContent = 'Remove';
+            removeButton.addEventListener('click', async () => {
+                if (!window.confirm('Remove this location?')) return;
+                await window.inventoryDatabase.deleteLocation(location.id);
+                message.textContent = 'Location removed.';
+                await renderLocations();
+                await renderItems();
+            });
+            rowActions.appendChild(removeButton);
+
+            row.appendChild(rowActions);
+            locationList.appendChild(row);
+        });
+    };
+
+    locationForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!editingUpc) return;
+
+        const data = new FormData(locationForm);
+        try {
+            await window.inventoryDatabase.addLocation(editingUpc, {
+                aisle: data.get('locAisle').trim(),
+                aisleSide: data.get('locAisleSide').trim(),
+                bay: data.get('locBay').trim(),
+                shelf: data.get('locShelf').trim(),
+                modularId: data.get('locModularId').trim(),
+                isPrimary: data.get('locIsPrimary') === 'on'
+            });
+
+            locationForm.reset();
+            message.textContent = 'Location added.';
+            await renderLocations();
+            await renderItems();
+        } catch (error) {
+            message.textContent = error.message;
+        }
+    });
+
     const setField = (name, value) => { form.elements[name].value = value ?? ''; };
     const formSnapshot = () => Array.from(form.elements)
         .filter((element) => element.name)
@@ -103,6 +216,7 @@
         form.elements.upc.readOnly = false;
         formBaseline = formSnapshot();
         updateSaveState();
+        renderLocations();
     };
     const startEdit = async (item) => {
         editingUpc = item.upc;
@@ -111,14 +225,13 @@
         formTitle.textContent = 'Edit item';
         saveButton.textContent = 'Update item';
         form.elements.upc.readOnly = true;
-        ['upc', 'itemNumber', 'description', 'price', 'onHand', 'caseSize', 'maxShelf', 'department', 'rangeStatus', 'aisle', 'aisleSide', 'bay', 'shelf'].forEach((name) => setField(name, item[name]));
+        ['upc', 'itemNumber', 'description', 'price', 'onHand', 'caseSize', 'maxShelf', 'department', 'rangeStatus'].forEach((name) => setField(name, item[name]));
         setField('imageUrl', item.image?.url?.startsWith('data:') ? '' : item.image?.url);
-        const modulars = await window.inventoryDatabase.getModulars(item.upc);
-        setField('modularId', modulars[0]?.modularId);
         formBaseline = formSnapshot();
         updateSaveState();
         message.textContent = `Editing ${item.description}.`;
         form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        await renderLocations();
     };
 
     form.addEventListener('reset', () => {
@@ -146,28 +259,32 @@
             maxShelf: numberOrNull(data.get('maxShelf')) ?? 0,
             department: data.get('department').trim() || '9999',
             rangeStatus: data.get('rangeStatus') || 'in-range',
-            aisle: valueOrNull(data.get('aisle').trim()),
-            aisleSide: valueOrNull(data.get('aisleSide').trim()),
-            bay: valueOrNull(data.get('bay').trim()),
-            shelf: valueOrNull(data.get('shelf').trim()),
+            // Location fields are no longer set directly on the item here —
+            // they're mirrored automatically from whichever location is
+            // primary, via the Locations panel below. On a brand new item
+            // with no locations yet, these simply stay blank.
+            aisle: editingItem?.aisle ?? null,
+            aisleSide: editingItem?.aisleSide ?? null,
+            bay: editingItem?.bay ?? null,
             price: numberOrNull(data.get('price')) ?? 1,
             image: { url: uploadedImage || data.get('imageUrl').trim() || editingItem?.image?.url || '', alt: data.get('description').trim() }
         };
 
         try {
+            const wasNewItem = !editingUpc;
             await window.inventoryDatabase.saveItem(item);
-            const modularId = data.get('modularId').trim();
-            if (modularId) {
-                await window.inventoryDatabase.addModular({ upc: item.upc, modularId, name: item.description, shelf: item.shelf || '', position: '' });
-            }
-            form.reset();
-            message.textContent = editingUpc ? 'Item updated.' : 'Item saved.';
-            resetEditState();
+            message.textContent = wasNewItem ? 'Item saved. Add its locations below.' : 'Item updated.';
+
+            const savedItem = await window.inventoryDatabase.getItem(item.upc);
+            await startEdit(savedItem);
             await renderItems();
         } catch (error) {
             message.textContent = error.message;
         }
     });
 
-    window.inventoryDatabase.seeded.then(renderItems);
+    window.inventoryDatabase.seeded.then(async () => {
+        await renderItems();
+        await renderLocations();
+    });
 })();

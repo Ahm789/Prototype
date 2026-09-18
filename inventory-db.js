@@ -1,6 +1,6 @@
 (function () {
     const databaseName = 'asda-inventory';
-    const databaseVersion = 2;
+    const databaseVersion = 3;
     const sampleUpc = '05060198649592';
 
     const generatedFrozenItems = [
@@ -62,8 +62,10 @@
     const openDatabase = () => new Promise((resolve, reject) => {
         const request = indexedDB.open(databaseName, databaseVersion);
 
-        request.onupgradeneeded = () => {
+        request.onupgradeneeded = (event) => {
             const database = request.result;
+            const oldVersion = event.oldVersion;
+
             if (database.objectStoreNames.contains('items')) {
                 const existingItems = request.transaction.objectStore('items');
                 if (existingItems.indexNames.contains('itemNumber')) {
@@ -85,6 +87,57 @@
             if (!database.objectStoreNames.contains('modulars')) {
                 const modulars = database.createObjectStore('modulars', { keyPath: 'id', autoIncrement: true });
                 modulars.createIndex('upc', 'upc', { unique: false });
+            }
+
+            /*
+             * MIGRATION (v2 -> v3): items can now have ZERO, ONE, or MANY
+             * locations. "modulars" becomes the source of truth for every
+             * bay/area an item can be found in — each record has its own
+             * aisle/aisleSide/bay/shelf/modularId (all optional), plus an
+             * isPrimary flag. The item's own aisle/aisleSide/bay fields are
+             * kept in sync with whichever location is primary, so existing
+             * code reading item.aisle etc. keeps working unchanged.
+             *
+             * Only items that actually HAD location data get back-filled
+             * into a location record here — items with no aisle/bay stay
+             * location-less rather than getting an empty placeholder.
+             */
+            if (oldVersion < 3) {
+                const modulars = request.transaction.objectStore('modulars');
+                const items = request.transaction.objectStore('items');
+                const seenUpcs = new Set();
+
+                modulars.openCursor().onsuccess = (cursorEvent) => {
+                    const cursor = cursorEvent.target.result;
+                    if (!cursor) return;
+
+                    const modular = cursor.value;
+                    if (modular.aisle === undefined) {
+                        const itemRequest = items.get(modular.upc);
+                        itemRequest.onsuccess = () => {
+                            const item = itemRequest.result;
+                            const isFirstForUpc = !seenUpcs.has(modular.upc);
+                            seenUpcs.add(modular.upc);
+
+                            cursor.update({
+                                ...modular,
+                                aisle: item?.aisle || '',
+                                aisleSide: item?.aisleSide || '',
+                                bay: modular.position || item?.bay || '',
+                                shelf: modular.shelf || '',
+                                isPrimary: isFirstForUpc
+                            });
+                            // Must continue only after update() is issued for
+                            // THIS cursor position — calling continue() any
+                            // earlier invalidates the cursor before update()
+                            // runs and aborts the whole upgrade transaction.
+                            cursor.continue();
+                        };
+                        itemRequest.onerror = () => cursor.continue();
+                    } else {
+                        cursor.continue();
+                    }
+                };
             }
         };
 
@@ -180,10 +233,13 @@
             lastSevenDays().forEach((entry) => stores.onHandHistory.add(entry));
             stores.modulars.add({
                 upc: sampleUpc,
-                modularId: 'BAK-FF16-018',
+                modularId: buildModularId({ aisle: 'FF16', aisleSide: 'R', bay: '18', shelf: '2' }),
                 name: 'Bakery Frozen Garlic Flatbread',
-                shelf: '18',
-                position: '2'
+                aisle: 'FF16',
+                aisleSide: 'R',
+                bay: '18',
+                shelf: '2',
+                isPrimary: true
             });
         });
 
@@ -224,13 +280,22 @@
                         closingOnHand: 0
                     });
                 }
-                stores.modulars.add({
-                    upc: item.upc,
-                    modularId: item.modularId,
-                    name: item.description,
-                    shelf: item.shelf || '',
-                    position: item.bay || ''
-                });
+                // Only give the item a location record if it actually has
+                // location data — items with none of these fields stay
+                // location-less, which downstream UI should handle by
+                // showing "no location set" rather than an empty entry.
+                if (item.aisle || item.aisleSide || item.bay || item.modularId) {
+                    stores.modulars.add({
+                        upc: item.upc,
+                        modularId: buildModularId({ aisle: item.aisle, aisleSide: item.aisleSide, bay: item.bay, shelf: item.shelf || '' }) || item.modularId || '',
+                        name: item.description,
+                        aisle: item.aisle || '',
+                        aisleSide: item.aisleSide || '',
+                        bay: item.bay || '',
+                        shelf: item.shelf || '',
+                        isPrimary: true
+                    });
+                }
             });
         });
     };
@@ -308,10 +373,180 @@
         return entries.sort((first, second) => first.date.localeCompare(second.date)).slice(-days);
     };
 
+    // Builds a modular ID from a location's own fields when one isn't
+    // supplied explicitly: FF-{aisle}-{aisleSide}-{bay}-{shelf}. Only the
+    // segments that are actually set are included, so a location with just
+    // an aisle and bay (no shelf) still gets a sensible ID rather than a
+    // string full of blanks. "FF" = Frozen Food, this app's department.
+    const buildModularId = (location = {}) => {
+        const segments = [location.aisle, location.aisleSide, location.bay, location.shelf]
+            .map((value) => (value || '').toString().trim())
+            .filter(Boolean);
+        return segments.length ? ['FF', ...segments].join('-') : '';
+    };
+
+    // Every location record across every item, regardless of UPC — used to
+    // check modular ID uniqueness globally, since a physical bay/shelf spot
+    // can't belong to two different location records at once.
+    const getAllLocations = async () => {
+        const database = await window.inventoryDatabase.ready;
+        const transaction = database.transaction('modulars', 'readonly');
+        return requestToPromise(transaction.objectStore('modulars').getAll());
+    };
+
+    // Returns every location record for an item — could be an empty array
+    // if the item has no location set yet. Primary location (if any) is
+    // sorted first.
     const getModulars = async (upc) => {
         const database = await window.inventoryDatabase.ready;
         const transaction = database.transaction('modulars', 'readonly');
-        return requestToPromise(transaction.objectStore('modulars').index('upc').getAll(upc));
+        const results = await requestToPromise(transaction.objectStore('modulars').index('upc').getAll(upc));
+        return results.sort((first, second) => (second.isPrimary ? 1 : 0) - (first.isPrimary ? 1 : 0));
+    };
+
+    // Alias: "locations" is the clearer name going forward, existing
+    // callers of getModulars keep working unchanged.
+    const getLocations = getModulars;
+
+    /*
+     * Adds a bay/area for an item. Every field is optional — an item can
+     * have a location record with no aisle, no aisleSide, no bay, and no
+     * modularId if that's genuinely unknown, and items can have as many
+     * of these records as needed. Pass { isPrimary: true } to make this
+     * the item's main location (mirrors aisle/aisleSide/bay onto the item
+     * record itself). The first location ever added for a UPC becomes
+     * primary automatically.
+     */
+    const addLocation = async (upc, location = {}) => {
+        const existing = await getModulars(upc);
+        const isFirst = existing.length === 0;
+
+        const explicitModularId = (location.modularId || '').trim();
+        const modularId = explicitModularId || buildModularId(location);
+
+        if (modularId) {
+            const allLocations = await getAllLocations();
+            const duplicate = allLocations.find((existingLocation) => existingLocation.modularId === modularId);
+            if (duplicate) {
+                throw new Error(`Modular ID ${modularId} is already in use for ${duplicate.upc === upc ? 'another location on this item' : `item ${duplicate.upc}`}.`);
+            }
+        }
+
+        const record = {
+            upc,
+            modularId,
+            name: location.name || '',
+            aisle: location.aisle || '',
+            aisleSide: location.aisleSide || '',
+            bay: location.bay || '',
+            shelf: location.shelf || '',
+            isPrimary: Boolean(location.isPrimary) || isFirst,
+            updatedAt: new Date().toISOString()
+        };
+
+        const id = await runTransaction(['modulars'], 'readwrite', (stores) => stores.modulars.add(record));
+
+        if (record.isPrimary) {
+            await setPrimaryLocation(upc, id);
+        }
+
+        return id;
+    };
+
+    const updateLocation = async (id, updates) => {
+        const database = await window.inventoryDatabase.ready;
+        const existingRecord = await new Promise((resolve, reject) => {
+            const transaction = database.transaction('modulars', 'readonly');
+            const request = transaction.objectStore('modulars').get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+        if (!existingRecord) return;
+
+        const merged = { ...existingRecord, ...updates };
+        const explicitModularId = updates.modularId !== undefined
+            ? updates.modularId.trim()
+            : (existingRecord.modularId || '').trim();
+        const modularId = explicitModularId || buildModularId(merged);
+
+        if (modularId) {
+            const allLocations = await getAllLocations();
+            const duplicate = allLocations.find((existingLocation) => existingLocation.modularId === modularId && existingLocation.id !== id);
+            if (duplicate) {
+                throw new Error(`Modular ID ${modularId} is already in use for ${duplicate.upc === existingRecord.upc ? 'another location on this item' : `item ${duplicate.upc}`}.`);
+            }
+        }
+
+        return runTransaction(['modulars'], 'readwrite', (stores) => {
+            stores.modulars.put({
+                ...merged,
+                modularId,
+                id,
+                updatedAt: new Date().toISOString()
+            });
+        });
+    };
+
+    // Deletes one location. If the deleted location was primary and other
+    // locations remain, the next one becomes primary automatically. If it
+    // was the item's only location, the item simply has none left — its
+    // own aisle/aisleSide/bay fields are cleared rather than left stale.
+    const deleteLocation = async (id) => {
+        const database = await window.inventoryDatabase.ready;
+        const existingRecord = await new Promise((resolve, reject) => {
+            const transaction = database.transaction('modulars', 'readonly');
+            const request = transaction.objectStore('modulars').get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        await runTransaction(['modulars'], 'readwrite', (stores) => stores.modulars.delete(id));
+
+        if (!existingRecord) return;
+
+        const remaining = await getModulars(existingRecord.upc);
+
+        if (!remaining.length) {
+            const item = await getItem(existingRecord.upc);
+            if (item) {
+                item.aisle = '';
+                item.aisleSide = '';
+                item.bay = '';
+                await saveItem(item);
+            }
+            return;
+        }
+
+        if (existingRecord.isPrimary) {
+            await setPrimaryLocation(existingRecord.upc, remaining[0].id);
+        }
+    };
+
+    /*
+     * Marks one location as primary for an item and clears the flag on the
+     * rest. Also mirrors that location's aisle/aisleSide/bay onto the item
+     * itself, so task cards, search results, and the metrics row (which all
+     * read item.aisle/aisleSide/bay directly) stay correct without changes.
+     */
+    const setPrimaryLocation = async (upc, primaryId) => {
+        const locations = await getModulars(upc);
+
+        await runTransaction(['modulars'], 'readwrite', (stores) => {
+            locations.forEach((location) => {
+                stores.modulars.put({ ...location, isPrimary: location.id === primaryId });
+            });
+        });
+
+        const primary = locations.find((location) => location.id === primaryId);
+        if (primary) {
+            const item = await getItem(upc);
+            if (item) {
+                item.aisle = primary.aisle || '';
+                item.aisleSide = primary.aisleSide || '';
+                item.bay = primary.bay || '';
+                await saveItem(item);
+            }
+        }
     };
 
     const recordSale = async (upc, unitsSold, date = new Date()) => {
@@ -341,6 +576,13 @@
         deleteItem,
         getHistory,
         getModulars,
+        getLocations,
+        getAllLocations,
+        buildModularId,
+        addLocation,
+        updateLocation,
+        deleteLocation,
+        setPrimaryLocation,
         recordSale,
         setItemImage,
         addModular,

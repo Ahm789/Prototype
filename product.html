@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Asda Product Info</title>
+
+```
+<link rel="stylesheet" href="index.css">
+<script src="inventory-db.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+```
+
+</head>
+
+<body>
+
+```
+<main class="device-shell">
+	<section class="scanner-app" aria-label="Asda product information">
+		<!-- TITLE BAR -->
+<div class="app-titlebar">
+    <a
+        class="icon-button"
+        href="product.html"
+        aria-label="Back to product search"
+    >
+        <i
+            class="app-icon"
+            data-lucide="arrow-left"
+            aria-hidden="true"
+        ></i>
+    </a>
+
+    <div class="tasks-title">
+        <h1>PRODUCT INFO</h1>
+    </div>
+
+    <button
+        class="icon-button menu-button"
+        type="button"
+        aria-label="More options"
+    >
+        <i data-lucide="more-vertical"></i>
+    </button>
+</div>
+
+
+		<!-- 1. SEARCH SECTION -->
+<section class="product-search" id="product-search-section">
+    <label for="product-input">Enter UPC or product name</label>
+    <div class="product-search-box">
+        <input
+            id="product-input"
+            type="text"
+            placeholder="UPC or product name"
+            autocomplete="off"
+        >
+        <button id="product-search" type="button" aria-label="Search">
+            <i data-lucide="search"></i>
+        </button>
+    </div>
+</section>
+
+<!-- 2. SEARCH RESULTS LIST -->
+<div class="product-empty" id="product-empty">
+    Enter a UPC or product name to search.
+</div>
+<div class="product-result-list" id="product-results" hidden></div>
+
+<!-- 3. PRODUCT DETAIL VIEW (INITIALLY HIDDEN) -->
+<div class="product-detail-view" id="product-detail-view" hidden>
+    
+    <!-- SELECTED ITEM HEADER CARD -->
+    <div class="product-card">
+        <div class="product-card-media">
+            <img id="detail-image" src="" alt="Product image">
+        </div>
+        <div class="product-card-details">
+            <h2 id="detail-name">Product Name</h2>
+            <span id="detail-upc">UPC: -</span>
+        </div>
+        <button class="icon-button" type="button" aria-label="Product Options">
+            <i data-lucide="more-vertical"></i>
+        </button>
+    </div>
+
+    <button type="button" class="location-link">
+        View item location details (<span id="detail-loc-count">0</span> total)
+    </button>
+
+    <!-- METRICS ROW -->
+    <div class="metrics-row">
+        <div class="metric-card">
+            <span class="metric-label">On Hand</span>
+            <span class="metric-sub">STOCK</span>
+            <span class="metric-value" id="detail-onhand">0</span>
+        </div>
+        <div class="metric-card metric-card-location">
+            <span class="metric-value-location" id="detail-location-id">16-L-9</span>
+            <span class="metric-sub" id="detail-shelf-id">SHELF 9</span>
+        </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="product-tabs">
+        <button type="button" class="tab-btn active" data-tab="info">INFO</button>
+        <button type="button" class="tab-btn" data-tab="sales">SALES</button>
+        <button type="button" class="tab-btn" data-tab="inventory">INVENTORY</button>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="tab-content" id="tab-content">
+        <div class="bay-image-section">
+            <h3>Bay Image</h3>
+            <div class="bay-info-line">
+                <span id="bay-loc-text">16-L-9</span>
+                <span>Shelf <span id="bay-shelf-num">9</span></span>
+                <span class="timestamp">@ 04:45 PM Yesterday</span>
+            </div>
+            <div class="bay-image-wrapper">
+                <img id="bay-image" src="" alt="Bay location image">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+		<!-- BOTTOM NAV -->
+		<nav class="bottom-nav" aria-label="Main navigation">
+
+			<a
+				class="nav-link"
+				href="index.html"
+			>
+				<i data-lucide="clipboard-list"></i>
+				TASKS
+			</a>
+
+			<a
+				class="nav-link active"
+			>
+				<i data-lucide="scan-barcode"></i>
+				PRODUCT INFO
+			</a>
+
+			<button type="button">
+				<i data-lucide="undo-2"></i>
+				REVERSE
+			</button>
+
+			<button type="button">
+				<i data-lucide="more-vertical"></i>
+				MORE
+			</button>
+
+		</nav>
+
+	</section>
+</main>
+<script src="product.js"></script>
+</body>
+</html>
