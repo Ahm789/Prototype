@@ -569,3 +569,78 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	border-right: 9px solid transparent;
 	border-top: 9px solid #eaf6ee;
 }
+/* PRODUCT PAGE - MATCH TASKS PAGE LAYOUT */
+
+.product-search {
+	flex: 0 0 auto;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.product-empty,
+.product-result-list,
+.product-detail-view {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.product-empty {
+	flex: 1;
+}
+
+.product-result-list {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 10px 12px 82px;
+	background: #15445d;
+}
+
+.product-detail-view {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 10px 12px 82px;
+	background: #15445d;
+}
+
+.product-card {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.product-card-details {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.product-card-details h2,
+.product-card-details span {
+	overflow-wrap: anywhere;
+}
+
+.metrics-row,
+.product-tabs,
+.tab-content {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.product-result {
+	width: 100%;
+	max-width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.product-result-info {
+	min-width: 0;
+	overflow: hidden;
+}
