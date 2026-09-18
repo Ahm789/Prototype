@@ -1,3 +1,9 @@
+const productBackButton =
+	document.querySelector('#product-back-button');
+
+
+
+
 lucide.createIcons();
 
 const input = document.querySelector('#product-input');
@@ -5,186 +11,387 @@ const searchButton = document.querySelector('#product-search');
 
 const productEmpty = document.querySelector('#product-empty');
 const productResults = document.querySelector('#product-results');
-const productSearchSection = document.querySelector('#product-search-section');
-const productDetailView = document.querySelector('#product-detail-view');
 
-const detailImage = document.querySelector('#detail-image');
-const detailName = document.querySelector('#detail-name');
-const detailUpc = document.querySelector('#detail-upc');
-const detailOnHand = document.querySelector('#detail-onhand');
-const detailLocationId = document.querySelector('#detail-location-id');
-const detailShelfId = document.querySelector('#detail-shelf-id');
-const bayLocText = document.querySelector('#bay-loc-text');
-const bayShelfNum = document.querySelector('#bay-shelf-num');
-const bayImage = document.querySelector('#bay-image');
+const productSearchSection =
+	document.querySelector('#product-search-section');
 
-/*
- * SHOW PRODUCT DETAIL
- *
- * Hides the search section/results/empty state
- * and fills in + reveals the detail view.
- */
-const showProductDetail = (product) => {
+const productDetailView =
+	document.querySelector('#product-detail-view');
 
+const detailImage =
+	document.querySelector('#detail-image');
+
+const detailName =
+	document.querySelector('#detail-name');
+
+const detailUpc =
+	document.querySelector('#detail-upc');
+
+const detailLocCount =
+	document.querySelector('#detail-loc-count');
+
+const detailOnHand =
+	document.querySelector('#detail-onhand');
+
+const locationModules =
+	document.querySelector('#location-modules');
+
+const bayLocText =
+	document.querySelector('#bay-loc-text');
+
+const bayShelfNum =
+	document.querySelector('#bay-shelf-num');
+
+const bayImage =
+	document.querySelector('#bay-image');
+
+
+
+/* ---------------------------------------------------------
+   LOCATION ID
+--------------------------------------------------------- */
+
+const getLocationId = (location) => {
+
+	const aisle = String(location.aisle ?? '').trim();
+	const side = String(location.aisleSide ?? '').trim();
+	const bay = String(location.bay ?? '').trim();
+
+	if (!aisle) {
+		return 'No location';
+	}
+
+	const formattedAisle =
+		aisle.startsWith('FF')
+			? aisle
+			: `FF-${aisle}`;
+
+	const parts = [
+		formattedAisle,
+		side,
+		bay
+	].filter(Boolean);
+
+	return parts.join('-');
+};
+
+
+
+/* ---------------------------------------------------------
+   SHOW PRODUCT DETAILS
+--------------------------------------------------------- */
+
+const showProductDetail = async (product) => {
+
+	/* Hide search UI */
 	productSearchSection.hidden = true;
 	productResults.hidden = true;
 	productEmpty.hidden = true;
+    productBackButton.href = 'product.html';
+        productBackButton.setAttribute(
+            'aria-label',
+            'Back to product search'
+        );
 
-	detailImage.src = product.image?.url || '';
-	detailImage.alt = product.description || 'Product image';
+	/* Product information */
+	detailImage.src =
+		product.image?.url || '';
 
-	detailName.textContent = product.description || 'Unknown product';
-	detailUpc.textContent = `UPC: ${product.upc || '—'}`;
+	detailImage.alt =
+		product.description || 'Product image';
 
-	detailOnHand.textContent = product.onHand ?? 0;
+	detailName.textContent =
+		product.description || 'Unknown product';
 
-	const locationId = `${product.aisle || ''}-${product.aisleSide || ''}-${product.bay || ''}`;
-	detailLocationId.textContent = locationId;
-	detailShelfId.textContent = `SHELF ${product.bay || '-'}`;
+	detailUpc.textContent =
+		`UPC: ${product.upc || '—'}`;
 
-	bayLocText.textContent = locationId;
-	bayShelfNum.textContent = product.bay || '-';
-	bayImage.src = product.image?.url || '';
-	bayImage.alt = `${product.description || 'Product'} bay location`;
 
-	productDetailView.hidden = false;
-};
+	/* Total stock */
+	detailOnHand.textContent =
+		product.onHand ?? 0;
 
-/*
- * SHOW PRODUCT SEARCH
- *
- * Reverses showProductDetail — wire this to the
- * back arrow in the titlebar so users can return.
- */
-const showProductSearch = () => {
 
-	productDetailView.hidden = true;
-	productSearchSection.hidden = false;
+	/* -----------------------------------------------------
+	   LOAD ALL LOCATIONS FOR THIS PRODUCT
+	----------------------------------------------------- */
 
-	if (productResults.childElementCount) {
-		productResults.hidden = false;
-	} else {
-		productEmpty.hidden = false;
+	let locations = [];
+
+	try {
+
+		locations =
+			await window.inventoryDatabase.getLocations(
+				product.upc
+			);
+
+	} catch (error) {
+
+		console.error(
+			'Unable to load product locations:',
+			error
+		);
+
+		locations = [];
 	}
+
+
+	/* Number of locations */
+	detailLocCount.textContent =
+		locations.length;
+
+
+	/* Clear previous locations */
+	locationModules.innerHTML = '';
+
+
+	/* -----------------------------------------------------
+	   CREATE LOCATION MODULES
+	----------------------------------------------------- */
+
+	locations.forEach((location) => {
+
+		const locationModule =
+			document.createElement('div');
+
+		locationModule.className =
+			'metric-card metric-card-location';
+
+
+		const locationId =
+			getLocationId(location);
+
+
+		const shelf =
+			location.shelf ||
+			location.bay ||
+			'-';
+
+
+		locationModule.innerHTML = `
+			<span class="metric-value-location">
+				${locationId}
+			</span>
+
+			<span class="metric-sub">
+				SHELF ${shelf}
+			</span>
+		`;
+
+
+		locationModules.appendChild(
+			locationModule
+		);
+
+	});
+
+
+	/* -----------------------------------------------------
+	   PRIMARY LOCATION
+	----------------------------------------------------- */
+
+	const primaryLocation =
+		locations.find(
+			location => location.isPrimary
+		) || locations[0];
+
+
+	if (primaryLocation) {
+
+		bayLocText.textContent =
+			getLocationId(primaryLocation);
+
+		bayShelfNum.textContent =
+			primaryLocation.shelf ||
+			primaryLocation.bay ||
+			'-';
+
+	} else {
+
+		bayLocText.textContent =
+			'No location';
+
+		bayShelfNum.textContent =
+			'-';
+
+	}
+
+
+	/* Bay image */
+	bayImage.src =
+		product.image?.url || '';
+
+	bayImage.alt =
+		`${product.description || 'Product'} bay location`;
+
+
+	/* Show detail page */
+	productDetailView.hidden = false;
+
+
+	/* Re-render Lucide icons */
+	lucide.createIcons();
+
 };
+
+
+
+/* ---------------------------------------------------------
+   SEARCH PRODUCT
+--------------------------------------------------------- */
+
 const searchProduct = async () => {
 
-	const query = input.value.trim().toLowerCase();
+	const query =
+		input.value.trim().toLowerCase();
 
+
+	/* Clear old results */
 	productResults.innerHTML = '';
 
 
-	// Nothing entered
+	/* Empty search */
 	if (!query) {
 
-		productResults.hidden = true;
+        productResults.hidden = true;
+        productDetailView.hidden = true;
+
+        productSearchSection.hidden = false;
+        productEmpty.hidden = false;
+
+        /* Change back button to return to tasks */
+        productBackButton.href = 'index.html';
+        productBackButton.setAttribute(
+            'aria-label',
+            'Back to tasks'
+        );
+
+        productEmpty.textContent =
+            'Enter a UPC or product name to search.';
+
+        return;
+    }
+
+
+	/* Load database */
+	let items = [];
+
+	try {
+
+		items =
+			await window.inventoryDatabase.getItems();
+
+	} catch (error) {
+
+		console.error(
+			'Unable to load inventory:',
+			error
+		);
+
 		productEmpty.hidden = false;
+		productResults.hidden = true;
 
 		productEmpty.textContent =
-			'Enter a UPC or product name to search.';
+			'Unable to load inventory.';
 
 		return;
 	}
 
 
-	const items = await window.inventoryDatabase.getItems();
-
 	let matches = [];
 
 
-	/*
-	 * UPC SEARCH
-	 *
-	 * Once 6 or more numbers have been entered,
-	 * search using those numbers as the beginning
-	 * of the UPC.
-	 */
+	/* -----------------------------------------------------
+	   UPC SEARCH
+	----------------------------------------------------- */
+
 	if (/^\d+$/.test(query)) {
 
 		if (query.length < 6) {
 
-			productResults.hidden = true;
 			productEmpty.hidden = false;
+			productResults.hidden = true;
 
 			productEmpty.textContent =
-				'Enter at least 6 digits to search by UPC.';
+				'Enter at least 6 digits for a UPC.';
 
 			return;
 		}
 
 
-		matches = items.filter((item) => {
-
-			const upc = String(item.upc ?? '');
-
-			return upc.startsWith(query);
-
-		});
+		matches = items.filter((item) =>
+			String(item.upc ?? '')
+				.startsWith(query)
+		);
 
 	}
 
 
-	/*
-	 * PRODUCT NAME SEARCH
-	 */
+	/* -----------------------------------------------------
+	   PRODUCT NAME SEARCH
+	----------------------------------------------------- */
+
 	else {
 
-		matches = items.filter((item) => {
-
-			const description =
-				String(item.description ?? '').toLowerCase();
-
-			return description.includes(query);
-
-		});
+		matches = items.filter((item) =>
+			String(item.description ?? '')
+				.toLowerCase()
+				.includes(query)
+		);
 
 	}
 
 
-	/*
-	 * NO RESULTS
-	 */
+	/* -----------------------------------------------------
+	   NO RESULTS
+	----------------------------------------------------- */
+
 	if (!matches.length) {
 
-		productResults.hidden = true;
 		productEmpty.hidden = false;
+		productResults.hidden = true;
 
 		productEmpty.textContent =
-			'No matching products found.';
+			'No products found.';
 
 		return;
 	}
 
 
-	/*
-	 * SHOW RESULTS
-	 */
+	/* -----------------------------------------------------
+	   DISPLAY RESULTS
+	----------------------------------------------------- */
+
 	productEmpty.hidden = true;
 	productResults.hidden = false;
 
 
 	matches.forEach((product) => {
 
-		const result = document.createElement('button');
+		const result =
+			document.createElement('button');
 
 		result.type = 'button';
-		result.className = 'product-result';
+
+		result.className =
+			'product-result';
 
 
-		const imageHtml = product.image?.url
+		const imageHtml =
+			product.image?.url
 
-			? `
-				<img
-					src="${product.image.url}"
-					alt="${product.description || 'Product image'}"
-				>
-			`
+				? `
+					<img
+						src="${product.image.url}"
+						alt="${product.description || 'Product image'}"
+					>
+				`
 
-			: `
-				<div class="product-result-placeholder">
-					No image
-				</div>
-			`;
+				: `
+					<div class="product-result-placeholder">
+						No image
+					</div>
+				`;
 
 
 		result.innerHTML = `
@@ -207,9 +414,13 @@ const searchProduct = async () => {
 
 		`;
 
-        result.addEventListener('click', () => {
-            showProductDetail(product);
-        });
+
+		result.addEventListener(
+			'click',
+			() => showProductDetail(product)
+		);
+
+
 		productResults.appendChild(result);
 
 	});
@@ -217,16 +428,30 @@ const searchProduct = async () => {
 };
 
 
-input.addEventListener('input', searchProduct);
+
+/* ---------------------------------------------------------
+   EVENTS
+--------------------------------------------------------- */
+
+input.addEventListener(
+	'input',
+	searchProduct
+);
 
 
-searchButton.addEventListener('click', searchProduct);
+searchButton.addEventListener(
+	'click',
+	searchProduct
+);
 
 
-input.addEventListener('keydown', (event) => {
+input.addEventListener(
+	'keydown',
+	(event) => {
 
-	if (event.key === 'Enter') {
-		searchProduct();
+		if (event.key === 'Enter') {
+			searchProduct();
+		}
+
 	}
-
-});
+);
