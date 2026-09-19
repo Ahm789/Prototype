@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS modulars (
 
 	shelf VARCHAR(32),
 
-	modular_id VARCHAR(128),
+	modular_id VARCHAR(128) NOT NULL,
 
 	is_primary BOOLEAN NOT NULL DEFAULT FALSE,
 
@@ -51,7 +51,10 @@ CREATE TABLE IF NOT EXISTS modulars (
 	CONSTRAINT fk_modular_item
 		FOREIGN KEY (upc)
 		REFERENCES items(upc)
-		ON DELETE CASCADE
+		ON DELETE CASCADE,
+
+	CONSTRAINT unique_item_modular
+		UNIQUE (upc, modular_id)
 );
 
 
