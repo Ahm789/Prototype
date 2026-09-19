@@ -974,3 +974,78 @@ tabButtons.forEach(
 		);
 	}
 );
+const timestampDayButton = document.getElementById('timestamp-day-button');
+const timestampDay = document.getElementById('timestamp-day');
+const timestampOptions = document.getElementById('timestamp-options');
+const timestampOptionsButtons = document.querySelectorAll('.timestamp-option');
+
+if (timestampDayButton && timestampOptions) {
+
+	timestampDayButton.addEventListener('click', (event) => {
+
+		event.stopPropagation();
+
+		const isOpen =
+			timestampDayButton.getAttribute('aria-expanded') === 'true';
+
+		timestampDayButton.setAttribute(
+			'aria-expanded',
+			String(!isOpen)
+		);
+
+		timestampOptions.hidden = isOpen;
+
+	});
+
+
+	timestampOptionsButtons.forEach((option) => {
+
+		option.addEventListener('click', (event) => {
+
+			event.stopPropagation();
+
+			const selectedDay = option.dataset.day;
+
+			timestampDay.textContent = selectedDay;
+
+			timestampOptionsButtons.forEach((button) => {
+
+				const isSelected =
+					button.dataset.day === selectedDay;
+
+				button.classList.toggle(
+					'active',
+					isSelected
+				);
+
+				button.setAttribute(
+					'aria-selected',
+					String(isSelected)
+				);
+
+			});
+
+			timestampDayButton.setAttribute(
+				'aria-expanded',
+				'false'
+			);
+
+			timestampOptions.hidden = true;
+
+		});
+
+	});
+
+
+	document.addEventListener('click', () => {
+
+		timestampDayButton.setAttribute(
+			'aria-expanded',
+			'false'
+		);
+
+		timestampOptions.hidden = true;
+
+	});
+
+}

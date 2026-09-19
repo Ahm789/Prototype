@@ -230,10 +230,17 @@
 							Bay Image
 						</h3>
 
+
+						<!-- BAY LOCATION / TIMESTAMP -->
+
 						<div class="bay-info-line">
 
 							<span id="bay-loc-text">
 								-
+							</span>
+
+							<span class="bay-separator">
+								|
 							</span>
 
 							<span>
@@ -243,11 +250,73 @@
 								</span>
 							</span>
 
+							<span class="bay-separator">
+								|
+							</span>
+
 							<span class="timestamp">
-								@ 04:45 PM Yesterday
+
+								<span class="timestamp-time">
+									@ 04:45 PM
+								</span>
+
+								<div class="timestamp-dropdown">
+
+									<button
+										type="button"
+										class="timestamp-day-button"
+										id="timestamp-day-button"
+										aria-haspopup="listbox"
+										aria-expanded="false"
+									>
+										<span id="timestamp-day">
+											Today
+										</span>
+
+										<i
+											class="timestamp-arrow"
+											data-lucide="chevron-down"
+											aria-hidden="true"
+										></i>
+									</button>
+
+									<div
+										class="timestamp-options"
+										id="timestamp-options"
+										role="listbox"
+										hidden
+									>
+
+										<button
+											type="button"
+											class="timestamp-option active"
+											data-day="Today"
+											role="option"
+											aria-selected="true"
+										>
+											Today
+										</button>
+
+										<button
+											type="button"
+											class="timestamp-option"
+											data-day="Yesterday"
+											role="option"
+											aria-selected="false"
+										>
+											Yesterday
+										</button>
+
+									</div>
+
+								</div>
+
 							</span>
 
 						</div>
+
+
+						<!-- BAY IMAGE -->
 
 						<div class="bay-image-wrapper">
 
@@ -259,7 +328,157 @@
 
 						</div>
 
-						<div class="stock-timeline" id="stock-timeline"></div>
+
+						<!-- STOCK TIMELINE -->
+
+						<div
+							class="stock-timeline"
+							id="stock-timeline"
+						></div>
+
+
+						<!-- DETAILS SECTION -->
+
+						<hr class="details-divider">
+
+						<section class="product-details-section">
+
+							<h3>
+								Details
+							</h3>
+
+							<div class="product-details-grid">
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Case size
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-case-size"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Weight
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-weight"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										URL / Barcode
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-url-barcode"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Item number
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-item-number"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Department
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-department"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Price
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-price"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										Max Shelf
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-max-shelf"
+									>
+										-
+									</span>
+
+								</div>
+
+
+								<div class="product-detail-item">
+
+									<span class="product-detail-label">
+										HFFS
+									</span>
+
+									<span
+										class="product-detail-value"
+										id="detail-hffs"
+									>
+										-
+									</span>
+
+								</div>
+
+							</div>
+
+						</section>
 
 					</div>
 
