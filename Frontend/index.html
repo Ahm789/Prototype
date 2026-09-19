@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Asda Tasks</title>
+	<link rel="stylesheet" href="index.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+	<main class="device-shell">
+		<section class="scanner-app" aria-label="Asda stock tasks">
+
+			<div class="app-titlebar">
+                <button class="icon-button app-menu-button" type="button" aria-label="Open product info">
+                    <i class="app-icon" data-lucide="clipboard" aria-hidden="true"></i>
+                </button>
+
+                <div class="tasks-title">
+                    <h1>TASKS</h1>
+                    <div class="task-timer" aria-label="Task timer">
+                        <button id="task-clock" type="button" aria-label="Advance clock by one hour"><span id="task-timer-value">9:00:00 am</span></button>
+                    </div>
+                </div>
+
+                <button class="icon-button menu-button" aria-label="More options">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+            </div>
+
+			<div class="task-controls">
+                <div class="open-count">
+                    0 <span>Open</span> <small>(0% <i data-lucide="check"></i>)</small>
+                </div>
+
+                <div class="selection-group" aria-label="Task selection controls">
+                    <span class="view-toggle" aria-hidden="true">
+                        <span class="collapse-icon" aria-hidden="true"></span>
+                    </span>
+                    <button class="selection-slider" aria-label="Toggle task selection"><span></span></button>
+                </div>
+
+                <button class="filter-button" aria-label="Open filters">
+                    <i data-lucide="sliders-horizontal"></i>
+                    <span>Filters (0)</span>
+                </button>
+            </div>
+
+            <div class="filter-panel" hidden>
+                <div class="filter-panel-header"><strong>Filters</strong><button class="close-filters" aria-label="Close filters">×</button></div>
+                <div class="filter-fields">
+                    <label>Task status<select><option>Open tasks</option><option>Backroom</option><option>Shop floor</option></select></label>
+                    <label>Department<select><option>All departments</option><option>Bakery &amp; Frozen</option><option>Fresh Foods</option></select></label>
+                </div>
+                <div class="filter-actions">
+                    <button class="reset-filters">Reset</button>
+                    <button class="apply-filters">Apply filters</button>
+                </div>
+            </div>
+
+            <section class="task-list" aria-label="Current item tasks">
+                <div class="task-empty" id="task-empty">Tasks will appear when the next hour starts.</div>
+                <div class="task-cards" id="task-cards"></div>
+            </section>
+
+			<nav class="bottom-nav" aria-label="Main navigation">
+                <button class="active">
+                    <i data-lucide="clipboard-list"></i>
+                    TASKS
+                </button>
+
+                <a class="nav-link" href="product.html">
+                    <i data-lucide="scan-barcode"></i>
+                    PRODUCT INFO
+                </a>
+
+                <button>
+                    <i data-lucide="undo-2"></i>
+                    REVERSE
+                </button>
+
+                <button>
+                    <i data-lucide="more-vertical"></i>
+                    MORE
+                </button>
+            </nav>
+
+            <script>
+                lucide.createIcons();
+            </script>
+		</section>
+	</main>
+
+	<script src="index.js"></script>
+</body>
+</html>

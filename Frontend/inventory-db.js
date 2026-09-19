@@ -14,7 +14,7 @@
         },
         {
             upc: '9900000000035', itemNumber: '990000003', description: 'ASDA Frozen Garden Peas 1kg', price: 1.50,
-            department: '72', aisle: '15', aisleSide: 'R', bay: '5', modularId: 'VEG-15-R-005'
+            department: '72', aisle: '15', aisleSide: 'R', bay: '5',imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5050854264498_T1', modularId: 'VEG-15-R-005'
         },
         {
             upc: '9900000000042', itemNumber: '990000004', description: 'ASDA Double Pepperoni Stonebaked Pizza 309g', price: 1.72,
@@ -196,7 +196,7 @@
             }
             if (!existingItem.image) {
                 existingItem.image = {
-                    url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=320&q=80',
+                    url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf79D0aAGvv8_aw1sK9Qi5i3VIHTT6ADH6WBD5gMGYmw&s',
                     alt: 'Garlic flatbread'
                 };
                 await saveItem(existingItem);
@@ -222,7 +222,7 @@
             aisleSide: 'R',
             bay: '18',
             image: {
-                url: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=320&q=80',
+                url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSf79D0aAGvv8_aw1sK9Qi5i3VIHTT6ADH6WBD5gMGYmw&s',
                 alt: 'Garlic flatbread'
             },
             updatedAt: new Date().toISOString()

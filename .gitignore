@@ -19,8 +19,8 @@ Thumbs.db
 # VS Code
 .vscode/
 
-# Firebase local files
+# Firebase local/cache files
 .firebase/
 
-# Temporary files
+# Misc
 *.tmp

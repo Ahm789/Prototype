@@ -170,17 +170,19 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	.device-shell { margin: 20px auto; min-height: calc(100vh - 40px); border: 9px solid #15191a; border-radius: 28px; overflow: hidden; }
 	.scanner-app { min-height: 720px; height: calc(100vh - 40px); }
 }
-.bottom-nav button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+.bottom-nav button,
+.bottom-nav .nav-link {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
 }
 
-.bottom-nav button svg {
-    width: 18px;
-    height: 18px;
-    stroke-width: 2;
+.bottom-nav button svg,
+.bottom-nav .nav-link svg {
+	width: 24px;
+	height: 24px;
+	stroke-width: 2;
 }
 /* =========================================
    PRODUCT PAGE
