@@ -16,18 +16,19 @@
 
 			<!-- TOP BAR -->
 			<div class="app-titlebar">
+
 				<a
-                    class="icon-button"
-                    id="product-back-button"
-                    href="index.html"
-                    aria-label="Back to tasks"
-                >
-                    <i
-                        class="app-icon"
-                        data-lucide="arrow-left"
-                        aria-hidden="true"
-                    ></i>
-                </a>
+					class="icon-button"
+					id="product-back-button"
+					href="index.html"
+					aria-label="Back to tasks"
+				>
+					<i
+						class="app-icon"
+						data-lucide="arrow-left"
+						aria-hidden="true"
+					></i>
+				</a>
 
 				<div class="tasks-title">
 					<h1>PRODUCT INFO</h1>
@@ -40,16 +41,22 @@
 				>
 					<i data-lucide="more-vertical"></i>
 				</button>
+
 			</div>
 
 
 			<!-- SEARCH -->
-			<section class="product-search" id="product-search-section">
+			<section
+				class="product-search"
+				id="product-search-section"
+			>
+
 				<label for="product-input">
 					Enter UPC or product name
 				</label>
 
 				<div class="product-search-box">
+
 					<input
 						id="product-input"
 						type="text"
@@ -64,7 +71,9 @@
 					>
 						<i data-lucide="search"></i>
 					</button>
+
 				</div>
+
 			</section>
 
 
@@ -96,14 +105,17 @@
 				<div class="product-card">
 
 					<div class="product-card-media">
+
 						<img
 							id="detail-image"
 							src=""
 							alt="Product image"
 						>
+
 					</div>
 
 					<div class="product-card-details">
+
 						<h2 id="detail-name">
 							Product Name
 						</h2>
@@ -111,6 +123,7 @@
 						<span id="detail-upc">
 							UPC: -
 						</span>
+
 					</div>
 
 					<button
@@ -135,40 +148,48 @@
 
 
 				<!-- CONNECTED STOCK / LOCATION STRIP -->
-				<div class="stock-location-strip">
+				<div class="stock-location-wrapper">
 
-					<!-- FIXED ON HAND SECTION -->
-					<div class="onhand-module">
+					<div class="stock-location-strip">
 
-						<span class="metric-label">
-							On Hand
-						</span>
+						<!-- PRIMARY LOCATION POINTER -->
+						<div class="primary-location-pointer"></div>
 
-						<span class="metric-sub">
-							STOCK
-						</span>
 
-						<span
-							class="metric-value"
-							id="detail-onhand"
-						>
-							0
-						</span>
+						<!-- FIXED ON HAND SECTION -->
+						<div class="onhand-module">
+
+							<span class="metric-label">
+								On Hand
+							</span>
+
+							<span class="metric-sub">
+								STOCK
+							</span>
+
+							<span
+								class="metric-value"
+								id="detail-onhand"
+							>
+								0
+							</span>
+
+						</div>
+
+
+						<!-- HORIZONTALLY SCROLLABLE LOCATIONS -->
+						<div
+							class="location-scroll"
+							id="location-modules"
+						></div>
 
 					</div>
-
-
-					<!-- HORIZONTALLY SCROLLABLE LOCATIONS -->
-					<div
-						class="location-scroll"
-						id="location-modules"
-					></div>
 
 				</div>
 
 
 				<!-- TABS -->
-				<div class="product-tabs">
+				<div class="product-info-tabs">
 
 					<button
 						type="button"
@@ -199,13 +220,15 @@
 
 				<!-- TAB CONTENT -->
 				<div
-					class="tab-content"
+					class="product-info-tab-content"
 					id="tab-content"
 				>
 
 					<div class="bay-image-section">
 
-						<h3>Bay Image</h3>
+						<h3>
+							Bay Image
+						</h3>
 
 						<div class="bay-info-line">
 
@@ -235,6 +258,8 @@
 							>
 
 						</div>
+
+						<div class="stock-timeline" id="stock-timeline"></div>
 
 					</div>
 

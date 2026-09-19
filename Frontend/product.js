@@ -1,14 +1,13 @@
 const productBackButton =
 	document.querySelector('#product-back-button');
 
-
-
 lucide.createIcons();
-
 
 const API_BASE =
 	'http://localhost:3000/api/products';
 
+const TASK_CLOCK_API =
+	'http://localhost:3000/api/task-clock';
 
 const input =
 	document.querySelector('#product-input');
@@ -55,594 +54,923 @@ const bayShelfNum =
 const bayImage =
 	document.querySelector('#bay-image');
 
+const stockTimeline =
+	document.querySelector('#stock-timeline');
 
 
-/* ---------------------------------------------------------
+/* =========================================================
    API REQUEST
---------------------------------------------------------- */
+========================================================= */
 
-const apiRequest = async (url) => {
-
+const apiRequest = async (
+	url,
+	options = {}
+) => {
 	const response =
-		await fetch(url);
-
-	if (!response.ok) {
-
-		throw new Error(
-			`Request failed with status ${response.status}`
+		await fetch(
+			url,
+			options
 		);
 
+	if (!response.ok) {
+		throw new Error(
+			`Request failed: ${response.status}`
+		);
 	}
 
-	return await response.json();
-
+	return response.json();
 };
 
 
+/* =========================================================
+   SERVER STORE CLOCK
+========================================================= */
 
-/* ---------------------------------------------------------
-   LOCATION ID
---------------------------------------------------------- */
-
-const getLocationId = (location) => {
-
-	let aisle =
-		String(location.aisle ?? '').trim();
-
-	const side =
-		String(location.aisleSide ?? '').trim();
-
-	const bay =
-		String(location.bay ?? '').trim();
-
-
-	if (!aisle) {
-
-		return 'No location';
-
-	}
-
-
-	/*
-		Normalise aisle:
-
-		16
-		FF16
-		FF-16
-
-		all become:
-
-		FF-16
-	*/
-
-	const upperAisle =
-		aisle.toUpperCase();
-
-
-	if (upperAisle.startsWith('FF-')) {
-
-		aisle =
-			upperAisle.substring(3);
-
-	} else if (
-		upperAisle.startsWith('FF')
-	) {
-
-		aisle =
-			upperAisle
-				.substring(2)
-				.replace(/^-/, '');
-
-	}
-
-
-	const parts = [
-		`FF-${aisle}`,
-		side.toUpperCase(),
-		bay
-	].filter(Boolean);
-
-
-	return parts.join('-');
-
-};
-
-
-
-/* ---------------------------------------------------------
-   SHOW PRODUCT DETAILS
---------------------------------------------------------- */
-
-const showProductDetail = async (product) => {
-
-	/* Hide search UI */
-
-	productSearchSection.hidden = true;
-	productResults.hidden = true;
-	productEmpty.hidden = true;
-
-
-	productBackButton.href =
-		'product.html';
-
-	productBackButton.setAttribute(
-		'aria-label',
-		'Back to product search'
-	);
-
-
-
-	/* Product information */
-
-	detailImage.src =
-		product.imageUrl ||
-		product.image?.url ||
-		'';
-
-	detailImage.alt =
-		product.description ||
-		'Product image';
-
-
-	detailName.textContent =
-		product.description ||
-		'Unknown product';
-
-
-	detailUpc.textContent =
-		`UPC: ${product.upc || '—'}`;
-
-
-
-	/* Total stock */
-
-	detailOnHand.textContent =
-		product.onHand ?? 0;
-
-
-
-	/* -----------------------------------------------------
-	   LOAD ALL LOCATIONS FOR THIS PRODUCT
-	----------------------------------------------------- */
-
-	let locations = [];
-
-
+const getStoreTime = async () => {
 	try {
-
-		locations =
+		const data =
 			await apiRequest(
-				`${API_BASE}/${encodeURIComponent(product.upc)}/locations`
+				TASK_CLOCK_API
 			);
 
-	} catch (error) {
+		const startTime =
+			Number(
+				data.startTime
+			);
 
+		if (!startTime) {
+			return null;
+		}
+
+		const elapsedSeconds =
+			Math.floor(
+				(Date.now() - startTime) / 1000
+			);
+
+		let totalSeconds =
+			9 * 60 * 60 +
+			elapsedSeconds;
+
+		totalSeconds =
+			totalSeconds %
+			(24 * 60 * 60);
+
+		return totalSeconds;
+
+	} catch (error) {
 		console.error(
-			'Unable to load product locations:',
+			'Unable to load store time:',
 			error
 		);
 
-		locations = [];
-
+		return null;
 	}
-
-
-
-	/* Number of locations */
-
-	detailLocCount.textContent =
-		locations.length;
-
-
-
-	/* Clear previous locations */
-
-	locationModules.innerHTML = '';
-
-
-
-	/* -----------------------------------------------------
-	   CREATE LOCATION MODULES
-	----------------------------------------------------- */
-
-	locations.forEach((location) => {
-
-		const locationModule =
-			document.createElement('div');
-
-		locationModule.className =
-			'metric-card metric-card-location';
-
-
-
-		const locationId =
-			getLocationId(location);
-
-
-
-		const shelf =
-			location.shelf ||
-			location.bay ||
-			'-';
-
-
-
-		locationModule.innerHTML = `
-			<span class="metric-value-location">
-				${locationId}
-			</span>
-
-			<span class="metric-sub">
-				SHELF ${shelf}
-			</span>
-		`;
-
-
-
-		locationModules.appendChild(
-			locationModule
-		);
-
-	});
-
-
-
-	/* -----------------------------------------------------
-	   PRIMARY LOCATION
-	----------------------------------------------------- */
-
-	const primaryLocation =
-		locations.find(
-			location => location.isPrimary
-		) || locations[0];
-
-
-
-	if (primaryLocation) {
-
-		bayLocText.textContent =
-			getLocationId(
-				primaryLocation
-			);
-
-
-		bayShelfNum.textContent =
-			primaryLocation.shelf ||
-			primaryLocation.bay ||
-			'-';
-
-	} else {
-
-		bayLocText.textContent =
-			'No location';
-
-		bayShelfNum.textContent =
-			'-';
-
-	}
-
-
-
-	/* Bay image */
-
-	bayImage.src =
-		product.imageUrl ||
-		product.image?.url ||
-		'';
-
-	bayImage.alt =
-		`${product.description || 'Product'} bay location`;
-
-
-
-	/* Show detail page */
-
-	productDetailView.hidden =
-		false;
-
-
-
-	/* Re-render Lucide icons */
-
-	lucide.createIcons();
-
 };
 
 
+/* =========================================================
+   STORE CLOCK STATE
+========================================================= */
 
-/* ---------------------------------------------------------
-   SEARCH PRODUCT
---------------------------------------------------------- */
+let currentStoreSeconds =
+	null;
 
-const searchProduct = async () => {
+let currentTimelineHour =
+	null;
 
-	const query =
-		input.value.trim().toLowerCase();
-
-
-
-	/* Clear old results */
-
-	productResults.innerHTML = '';
+let currentProduct =
+	null;
 
 
+/* =========================================================
+   CURRENT STORE HOUR
+========================================================= */
 
-	/* Empty search */
+const getCurrentStoreHour = () => {
+	if (
+		currentStoreSeconds === null
+	) {
+		return 9;
+	}
 
-	if (!query) {
+	return Math.floor(
+		currentStoreSeconds / 3600
+	);
+};
 
-		productResults.hidden =
+
+/* =========================================================
+   SEEDED RANDOM
+========================================================= */
+
+const seededRandom = (
+	seed
+) => {
+	let value =
+		seed;
+
+	value =
+		Math.sin(value) *
+		10000;
+
+	return value -
+		Math.floor(value);
+};
+
+
+/* =========================================================
+   TIMELINE TIME FORMAT
+========================================================= */
+
+const formatTimelineHour =
+	(hour) => {
+		const period =
+			hour >= 12
+				? 'PM'
+				: 'AM';
+
+		let displayHour =
+			hour % 12;
+
+		if (
+			displayHour === 0
+		) {
+			displayHour = 12;
+		}
+
+		return `${displayHour} ${period}`;
+	};
+
+
+/* =========================================================
+   STOCK STATUS
+========================================================= */
+
+const getStockStatus =
+	(
+		product,
+		hour
+	) => {
+		const onHand =
+			Number(
+				product.onHand ?? 0
+			);
+
+		const upcString =
+			String(
+				product.upc ?? ''
+			);
+
+		let upcSeed =
+			0;
+
+		for (
+			let i = 0;
+			i < upcString.length;
+			i++
+		) {
+			upcSeed +=
+				upcString.charCodeAt(i) *
+				(i + 1);
+		}
+
+		const random =
+			seededRandom(
+				upcSeed +
+				(hour * 97)
+			);
+
+		if (
+			hour === getCurrentStoreHour() &&
+			onHand <= 0
+		) {
+			return 'oos';
+		}
+
+		if (
+			hour === getCurrentStoreHour() &&
+			onHand > 0 &&
+			onHand <= 3
+		) {
+			return 'low';
+		}
+
+		if (
+			random < 0.10
+		) {
+			return 'oos';
+		}
+
+		if (
+			random < 0.28
+		) {
+			return 'low';
+		}
+
+		return 'available';
+	};
+
+
+/* =========================================================
+   RENDER STOCK TIMELINE
+========================================================= */
+
+const renderStockTimeline =
+	async (
+		product
+	) => {
+		if (!stockTimeline) {
+			return;
+		}
+
+		currentStoreSeconds =
+			await getStoreTime();
+
+		if (
+			currentStoreSeconds === null
+		) {
+			return;
+		}
+
+		const currentHour =
+			Math.floor(
+				currentStoreSeconds / 3600
+			);
+
+		const startHour =
+			6;
+
+		const endHour =
+			Math.min(
+				currentHour,
+				22
+			);
+
+		stockTimeline.replaceChildren();
+
+		if (
+			endHour < startHour
+		) {
+			currentTimelineHour =
+				currentHour;
+
+			return;
+		}
+
+		for (
+			let hour = startHour;
+			hour <= endHour;
+			hour++
+		) {
+			const point =
+				document.createElement(
+					'div'
+				);
+
+			point.className =
+				'timeline-point';
+
+			const circle =
+				document.createElement(
+					'div'
+				);
+
+			const status =
+				getStockStatus(
+					product,
+					hour
+				);
+
+			if (
+				status === 'available'
+			) {
+				circle.className =
+					'timeline-circle timeline-green';
+
+			} else if (
+				status === 'low'
+			) {
+				circle.className =
+					'timeline-circle timeline-yellow';
+
+				const label =
+					document.createElement(
+						'span'
+					);
+
+				label.textContent =
+					'LOW';
+
+				circle.appendChild(
+					label
+				);
+
+			} else {
+				circle.className =
+					'timeline-circle timeline-red';
+
+				const label =
+					document.createElement(
+						'span'
+					);
+
+				label.textContent =
+					'OOS';
+
+				circle.appendChild(
+					label
+				);
+			}
+
+			const time =
+				document.createElement(
+					'span'
+				);
+
+			time.className =
+				'timeline-time';
+
+			time.textContent =
+				formatTimelineHour(
+					hour
+				);
+
+			point.appendChild(
+				circle
+			);
+
+			point.appendChild(
+				time
+			);
+
+			stockTimeline.appendChild(
+				point
+			);
+
+			if (
+				hour < endHour
+			) {
+				const line =
+					document.createElement(
+						'div'
+					);
+
+				line.className =
+					'timeline-line';
+
+				stockTimeline.appendChild(
+					line
+				);
+			}
+		}
+
+		currentTimelineHour =
+			currentHour;
+	};
+
+
+/* =========================================================
+   CHECK SERVER CLOCK
+========================================================= */
+
+const syncTimelineClock =
+	async () => {
+		if (
+			!currentProduct
+		) {
+			return;
+		}
+
+		const newStoreSeconds =
+			await getStoreTime();
+
+		if (
+			newStoreSeconds === null
+		) {
+			return;
+		}
+
+		const newHour =
+			Math.floor(
+				newStoreSeconds / 3600
+			);
+
+		currentStoreSeconds =
+			newStoreSeconds;
+
+		if (
+			currentTimelineHour === null ||
+			newHour !== currentTimelineHour
+		) {
+			await renderStockTimeline(
+				currentProduct
+			);
+		}
+	};
+
+setInterval(
+	syncTimelineClock,
+	1000
+);
+
+
+/* =========================================================
+   PRODUCT LOCATION ID
+========================================================= */
+
+const getLocationId =
+	(location) => {
+		return location.id ??
+			location.modularId ??
+			location.locationId ??
+			'';
+	};
+
+
+/* =========================================================
+   SHOW PRODUCT DETAIL
+========================================================= */
+
+const showProductDetail =
+	async (
+		product
+	) => {
+		currentProduct =
+			product;
+
+		productEmpty.hidden =
 			true;
 
-		productDetailView.hidden =
+		productResults.hidden =
 			true;
 
 		productSearchSection.hidden =
-			false;
-
-		productEmpty.hidden =
-			false;
-
-
-
-		/* Change back button to return to tasks */
-
-		productBackButton.href =
-			'index.html';
-
-		productBackButton.setAttribute(
-			'aria-label',
-			'Back to tasks'
-		);
-
-
-		productEmpty.textContent =
-			'Enter a UPC or product name to search.';
-
-		return;
-
-	}
-
-
-
-	/* -----------------------------------------------------
-	   LOAD DATABASE
-	----------------------------------------------------- */
-
-	let items = [];
-
-
-	try {
-
-		items =
-			await apiRequest(
-				API_BASE
-			);
-
-	} catch (error) {
-
-		console.error(
-			'Unable to load inventory:',
-			error
-		);
-
-
-		productEmpty.hidden =
-			false;
-
-		productResults.hidden =
 			true;
 
-
-		productEmpty.textContent =
-			'Unable to load inventory.';
-
-		return;
-
-	}
+		productDetailView.hidden =
+			false;
 
 
+		/* =====================================================
+		   PRODUCT IMAGE
+		===================================================== */
 
-	let matches = [];
+		const productImage =
+			product.image?.url ||
+			product.imageUrl ||
+			product.image_url ||
+			'';
+
+		const productImageAlt =
+			product.image?.alt ||
+			product.imageAlt ||
+			product.image_alt ||
+			product.description ||
+			'Product image';
+
+		detailImage.src =
+			productImage;
+
+		detailImage.alt =
+			productImageAlt;
 
 
+		/* =====================================================
+		   PRODUCT NAME
+		===================================================== */
 
-	/* -----------------------------------------------------
-	   UPC SEARCH
-	----------------------------------------------------- */
+		detailName.textContent =
+			product.description ||
+			'Product Name';
 
-	if (/^\d+$/.test(query)) {
 
-		if (query.length < 6) {
+		/* =====================================================
+		   UPC
+		===================================================== */
+
+		detailUpc.textContent =
+			`UPC: ${product.upc || '-'}`;
+
+
+		/* =====================================================
+		   ON HAND
+		===================================================== */
+
+		detailOnHand.textContent =
+			product.onHand ??
+			0;
+
+
+		/* =====================================================
+		   LOCATIONS
+		===================================================== */
+
+		const locations =
+			Array.isArray(
+				product.locations
+			)
+				? product.locations
+				: [];
+
+		detailLocCount.textContent =
+			locations.length;
+
+		locationModules.replaceChildren();
+
+		locations.forEach(
+			(
+				location,
+				index
+			) => {
+				const card =
+					document.createElement(
+						'div'
+					);
+
+				card.className =
+					'metric-card';
+
+				const locationValue =
+					document.createElement(
+						'span'
+					);
+
+				locationValue.className =
+					'metric-value-location';
+
+				locationValue.textContent =
+					location.modularId ||
+					'-';
+
+				const locationSub =
+					document.createElement(
+						'span'
+					);
+
+				locationSub.className =
+					'metric-sub';
+
+				locationSub.textContent =
+					`AISLE ${location.aisle ?? '-'} • ` +
+					`BAY ${location.bay ?? '-'}`;
+
+				card.appendChild(
+					locationValue
+				);
+
+				card.appendChild(
+					locationSub
+				);
+
+				locationModules.appendChild(
+					card
+				);
+			}
+		);
+
+
+		/* =====================================================
+		   PRIMARY LOCATION DETAILS
+		===================================================== */
+
+		const primaryLocation =
+			locations.find(
+				location =>
+					location.isPrimary
+			) ||
+			locations[0];
+
+		if (
+			primaryLocation
+		) {
+			bayLocText.textContent =
+				`Aisle ${primaryLocation.aisle ?? '-'} ` +
+				`${primaryLocation.aisleSide ?? ''} ` +
+				`Bay ${primaryLocation.bay ?? '-'}`;
+
+			bayShelfNum.textContent =
+				primaryLocation.shelf ??
+				'-';
+
+		} else {
+			bayLocText.textContent =
+				'-';
+
+			bayShelfNum.textContent =
+				'-';
+		}
+
+
+		/* =====================================================
+		   BAY IMAGE
+		===================================================== */
+
+		bayImage.src =
+			productImage;
+
+		bayImage.alt =
+			productImageAlt;
+
+
+		currentTimelineHour =
+			null;
+
+		await renderStockTimeline(
+			product
+		);
+	};
+
+
+/* =========================================================
+   SEARCH PRODUCTS
+========================================================= */
+
+const searchProducts =
+	async () => {
+		const query =
+			input.value.trim();
+
+		if (!query) {
+			productResults.hidden =
+				true;
+
+			productDetailView.hidden =
+				true;
+
+			productSearchSection.hidden =
+				false;
 
 			productEmpty.hidden =
 				false;
 
+			productEmpty.textContent =
+				'Enter a UPC or product name to search.';
+
+			return;
+		}
+
+		try {
+			const results =
+				await apiRequest(
+					`${API_BASE}/search?q=` +
+					encodeURIComponent(
+						query
+					)
+				);
+
+			productResults.replaceChildren();
+
+			if (
+				!Array.isArray(results) ||
+				results.length === 0
+			) {
+				productResults.hidden =
+					false;
+
+				productDetailView.hidden =
+					true;
+
+				productEmpty.hidden =
+					false;
+
+				productEmpty.textContent =
+					'No products found.';
+
+				return;
+			}
+
+			productEmpty.hidden =
+				true;
+
 			productResults.hidden =
+				false;
+
+			productDetailView.hidden =
 				true;
 
 
+			/* =================================================
+			   SEARCH RESULTS
+			================================================= */
+
+			results.forEach(
+				product => {
+
+					const result =
+						document.createElement(
+							'button'
+						);
+
+					result.type =
+						'button';
+
+					result.className =
+						'product-result';
+
+
+					/* IMAGE */
+
+					const image =
+						document.createElement(
+							'img'
+						);
+
+					const productImage =
+						product.image?.url ||
+						product.imageUrl ||
+						product.image_url ||
+						'';
+
+					const productImageAlt =
+						product.image?.alt ||
+						product.imageAlt ||
+						product.image_alt ||
+						product.description ||
+						'Product image';
+
+					image.src =
+						productImage;
+
+					image.alt =
+						productImageAlt;
+
+					image.addEventListener(
+						'error',
+						() => {
+							image.removeAttribute(
+								'src'
+							);
+						},
+						{ once: true }
+					);
+
+
+					/* DETAILS */
+
+					const details =
+						document.createElement(
+							'div'
+						);
+
+					details.className =
+						'product-result-details';
+
+
+					const name =
+						document.createElement(
+							'strong'
+						);
+
+					name.textContent =
+						product.description ||
+						'Product';
+
+
+					const upc =
+						document.createElement(
+							'span'
+						);
+
+					upc.textContent =
+						`UPC: ${product.upc || '-'}`;
+
+
+					details.appendChild(
+						name
+					);
+
+					details.appendChild(
+						upc
+					);
+
+
+					result.appendChild(
+						image
+					);
+
+					result.appendChild(
+						details
+					);
+
+
+					/* LOAD FULL PRODUCT */
+
+					result.addEventListener(
+						'click',
+						async () => {
+							try {
+								const fullProduct =
+									await apiRequest(
+										`${API_BASE}/${encodeURIComponent(
+											product.upc
+										)}`
+									);
+
+								await showProductDetail(
+									fullProduct
+								);
+
+							} catch (error) {
+								console.error(
+									'Unable to load product:',
+									error
+								);
+							}
+						}
+					);
+
+
+					productResults.appendChild(
+						result
+					);
+				}
+			);
+
+		} catch (error) {
+			console.error(
+				'Product search failed:',
+				error
+			);
+
+			productResults.hidden =
+				true;
+
+			productDetailView.hidden =
+				true;
+
+			productEmpty.hidden =
+				false;
+
 			productEmpty.textContent =
-				'Enter at least 6 digits for a UPC.';
-
-			return;
-
+				'Unable to search products.';
 		}
+	};
 
 
-
-		matches =
-			items.filter((item) =>
-
-				String(
-					item.upc ?? ''
-				).startsWith(query)
-
-			);
-
-	}
-
-
-
-	/* -----------------------------------------------------
-	   PRODUCT NAME SEARCH
-	----------------------------------------------------- */
-
-	else {
-
-		matches =
-			items.filter((item) =>
-
-				String(
-					item.description ?? ''
-				)
-				.toLowerCase()
-				.includes(query)
-
-			);
-
-	}
-
-
-
-	/* -----------------------------------------------------
-	   NO RESULTS
-	----------------------------------------------------- */
-
-	if (!matches.length) {
-
-		productEmpty.hidden =
-			false;
-
-		productResults.hidden =
-			true;
-
-
-		productEmpty.textContent =
-			'No products found.';
-
-		return;
-
-	}
-
-
-
-	/* -----------------------------------------------------
-	   DISPLAY RESULTS
-	----------------------------------------------------- */
-
-	productEmpty.hidden =
-		true;
-
-	productResults.hidden =
-		false;
-
-
-
-	matches.forEach((product) => {
-
-		const result =
-			document.createElement('button');
-
-
-		result.type =
-			'button';
-
-
-		result.className =
-			'product-result';
-
-
-
-		const imageUrl =
-			product.imageUrl ||
-			product.image?.url ||
-			'';
-
-
-
-		const imageHtml =
-			imageUrl
-
-				? `
-					<img
-						src="${imageUrl}"
-						alt="${product.description || 'Product image'}"
-					>
-				`
-
-				: `
-					<div class="product-result-placeholder">
-						No image
-					</div>
-				`;
-
-
-
-		result.innerHTML = `
-
-			<div class="product-result-image">
-				${imageHtml}
-			</div>
-
-			<div class="product-result-info">
-
-				<div class="product-result-name">
-					${product.description || 'Unknown product'}
-				</div>
-
-				<div class="product-result-upc">
-					UPC: ${product.upc || '—'}
-				</div>
-
-			</div>
-
-		`;
-
-
-
-		result.addEventListener(
-			'click',
-			() => showProductDetail(product)
-		);
-
-
-
-		productResults.appendChild(
-			result
-		);
-
-	});
-
-};
-
-
-
-/* ---------------------------------------------------------
-   EVENTS
---------------------------------------------------------- */
-
-input.addEventListener(
-	'input',
-	searchProduct
-);
-
+/* =========================================================
+   SEARCH EVENTS
+========================================================= */
 
 searchButton.addEventListener(
 	'click',
-	searchProduct
+	searchProducts
+);
+
+input.addEventListener(
+	'input',
+	searchProducts
+);
+input.addEventListener(
+	'keydown',
+	event => {
+		if (
+			event.key === 'Enter'
+		) {
+			searchProducts();
+		}
+	}
 );
 
 
-input.addEventListener(
-	'keydown',
-	(event) => {
+/* =========================================================
+   BACK BUTTON
+========================================================= */
 
-		if (event.key === 'Enter') {
+productBackButton.addEventListener(
+	'click',
+	event => {
+		/* Allow normal navigation back to index.html. */
+	}
+);
 
-			searchProduct();
 
-		}
+/* =========================================================
+   TAB SWITCHING
+========================================================= */
 
+const tabButtons =
+	document.querySelectorAll(
+		'.tab-btn'
+	);
+
+tabButtons.forEach(
+	button => {
+		button.addEventListener(
+			'click',
+			() => {
+
+				tabButtons.forEach(
+					tab => {
+						tab.classList.remove(
+							'active'
+						);
+					}
+				);
+
+				button.classList.add(
+					'active'
+				);
+			}
+		);
 	}
 );

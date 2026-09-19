@@ -14,7 +14,58 @@ const PORT =
 	process.env.PORT || 3000;
 
 
+/* =========================================================
+   TASK CLOCK
+========================================================= */
 
+let taskClockStart = Date.now();
+
+
+/* GET TASK CLOCK */
+
+app.get('/api/task-clock', (req, res) => {
+
+	res.json({
+		startTime: taskClockStart
+	});
+
+});
+
+
+/* RESET TASK CLOCK */
+
+app.post('/api/task-clock/reset', (req, res) => {
+
+	taskClockStart = Date.now();
+
+	res.json({
+		startTime: taskClockStart
+	});
+
+});
+app.post(
+	'/api/task-clock/advance-hour',
+	(req, res) => {
+
+		/*
+			Move the server clock forward
+			by exactly one hour.
+
+			Moving the start time backwards
+			means the calculated elapsed time
+			increases by one hour.
+		*/
+
+		taskClockStart -=
+			60 * 60 * 1000;
+
+
+		res.json({
+			startTime: taskClockStart
+		});
+
+	}
+);
 /* =========================================================
    MIDDLEWARE
    ========================================================= */

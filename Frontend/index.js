@@ -670,48 +670,220 @@ selectionSlider.addEventListener(
    TASK CLOCK
 ========================================================= */
 
-let clockHour =
-	9;
+const TASK_CLOCK_API =
+	'http://localhost:3000/api/task-clock';
 
-let clockMinute =
-	0;
 
-let clockSecond =
-	0;
+let taskClockStart =
+	null;
 
-let clockPeriod =
-	'am';
+let previousHour =
+	null;
 
 
 
-const renderTimer = () => {
+/* =========================================================
+   GET TASK CLOCK FROM SERVER
+========================================================= */
 
-	timerValue.textContent =
-		`${clockHour}:` +
-		`${clockMinute
-			.toString()
-			.padStart(2, '0')}:` +
-		`${clockSecond
-			.toString()
-			.padStart(2, '0')} ` +
-		clockPeriod;
+const getTaskClock = async () => {
+
+	try {
+
+		const response =
+			await fetch(
+				TASK_CLOCK_API
+			);
+
+
+		if (!response.ok) {
+
+			throw new Error(
+				'Unable to load task clock'
+			);
+
+		}
+
+
+		const data =
+			await response.json();
+
+
+		taskClockStart =
+			Number(
+				data.startTime
+			);
+
+
+	} catch (error) {
+
+		console.error(
+			'Unable to load task clock:',
+			error
+		);
+
+	}
 
 };
 
 
 
+/* =========================================================
+   RENDER TASK CLOCK
+========================================================= */
+
+const renderTimer = () => {
+
+	if (!taskClockStart) {
+		return;
+	}
+
+
+	const elapsedSeconds =
+		Math.floor(
+			(Date.now() - taskClockStart) / 1000
+		);
+
+
+	/*
+		Start the store clock at 9:00:00 AM.
+	*/
+
+	let totalSeconds =
+		9 * 60 * 60 +
+		elapsedSeconds;
+
+
+	/*
+		Keep the clock within 24 hours.
+	*/
+
+	totalSeconds =
+		totalSeconds % (24 * 60 * 60);
+
+
+	let hour =
+		Math.floor(
+			totalSeconds / 3600
+		);
+
+
+	const minute =
+		Math.floor(
+			(totalSeconds % 3600) / 60
+		);
+
+
+	const second =
+		totalSeconds % 60;
+
+
+	const period =
+		hour >= 12
+			? 'pm'
+			: 'am';
+
+
+	/*
+		Convert to 12-hour format.
+	*/
+
+	hour =
+		hour % 12;
+
+
+	if (hour === 0) {
+		hour = 12;
+	}
+
+
+	timerValue.textContent =
+		`${hour}:` +
+		`${minute
+			.toString()
+			.padStart(2, '0')}:` +
+		`${second
+			.toString()
+			.padStart(2, '0')} ` +
+		period;
+
+};
+
+
+
+/* =========================================================
+   ADVANCE SERVER CLOCK BY ONE HOUR
+========================================================= */
+
 taskClock.addEventListener(
 	'click',
-	() => {
+	async () => {
 
-		clockMinute =
-			59;
+		try {
 
-		clockSecond =
-			55;
+			const response =
+				await fetch(
+					`${TASK_CLOCK_API}/advance-hour`,
+					{
+						method: 'POST'
+					}
+				);
 
 
-		renderTimer();
+			if (!response.ok) {
+
+				throw new Error(
+					'Unable to advance task clock'
+				);
+
+			}
+
+
+			const data =
+				await response.json();
+
+
+			/*
+				Update this page immediately
+				with the new server time.
+			*/
+
+			taskClockStart =
+				Number(
+					data.startTime
+				);
+
+
+			renderTimer();
+
+
+			/*
+				Reset the previous hour so the
+				next real hour transition still
+				works correctly.
+			*/
+
+			previousHour =
+				null;
+
+
+			/*
+				Generate a fresh set of tasks
+				when the clock is manually
+				advanced.
+			*/
+
+			renderRandomTasks();
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to advance task clock:',
+				error
+			);
+
+		}
 
 	}
 );
@@ -725,61 +897,50 @@ taskClock.addEventListener(
 setInterval(
 	() => {
 
-		clockSecond += 1;
-
-
-		if (
-			clockSecond === 60
-		) {
-
-			clockSecond =
-				0;
-
-			clockMinute +=
-				1;
-
+		if (!taskClockStart) {
+			return;
 		}
 
 
+		const elapsedSeconds =
+			Math.floor(
+				(Date.now() - taskClockStart) / 1000
+			);
+
+
+		const totalSeconds =
+			(
+				9 * 60 * 60
+			) +
+			elapsedSeconds;
+
+
+		const currentHour =
+			Math.floor(
+				(
+					totalSeconds %
+					(24 * 60 * 60)
+				) / 3600
+			);
+
+
+		/*
+			Generate new random tasks whenever
+			the store clock moves into a new hour.
+		*/
+
 		if (
-			clockMinute === 60
+			previousHour !== null &&
+			currentHour !== previousHour
 		) {
-
-			clockMinute =
-				0;
-
-			clockHour +=
-				1;
-
-
-			if (
-				clockHour === 12
-			) {
-
-				clockPeriod =
-					clockPeriod === 'am'
-						? 'pm'
-						: 'am';
-
-			} else if (
-				clockHour > 12
-			) {
-
-				clockHour =
-					1;
-
-			}
-
-
-			/*
-				Generate the next set of
-				random tasks whenever the
-				hour changes.
-			*/
 
 			renderRandomTasks();
 
 		}
+
+
+		previousHour =
+			currentHour;
 
 
 		renderTimer();
@@ -790,9 +951,54 @@ setInterval(
 
 
 
-renderTimer();
+/* =========================================================
+   INITIALISE TASK CLOCK
+========================================================= */
+
+const initialiseTaskClock =
+	async () => {
+
+		await getTaskClock();
+
+		renderTimer();
 
 
+		/*
+			Establish the current hour so the
+			first interval doesn't trigger a
+			task refresh unnecessarily.
+		*/
+
+		if (taskClockStart) {
+
+			const elapsedSeconds =
+				Math.floor(
+					(Date.now() - taskClockStart) / 1000
+				);
+
+
+			const totalSeconds =
+				(
+					9 * 60 * 60
+				) +
+				elapsedSeconds;
+
+
+			previousHour =
+				Math.floor(
+					(
+						totalSeconds %
+						(24 * 60 * 60)
+					) / 3600
+				);
+
+		}
+
+	};
+
+
+
+initialiseTaskClock();
 
 /* =========================================================
    FILTER PANEL
