@@ -127,7 +127,7 @@ app.get('/api/health', (req, res) => {
 */
 
 const frontendPath =
-	path.join(__dirname, '../frontend');
+	path.join(__dirname, '../Frontend');
 
 
 /* SERVE FRONTEND FILES */
