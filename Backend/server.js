@@ -159,3 +159,32 @@ app.listen(PORT, () => {
 	);
 
 });
+app.get('/api/db-test', async (req, res) => {
+
+	try {
+
+		const pool = require('./db/pool');
+
+		const result = await pool.query(
+			'SELECT NOW() AS current_time'
+		);
+
+		res.json({
+			status: 'ok',
+			database: 'connected',
+			time: result.rows[0].current_time
+		});
+
+	} catch (error) {
+
+		console.error('Database test failed:', error);
+
+		res.status(500).json({
+			status: 'error',
+			database: 'not connected',
+			message: error.message
+		});
+
+	}
+
+});
