@@ -3,6 +3,8 @@ const pool = require('./pool');
 const products = [
 	{
 		upc: '9900000000011',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000001',
 		description: 'ASDA Crispy Skin-On Fries 750g',
 		price: 2.20,
@@ -18,6 +20,8 @@ const products = [
 	},
 	{
 		upc: '9900000000028',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000002',
 		description: 'ASDA Seasoned Sweet Potato Fries 500g',
 		price: 2.20,
@@ -32,22 +36,26 @@ const products = [
 		modularId: 'FF-15-L-4'
 	},
 	{
-		upc: '9900000000035',
-		itemNumber: '990000003',
-		description: 'ASDA Frozen Garden Peas 1kg',
-		price: 1.50,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '72',
-		aisle: '15',
-		aisleSide: 'R',
-		bay: '5',
-		imageUrl: '',
-		modularId: 'FF-15-R-5'
-	},
+        upc: '05060198649592',
+        caseBarcode: null,
+        alternativeBarcode: null,
+        itemNumber: '100543572',
+        description: 'Crostam Garlic Flatbread',
+        price: 2.50,
+        onHand: 12,
+        caseSize: 0,
+        maxShelf: 14,
+        department: 'Bakery & Frozen',
+        aisle: 'FF16',
+        aisleSide: 'R',
+        bay: '18',
+        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk1iGjgeKF7KRduJuDDDcJqSh1h21kTbKAz73-LuyqAA&s',
+        modularId: 'FF-FF16-R-18-2'
+    },
 	{
 		upc: '9900000000042',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000004',
 		description: 'ASDA Double Pepperoni Stonebaked Pizza 309g',
 		price: 1.72,
@@ -63,6 +71,8 @@ const products = [
 	},
 	{
 		upc: '9900000000059',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000005',
 		description: 'ASDA Four Cheese Stonebaked Pizza 315g',
 		price: 1.72,
@@ -78,6 +88,8 @@ const products = [
 	},
 	{
 		upc: '9900000000066',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000006',
 		description: 'ASDA Chicken Breast Strips 500g',
 		price: 4.58,
@@ -93,6 +105,8 @@ const products = [
 	},
 	{
 		upc: '9900000000073',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000007',
 		description: 'Free From by ASDA 20 Chicken Nuggets 400g',
 		price: 4.00,
@@ -108,6 +122,8 @@ const products = [
 	},
 	{
 		upc: '9900000000080',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000008',
 		description: 'ASDA 4 Battered Cod Fillets 440g',
 		price: 7.50,
@@ -123,6 +139,8 @@ const products = [
 	},
 	{
 		upc: '9900000000097',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000009',
 		description: 'Tiger Tiger Dumpling Pastry 300g',
 		price: 2.50,
@@ -138,6 +156,8 @@ const products = [
 	},
 	{
 		upc: '9900000000103',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000010',
 		description: 'Cornetto MAX Hazelnut & Chocolate Ice Cream Cones 4x90ml',
 		price: 4.00,
@@ -153,6 +173,8 @@ const products = [
 	},
 	{
 		upc: '9900000000110',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000011',
 		description: 'Twister Mini Pineapple Ice Cream Lollies 6x50ml',
 		price: 2.74,
@@ -168,6 +190,8 @@ const products = [
 	},
 	{
 		upc: '9900000000127',
+		caseBarcode: null,
+		alternativeBarcode: null,
 		itemNumber: '990000012',
 		description: 'ASDA Party Food 2 Mature Cheddar & Spring Onion Bakes 230g',
 		price: 2.17,
@@ -182,20 +206,22 @@ const products = [
 		modularId: 'FF-14-L-18'
 	},
 	{
-		upc: '05060198649592',
-		itemNumber: '100543572',
-		description: 'Crostam Garlic Flatbread',
-		price: 2.50,
-		onHand: 12,
-		caseSize: 0,
-		maxShelf: 14,
-		department: 'Bakery & Frozen',
-		aisle: 'FF16',
-		aisleSide: 'R',
-		bay: '18',
-		imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=320&q=80',
-		modularId: 'FF-FF16-R-18-2'
-	}
+        upc: '05060198649592',
+        caseBarcode: null,
+        alternativeBarcode: null,
+        itemNumber: '100543572',
+        description: 'Crostam Garlic Flatbread',
+        price: 2.50,
+        onHand: 12,
+        caseSize: 0,
+        maxShelf: 14,
+        department: 'Bakery & Frozen',
+        aisle: 'FF16',
+        aisleSide: 'R',
+        bay: '18',
+        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk1iGjgeKF7KRduJuDDDcJqSh1h21kTbKAz73-LuyqAA&s',
+        modularId: 'FF-FF16-R-18-2'
+    },
 ];
 
 async function seed() {
@@ -205,10 +231,13 @@ async function seed() {
 		await client.query('BEGIN');
 
 		for (const product of products) {
-			await client.query(
+
+			const itemResult = await client.query(
 				`
 				INSERT INTO items (
 					upc,
+					case_barcode,
+					alternative_barcode,
 					item_number,
 					description,
 					on_hand,
@@ -220,20 +249,29 @@ async function seed() {
 					image_url,
 					image_alt
 				)
-				VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+				VALUES (
+					$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
+				)
 				ON CONFLICT (upc)
 				DO UPDATE SET
+					case_barcode = EXCLUDED.case_barcode,
+					alternative_barcode = EXCLUDED.alternative_barcode,
 					item_number = EXCLUDED.item_number,
 					description = EXCLUDED.description,
 					price = EXCLUDED.price,
+					case_size = EXCLUDED.case_size,
+					max_shelf = EXCLUDED.max_shelf,
 					department = EXCLUDED.department,
 					range_status = EXCLUDED.range_status,
 					image_url = EXCLUDED.image_url,
 					image_alt = EXCLUDED.image_alt,
 					updated_at = CURRENT_TIMESTAMP
+				RETURNING id
 				`,
 				[
 					product.upc,
+					product.caseBarcode,
+					product.alternativeBarcode,
 					product.itemNumber,
 					product.description,
 					product.onHand,
@@ -247,10 +285,12 @@ async function seed() {
 				]
 			);
 
+			const itemId = itemResult.rows[0].id;
+
 			await client.query(
 				`
 				INSERT INTO modulars (
-					upc,
+					item_id,
 					aisle,
 					aisle_side,
 					bay,
@@ -259,10 +299,11 @@ async function seed() {
 					is_primary
 				)
 				VALUES ($1,$2,$3,$4,$5,$6,$7)
-				ON CONFLICT DO NOTHING
+				ON CONFLICT (item_id, modular_id)
+				DO NOTHING
 				`,
 				[
-					product.upc,
+					itemId,
 					product.aisle,
 					product.aisleSide,
 					product.bay,
@@ -275,14 +316,24 @@ async function seed() {
 
 		await client.query('COMMIT');
 
-		console.log(`Seed complete: ${products.length} products inserted/updated.`);
+		console.log(
+			`Seed complete: ${products.length} products inserted/updated.`
+		);
+
 	} catch (error) {
+
 		await client.query('ROLLBACK');
+
 		console.error('Seed failed:', error);
+
 	} finally {
+
 		client.release();
+
 		await pool.end();
+
 	}
 }
 
 seed();
+

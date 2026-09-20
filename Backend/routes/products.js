@@ -14,13 +14,23 @@ const formatItem = (row) => {
 	return {
 		upc: row.upc,
 
+		caseBarcode: row.case_barcode,
+
+		alternativeBarcode: row.alternative_barcode,
+
+		hffssStatus: row.hffss_status,
+
 		description: row.description,
+
+		department: row.department,
 
 		onHand: row.on_hand,
 
 		price: Number(row.price),
 
 		caseSize: row.case_size,
+
+		weight: row.weight,
 
 		itemNumber: row.item_number,
 
@@ -52,6 +62,8 @@ const formatLocation = (row) => {
 
 	return {
 		id: row.id,
+
+		itemId: row.item_id,
 
 		upc: row.upc,
 
@@ -98,7 +110,7 @@ router.get('/', async (req, res) => {
 
 				FROM modulars
 
-				WHERE modulars.upc = i.upc
+				WHERE modulars.item_id = i.id
 
 				ORDER BY is_primary DESC, id ASC
 
@@ -169,7 +181,7 @@ router.get('/search', async (req, res) => {
 
 				FROM modulars
 
-				WHERE modulars.upc = i.upc
+				WHERE modulars.item_id = i.id
 
 				ORDER BY is_primary DESC, id ASC
 
@@ -179,6 +191,8 @@ router.get('/search', async (req, res) => {
 
 			WHERE
 				i.upc ILIKE $1
+				OR i.case_barcode ILIKE $1
+				OR i.alternative_barcode ILIKE $1
 				OR i.description ILIKE $1
 
 			ORDER BY i.description
@@ -238,7 +252,7 @@ router.get('/:upc', async (req, res) => {
 
 				FROM modulars
 
-				WHERE modulars.upc = i.upc
+				WHERE modulars.item_id = i.id
 
 				ORDER BY is_primary DESC, id ASC
 
@@ -246,7 +260,12 @@ router.get('/:upc', async (req, res) => {
 
 			) primary_location ON TRUE
 
-			WHERE i.upc = $1
+			WHERE
+				i.upc = $1
+				OR i.case_barcode = $1
+				OR i.alternative_barcode = $1
+
+			LIMIT 1
 		`, [upc]);
 
 
@@ -259,16 +278,30 @@ router.get('/:upc', async (req, res) => {
 		}
 
 
+		const productRow =
+			productResult.rows[0];
+
+
 		const locationResult = await pool.query(`
-			SELECT *
-			FROM modulars
-			WHERE upc = $1
-			ORDER BY is_primary DESC, id ASC
-		`, [upc]);
+			SELECT
+				m.*,
+				i.upc
+
+			FROM modulars m
+
+			JOIN items i
+				ON i.id = m.item_id
+
+			WHERE m.item_id = $1
+
+			ORDER BY m.is_primary DESC, m.id ASC
+		`, [
+			productRow.id
+		]);
 
 
 		const product =
-			formatItem(productResult.rows[0]);
+			formatItem(productRow);
 
 
 		product.locations =
@@ -306,12 +339,50 @@ router.get('/:upc/locations', async (req, res) => {
 
 	try {
 
+		const itemResult =
+			await pool.query(`
+				SELECT id, upc
+				FROM items
+				WHERE
+					upc = $1
+					OR case_barcode = $1
+					OR alternative_barcode = $1
+
+				LIMIT 1
+			`, [
+				upc
+			]);
+
+
+		if (!itemResult.rows.length) {
+
+			return res.status(404).json({
+				error: 'Product not found'
+			});
+
+		}
+
+
+		const item =
+			itemResult.rows[0];
+
+
 		const result = await pool.query(`
-			SELECT *
-			FROM modulars
-			WHERE upc = $1
-			ORDER BY is_primary DESC, id ASC
-		`, [upc]);
+			SELECT
+				m.*,
+				i.upc
+
+			FROM modulars m
+
+			JOIN items i
+				ON i.id = m.item_id
+
+			WHERE m.item_id = $1
+
+			ORDER BY m.is_primary DESC, m.id ASC
+		`, [
+			item.id
+		]);
 
 
 		res.json(
@@ -359,20 +430,32 @@ router.post('/:upc/locations', async (req, res) => {
 		   CHECK PRODUCT EXISTS
 		===================================================== */
 
-		const item =
-			await pool.query(
-				'SELECT upc FROM items WHERE upc = $1',
-				[upc]
-			);
+		const itemResult =
+			await pool.query(`
+				SELECT id, upc
+				FROM items
+				WHERE
+					upc = $1
+					OR case_barcode = $1
+					OR alternative_barcode = $1
+
+				LIMIT 1
+			`, [
+				upc
+			]);
 
 
-		if (!item.rows.length) {
+		if (!itemResult.rows.length) {
 
 			return res.status(404).json({
 				error: 'Product not found'
 			});
 
 		}
+
+
+		const item =
+			itemResult.rows[0];
 
 
 
@@ -401,7 +484,7 @@ router.post('/:upc/locations', async (req, res) => {
 
 		/* =====================================================
 		   NORMALISE AISLE
-		   
+
 		   Accepts:
 
 		   16
@@ -541,9 +624,9 @@ router.post('/:upc/locations', async (req, res) => {
 			await pool.query(`
 				SELECT COUNT(*) AS count
 				FROM modulars
-				WHERE upc = $1
+				WHERE item_id = $1
 			`, [
-				upc
+				item.id
 			]);
 
 
@@ -574,9 +657,9 @@ router.post('/:upc/locations', async (req, res) => {
 			await pool.query(`
 				UPDATE modulars
 				SET is_primary = FALSE
-				WHERE upc = $1
+				WHERE item_id = $1
 			`, [
-				upc
+				item.id
 			]);
 
 		}
@@ -591,7 +674,7 @@ router.post('/:upc/locations', async (req, res) => {
 			await pool.query(`
 				INSERT INTO modulars (
 					id,
-					upc,
+					item_id,
 					aisle,
 					aisle_side,
 					bay,
@@ -614,7 +697,7 @@ router.post('/:upc/locations', async (req, res) => {
 				RETURNING *
 			`, [
 				nextId,
-				upc,
+				item.id,
 				cleanAisle || null,
 				cleanAisleSide || null,
 				cleanBay || null,
@@ -624,8 +707,16 @@ router.post('/:upc/locations', async (req, res) => {
 			]);
 
 
+		const location =
+			result.rows[0];
+
+
+		location.upc =
+			item.upc;
+
+
 		res.status(201).json(
-			formatLocation(result.rows[0])
+			formatLocation(location)
 		);
 
 
@@ -659,9 +750,14 @@ router.put('/:upc', async (req, res) => {
 		onHand,
 		price,
 		caseSize,
+		weight,
 		itemNumber,
 		maxShelf,
-		image
+		department,
+		image,
+		caseBarcode,
+		alternativeBarcode,
+		hffssStatus
 	} = req.body;
 
 
@@ -675,25 +771,38 @@ router.put('/:upc', async (req, res) => {
 				on_hand = COALESCE($2, on_hand),
 				price = COALESCE($3, price),
 				case_size = COALESCE($4, case_size),
-				item_number = COALESCE($5, item_number),
-				max_shelf = COALESCE($6, max_shelf),
-				image_url = COALESCE($7, image_url),
-				image_alt = COALESCE($8, image_alt),
+				weight = COALESCE($5, weight),
+				item_number = COALESCE($6, item_number),
+				max_shelf = COALESCE($7, max_shelf),
+				department = COALESCE($8, department),
+				image_url = COALESCE($9, image_url),
+				image_alt = COALESCE($10, image_alt),
+				case_barcode = COALESCE($11, case_barcode),
+				alternative_barcode = COALESCE($12, alternative_barcode),
+				hffss_status = COALESCE($13, hffss_status),
 				updated_at = CURRENT_TIMESTAMP
 
-			WHERE upc = $9
+			WHERE
+				upc = $14
+				OR case_barcode = $14
+				OR alternative_barcode = $14
 
 			RETURNING *
 		`, [
-			description,
-			onHand,
-			price,
-			caseSize,
-			itemNumber,
-			maxShelf,
-			image?.url,
-			image?.alt,
-			upc
+			description,        // $1
+			onHand,             // $2
+			price,              // $3
+			caseSize,           // $4
+			weight,             // $5
+			itemNumber,         // $6
+			maxShelf,           // $7
+			department,         // $8
+			image?.url,         // $9
+			image?.alt,         // $10
+			caseBarcode,        // $11
+			alternativeBarcode, // $12
+			hffssStatus,        // $13
+			upc                 // $14
 		]);
 
 
@@ -718,6 +827,37 @@ router.put('/:upc', async (req, res) => {
 			error
 		);
 
+
+		/* =====================================================
+		   BARCODE DUPLICATE ERROR
+		===================================================== */
+
+		if (
+			error.message ===
+			'Barcode already exists on another item.'
+		) {
+
+			return res.status(409).json({
+				error:
+					'Barcode already exists on another item.'
+			});
+
+		}
+
+
+		if (
+			error.message ===
+			'Barcode cannot be duplicated within the same item.'
+		) {
+
+			return res.status(409).json({
+				error:
+					'Barcode cannot be duplicated within the same item.'
+			});
+
+		}
+
+
 		res.status(500).json({
 			error: 'Failed to update product'
 		});
@@ -725,9 +865,6 @@ router.put('/:upc', async (req, res) => {
 	}
 
 });
-
-
-
 /* =========================================================
    DELETE LOCATION
 ========================================================= */
@@ -772,9 +909,9 @@ router.delete('/locations/:id', async (req, res) => {
 			await pool.query(`
 				UPDATE modulars
 				SET is_primary = FALSE
-				WHERE upc = $1
+				WHERE item_id = $1
 			`, [
-				deletedLocation.upc
+				deletedLocation.item_id
 			]);
 
 
@@ -784,12 +921,12 @@ router.delete('/locations/:id', async (req, res) => {
 				WHERE id = (
 					SELECT id
 					FROM modulars
-					WHERE upc = $1
+					WHERE item_id = $1
 					ORDER BY id ASC
 					LIMIT 1
 				)
 			`, [
-				deletedLocation.upc
+				deletedLocation.item_id
 			]);
 
 		}
@@ -835,10 +972,22 @@ router.put(
 
 			const location =
 				await pool.query(`
-					SELECT *
-					FROM modulars
-					WHERE id = $1
-					AND upc = $2
+					SELECT
+						m.*,
+						i.upc
+
+					FROM modulars m
+
+					JOIN items i
+						ON i.id = m.item_id
+
+					WHERE
+						m.id = $1
+						AND (
+							i.upc = $2
+							OR i.case_barcode = $2
+							OR i.alternative_barcode = $2
+						)
 				`, [
 					id,
 					upc
@@ -854,12 +1003,16 @@ router.put(
 			}
 
 
+			const itemId =
+				location.rows[0].item_id;
+
+
 			await pool.query(`
 				UPDATE modulars
 				SET is_primary = FALSE
-				WHERE upc = $1
+				WHERE item_id = $1
 			`, [
-				upc
+				itemId
 			]);
 
 
@@ -868,12 +1021,14 @@ router.put(
 					UPDATE modulars
 					SET is_primary = TRUE
 					WHERE id = $1
-					AND upc = $2
 					RETURNING *
 				`, [
-					id,
-					upc
+					id
 				]);
+
+
+			result.rows[0].upc =
+				location.rows[0].upc;
 
 
 			res.json(

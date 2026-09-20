@@ -66,7 +66,32 @@ const bayImage =
 
 const stockTimeline =
 	document.querySelector('#stock-timeline');
+const detailCaseSize =
+	document.querySelector('#detail-case-size');
 
+const detailWeight =
+	document.querySelector('#detail-weight');
+
+const detailUrlBarcode =
+	document.querySelector('#detail-url-barcode');
+
+const detailCaseBarcode =
+	document.querySelector('#detail-case-barcode');
+
+const detailItemNumber =
+	document.querySelector('#detail-item-number');
+
+const detailDepartment =
+	document.querySelector('#detail-department');
+
+const detailPrice =
+	document.querySelector('#detail-price');
+
+const detailMaxShelf =
+	document.querySelector('#detail-max-shelf');
+
+const detailHffs =
+	document.querySelector('#detail-hffs');
 
 /* =========================================================
    API REQUEST
@@ -569,8 +594,87 @@ const showProductDetail =
 		detailOnHand.textContent =
 			product.onHand ??
 			0;
+				/* =====================================================
+		   PRODUCT DETAILS
+		===================================================== */
+
+		detailCaseSize.textContent =
+			product.caseSize !== undefined &&
+			product.caseSize !== null &&
+			product.caseSize !== ''
+				? `${product.caseSize} units`
+				: '-';
 
 
+		detailWeight.textContent =
+			product.weight ||
+			'-';
+
+
+		detailUrlBarcode.textContent =
+			product.upc ||
+			'-';
+
+
+		detailCaseBarcode.textContent =
+			product.caseBarcode ||
+			'-';
+
+
+		detailItemNumber.textContent =
+			product.itemNumber ||
+			'-';
+
+
+		detailDepartment.textContent =
+			product.department ||
+			'-';
+
+
+		detailPrice.textContent =
+			product.price !== undefined &&
+			product.price !== null
+				? `£${Number(product.price).toFixed(2)}`
+				: '-';
+
+
+		detailMaxShelf.textContent =
+			product.maxShelf !== undefined &&
+			product.maxShelf !== null &&
+			product.maxShelf !== ''
+				? `${product.maxShelf} units`
+				: '-';
+
+
+		const hffssStatus =
+			product.hffssStatus ||
+			'-';
+
+		detailHffs.textContent =
+			hffssStatus;
+
+		detailHffs.classList.remove(
+			'hffss-compliant',
+			'hffss-not-compliant'
+		);
+
+		if (
+			hffssStatus === 'Compliant'
+		) {
+
+			detailHffs.classList.add(
+				'hffss-compliant'
+			);
+
+		} else if (
+			hffssStatus === 'Not Compliant'
+		) {
+
+			detailHffs.classList.add(
+				'hffss-not-compliant'
+			);
+
+		}
 		/* =====================================================
 		   LOCATIONS
 		===================================================== */

@@ -168,8 +168,18 @@
 	};
 
 	const normaliseItem = (item) => {
-		return {
-			upc: item.upc,
+			return {
+				upc: item.upc,
+
+			caseBarcode:
+				item.caseBarcode ??
+				item.case_barcode ??
+				'',
+
+			alternativeBarcode:
+				item.alternativeBarcode ??
+				item.alternative_barcode ??
+				'',
 			itemNumber:
 				item.itemNumber ??
 				item.item_number ??
@@ -192,11 +202,19 @@
 				item.case_size ??
 				0,
 
+			weight:
+				item.weight ??
+				0,
+
 			maxShelf:
 				item.maxShelf ??
 				item.max_shelf ??
 				0,
 
+			hffssStatus:
+				item.hffssStatus ??
+				item.hffss_status ??
+				'Compliant',
 			department:
 				item.department ??
 				'',
@@ -336,8 +354,24 @@
 						</p>
 
 						<p>
+							Case barcode:
+							${escapeHtml(item.caseBarcode || '—')}
+						</p>
+
+						<p>
+							Alternative barcode:
+							${escapeHtml(item.alternativeBarcode || '—')}
+						</p>
+
+						<p>
 							${escapeHtml(locationSummary)}
 							· Case ${item.caseSize ?? 0}
+							· Weight: ${escapeHtml(item.weight || '—')}
+						</p>
+
+						<p>
+							HFFSS:
+							${escapeHtml(item.hffssStatus || 'Compliant')}
 						</p>
 
 						<p>
@@ -1038,12 +1072,16 @@ locationForm.addEventListener(
 
 		[
 			'upc',
+			'caseBarcode',
+			'alternativeBarcode',
 			'itemNumber',
 			'description',
 			'price',
 			'onHand',
 			'caseSize',
+			'weight',
 			'maxShelf',
+			'hffssStatus',
 			'department',
 			'rangeStatus'
 		].forEach((name) => {
@@ -1136,6 +1174,20 @@ locationForm.addEventListener(
 				upc:
 					data.get('upc').trim(),
 
+				caseBarcode:
+					valueOrNull(
+						data
+							.get('caseBarcode')
+							.trim()
+					),
+
+				alternativeBarcode:
+					valueOrNull(
+						data
+							.get('alternativeBarcode')
+							.trim()
+					),
+
 				itemNumber:
 					valueOrNull(
 						data
@@ -1158,10 +1210,19 @@ locationForm.addEventListener(
 						data.get('caseSize')
 					) ?? 0,
 
+				weight:
+					valueOrNull(
+						data.get('weight').trim()
+					),
+
 				maxShelf:
 					numberOrNull(
 						data.get('maxShelf')
 					) ?? 0,
+
+				hffssStatus:
+					data.get('hffssStatus') ||
+					'Compliant',
 
 				department:
 					data

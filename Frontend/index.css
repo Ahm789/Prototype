@@ -822,7 +822,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
    ========================================= */
 
 .product-info-tab-content .bay-info-line .timestamp .timestamp-day {
-	color: #1b7a3e;
+	color: #20b94f;
 
 	font-weight: 700;
 
@@ -851,7 +851,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 
 	margin-left: 1px;
 
-	color: #1b7a3e;
+	color: #20b94f;
 
 	font-size: 12px;
 	font-weight: 700;
@@ -940,7 +940,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	margin: 0;
 	padding: 0;
 
-	color: #1b7a3e;
+	color: #20b94f;
 	background: transparent;
 
 	font-family: inherit;
@@ -958,7 +958,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 .timestamp-day-button:hover,
 .timestamp-day-button:focus,
 .timestamp-day-button:active {
-	color: #1b7a3e;
+	color: #20b94f;
 
 	background: transparent;
 
@@ -968,7 +968,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 }
 
 .timestamp-day-button:focus-visible {
-	outline: 2px solid #1b7a3e;
+	outline: 2px solid #20b94f;
 	outline-offset: 2px;
 	border-radius: 2px;
 }
@@ -978,7 +978,7 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	width: 13px;
 	height: 13px;
 
-	color: #1b7a3e;
+	color: #20b94f;
 
 	flex-shrink: 0;
 
@@ -1046,11 +1046,11 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 .timestamp-option:hover {
 	background: #eaf6ee;
 
-	color: #1b7a3e;
+	color: #20b94f;
 }
 
 .timestamp-option.active {
-	color: #1b7a3e;
+	color: #20b94f;
 
 	font-weight: 700;
 }
@@ -1479,7 +1479,80 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 
 	white-space: nowrap;
 }
+/* =========================================================
+   DETAILS
+========================================================= */
 
+.product-details-section {
+	margin-top: 18px;
+	margin-right: 50px;
+	margin-left : 10px;
+}
+
+.product-details-section h3 {
+	margin: 0 0 12px;
+	font-size: 17px;
+	font-weight: 700;
+	color: #222;
+}
+
+.product-details-grid {
+	display: flex;
+	flex-direction: column;
+}
+
+.product-detail-item {
+	display: grid;
+	grid-template-columns: 140px 1fr;
+	align-items: center;
+	gap: 20px;
+
+	min-height: 32px;
+	padding: 5px 0;
+}
+
+.product-detail-label {
+	color: #777;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.product-detail-value {
+	color: #222;
+	font-size: 14px;
+	font-weight: 700;
+	text-align: left;
+	overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   HFFSS STATUS
+========================================================= */
+
+#detail-hffs.hffss-compliant {
+	color: #20b94f !important;
+	font-weight: 700;
+}
+
+#detail-hffs.hffss-not-compliant {
+	color: #d62828 !important;
+	font-weight: 700;
+}
+
+/* =========================================================
+   HFFSS STATUS
+========================================================= */
+
+#detail-hffs.hffss-compliant {
+	color: #22a447 !important;
+	font-weight: 700;
+}
+
+#detail-hffs.hffss-not-compliant {
+	color: #d62828 !important;
+	font-weight: 700;
+}
 
 /* =========================================================
    MOBILE / SMALL SCREEN
