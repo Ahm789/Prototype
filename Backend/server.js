@@ -43,6 +43,10 @@ app.post('/api/task-clock/reset', (req, res) => {
 	});
 
 });
+
+
+/* ADVANCE TASK CLOCK BY ONE HOUR */
+
 app.post(
 	'/api/task-clock/advance-hour',
 	(req, res) => {
@@ -66,9 +70,11 @@ app.post(
 
 	}
 );
+
+
 /* =========================================================
    MIDDLEWARE
-   ========================================================= */
+========================================================= */
 
 app.use(
 	cors()
@@ -79,10 +85,9 @@ app.use(
 );
 
 
-
 /* =========================================================
    API ROUTES
-   ========================================================= */
+========================================================= */
 
 app.use(
 	'/api/products',
@@ -90,10 +95,9 @@ app.use(
 );
 
 
-
 /* =========================================================
    HEALTH CHECK
-   ========================================================= */
+========================================================= */
 
 app.get('/api/health', (req, res) => {
 
@@ -105,35 +109,53 @@ app.get('/api/health', (req, res) => {
 });
 
 
-
 /* =========================================================
    FRONTEND
-   ========================================================= */
+========================================================= */
 
 /*
-	If you put your frontend files inside:
+	Backend is located in:
+
+	../Backend/
+
+	Frontend is located in:
 
 	../frontend/
 
-	the Express server can serve them too.
+	Therefore ../frontend is the correct path
+	from this server.js file.
 */
 
+const frontendPath =
+	path.join(__dirname, '../frontend');
+
+
+/* SERVE FRONTEND FILES */
+
 app.use(
-	express.static(
-		path.join(__dirname, '../frontend')
-	)
+	express.static(frontendPath)
 );
 
+
+/* ROOT PAGE */
+
+app.get('/', (req, res) => {
+
+	res.sendFile(
+		path.join(frontendPath, 'index.html')
+	);
+
+});
 
 
 /* =========================================================
    START SERVER
-   ========================================================= */
+========================================================= */
 
 app.listen(PORT, () => {
 
 	console.log(
-		`Asda API running on http://localhost:${PORT}`
+		`Asda API running on port ${PORT}`
 	);
 
 });

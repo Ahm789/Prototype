@@ -939,10 +939,53 @@ input.addEventListener(
 productBackButton.addEventListener(
 	'click',
 	event => {
-		/* Allow normal navigation back to index.html. */
+
+		/*
+			If a product detail is currently being shown,
+			go back to the Product Info search screen
+			instead of leaving the page.
+		*/
+
+		if (
+			!productDetailView.hidden
+		) {
+			event.preventDefault();
+
+			currentProduct =
+				null;
+
+			productDetailView.hidden =
+				true;
+
+			productResults.hidden =
+				true;
+
+			productSearchSection.hidden =
+				false;
+
+			productEmpty.hidden =
+				false;
+
+			productEmpty.textContent =
+				'Enter a UPC or product name to search.';
+
+			input.value =
+				'';
+
+			input.focus();
+
+			return;
+		}
+
+		/*
+			If we are already on the Product Info
+			search screen, allow the normal href
+			to index.html.
+		*/
+
+		// Normal navigation to index.html.
 	}
 );
-
 
 /* =========================================================
    TAB SWITCHING
