@@ -92,6 +92,19 @@ const detailMaxShelf =
 
 const detailHffs =
 	document.querySelector('#detail-hffs');
+const modularAisle =
+	document.querySelector('#modular-aisle');
+
+const modularSide =
+	document.querySelector('#modular-side');
+
+const modularMod =
+	document.querySelector('#modular-mod');
+
+const modularShelf =
+	document.querySelector('#modular-shelf');
+const modularVisual =
+	document.querySelector('#modular-visual');
 
 /* =========================================================
    API REQUEST
@@ -115,6 +128,16 @@ const apiRequest = async (
 
 	return response.json();
 };
+const getModularProducts =
+	async (
+		modularId
+	) => {
+
+		return apiRequest(
+			`${API_BASE}/modular/${encodeURIComponent(modularId)}`
+		);
+
+	};
 
 
 /* =========================================================
@@ -521,7 +544,354 @@ const getLocationId =
 			'';
 	};
 
+const renderModularVisual =
+	async (
+		modularId
+	) => {
 
+		modularVisual.innerHTML = '';
+
+		if (!modularId) {
+			return;
+		}
+
+		try {
+
+			const products =
+				await getModularProducts(
+					modularId
+				);
+
+			if (
+				!Array.isArray(products) ||
+				products.length === 0
+			) {
+
+				modularVisual.innerHTML = `
+					<div class="modular-visual-empty">
+						No products found on this modular.
+					</div>
+				`;
+
+				return;
+			}
+
+
+			/* GROUP PRODUCTS BY SHELF */
+
+			const shelves =
+				new Map();
+
+			products.forEach(
+				product => {
+
+					const shelf =
+						String(
+							product.shelf ?? ''
+						).trim();
+
+					if (!shelves.has(shelf)) {
+
+						shelves.set(
+							shelf,
+							[]
+						);
+
+					}
+
+					shelves
+						.get(shelf)
+						.push(product);
+
+				}
+			);
+
+
+			/* SORT SHELVES */
+
+			const sortedShelves =
+				[...shelves.entries()]
+					.sort(
+						([shelfA], [shelfB]) => {
+
+							const numberA =
+								parseInt(
+									shelfA.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+							const numberB =
+								parseInt(
+									shelfB.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+							if (
+								Number.isNaN(
+									numberA
+								)
+							) {
+								return 1;
+							}
+
+							if (
+								Number.isNaN(
+									numberB
+								)
+							) {
+								return -1;
+							}
+
+							return (
+								numberA -
+								numberB
+							);
+
+						}
+					);
+
+
+			/* CREATE EACH SHELF */
+
+			sortedShelves.forEach(
+				([
+					shelf,
+					shelfProducts
+				]) => {
+
+					const shelfRow =
+						document.createElement(
+							'div'
+						);
+
+					shelfRow.className =
+						'modular-shelf';
+
+
+					const productsContainer =
+						document.createElement(
+							'div'
+						);
+
+					productsContainer.className =
+						'modular-shelf-products';
+
+
+					shelfRow.appendChild(
+						productsContainer
+					);
+
+					modularVisual.appendChild(
+						shelfRow
+					);
+
+
+					/*
+						Wait until the shelf has
+						its real width.
+					*/
+
+					requestAnimationFrame(
+	async () => {
+
+		const shelfWidth =
+			productsContainer.clientWidth;
+
+		const shelfHeight =
+			90;
+
+		const gap =
+			8;
+
+		const validProducts =
+			shelfProducts.filter(
+				product =>
+					product.image &&
+					product.image.url
+			);
+
+		if (!validProducts.length) {
+			return;
+		}
+
+
+		/*
+			Load all product images first
+			so we know their real widths.
+		*/
+
+		const loadedProducts =
+			await Promise.all(
+				validProducts.map(
+					product =>
+						new Promise(
+							resolve => {
+
+								const image =
+									new Image();
+
+								image.onload =
+									() => {
+
+										if (
+											image.naturalWidth &&
+											image.naturalHeight
+										) {
+
+											resolve({
+												product,
+												width:
+													(
+														image.naturalWidth /
+														image.naturalHeight
+													) *
+													shelfHeight
+											});
+
+										} else {
+
+											resolve(null);
+
+										}
+
+									};
+
+								image.onerror =
+									() => resolve(null);
+
+								image.src =
+									product.image.url;
+
+							}
+						)
+				)
+			);
+
+
+		const usableProducts =
+			loadedProducts.filter(
+				Boolean
+			);
+
+		if (!usableProducts.length) {
+			return;
+		}
+
+
+		/*
+			Divide the shelf between the
+			different products.
+
+			Example:
+
+			400px shelf
+			2 products
+
+			≈ 196px each after the gap.
+		*/
+
+		const productWidth =
+			(
+				shelfWidth -
+				(
+					(usableProducts.length - 1) *
+					gap
+				)
+			) /
+			usableProducts.length;
+
+
+		/*
+			Create facings for each product
+			using its allocated section.
+		*/
+
+		usableProducts.forEach(
+			({
+				product,
+				width
+			}) => {
+
+				const maxFacings =
+					Math.max(
+						1,
+						Math.floor(
+							(
+								productWidth +
+								gap
+							) /
+							(
+								width +
+								gap
+							)
+						)
+					);
+
+
+				for (
+					let i = 0;
+					i < maxFacings;
+					i++
+				) {
+
+					const facing =
+						document.createElement(
+							'img'
+						);
+
+					facing.src =
+						product.image.url;
+
+					facing.alt =
+						product.image.alt ||
+						product.description ||
+						'Product';
+
+					facing.className =
+						'modular-product-image';
+
+					facing.style.height =
+						`${shelfHeight}px`;
+
+					facing.style.width =
+						`${width}px`;
+
+					productsContainer.appendChild(
+						facing
+					);
+
+				}
+
+			}
+		);
+
+	}
+);
+
+				}
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Failed to render modular visual:',
+				error
+			);
+
+			modularVisual.innerHTML = `
+				<div class="modular-visual-empty">
+					Unable to load modular.
+				</div>
+			`;
+
+		}
+	};
 /* =========================================================
    SHOW PRODUCT DETAIL
 ========================================================= */
@@ -716,6 +1086,7 @@ const showProductDetail =
 					location.modularId ||
 					'-';
 
+
 				const locationSub =
 					document.createElement(
 						'span'
@@ -725,8 +1096,7 @@ const showProductDetail =
 					'metric-sub';
 
 				locationSub.textContent =
-					`AISLE ${location.aisle ?? '-'} • ` +
-					`BAY ${location.bay ?? '-'}`;
+					`SHELF ${location.shelf ?? '-'}`;
 
 				card.appendChild(
 					locationValue
@@ -743,7 +1113,7 @@ const showProductDetail =
 		);
 
 
-		/* =====================================================
+				/* =====================================================
 		   PRIMARY LOCATION DETAILS
 		===================================================== */
 
@@ -758,13 +1128,32 @@ const showProductDetail =
 			primaryLocation
 		) {
 			bayLocText.textContent =
-				`Aisle ${primaryLocation.aisle ?? '-'} ` +
-				`${primaryLocation.aisleSide ?? ''} ` +
-				`Bay ${primaryLocation.bay ?? '-'}`;
+				primaryLocation.modularId ?? '-';
 
 			bayShelfNum.textContent =
 				primaryLocation.shelf ??
 				'-';
+
+
+			/* =================================================
+			   MODULAR DETAILS
+			================================================= */
+
+			modularAisle.textContent =
+				String(primaryLocation.aisle ?? '-')
+					.replace(/^Aisle\s*/i, '');
+
+			modularSide.textContent =
+				`Side ${primaryLocation.aisleSide ?? '-'}`;
+
+			modularMod.textContent =
+				`Mod ${primaryLocation.bay ?? '-'}`;
+
+			modularShelf.textContent =
+				`Shelf ${primaryLocation.shelf ?? '-'}`;
+			await renderModularVisual(
+				primaryLocation.modularId
+			);
 
 		} else {
 			bayLocText.textContent =
@@ -772,6 +1161,19 @@ const showProductDetail =
 
 			bayShelfNum.textContent =
 				'-';
+
+
+			modularAisle.textContent =
+				'Aisle -';
+
+			modularSide.textContent =
+				'Side -';
+
+			modularMod.textContent =
+				'Mod -';
+
+			modularShelf.textContent =
+				'Shelf -';
 		}
 
 

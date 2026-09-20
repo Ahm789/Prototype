@@ -53,7 +53,94 @@ const formatItem = (row) => {
 };
 
 
+router.get(
+	'/modular/:modularId',
+	async (req, res) => {
 
+		const modularId =
+			req.params.modularId;
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						i.id,
+						i.upc,
+						i.description,
+						i.image_url,
+						i.image_alt,
+						m.shelf,
+						m.aisle,
+						m.aisle_side,
+						m.bay,
+						m.modular_id
+
+					FROM modulars m
+
+					INNER JOIN items i
+						ON i.id = m.item_id
+
+					WHERE m.modular_id = $1
+
+					ORDER BY
+						CAST(
+							NULLIF(
+								REGEXP_REPLACE(
+									m.shelf,
+									'[^0-9]',
+									'',
+									'g'
+								),
+								''
+							) AS INTEGER
+						),
+						i.description
+					`,
+					[modularId]
+				);
+
+			res.json(
+				result.rows.map(
+					row => ({
+						id: row.id,
+						upc: row.upc,
+						description: row.description,
+						image: row.image_url
+							? {
+								url: row.image_url,
+								alt:
+									row.image_alt ||
+									row.description
+							}
+							: null,
+						shelf: row.shelf,
+						aisle: row.aisle,
+						aisleSide:
+							row.aisle_side,
+						bay: row.bay,
+						modularId:
+							row.modular_id
+					})
+				)
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Failed to load modular products:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to load modular products.'
+			});
+
+		}
+	}
+);
 /* =========================================================
    FORMAT LOCATION
 ========================================================= */
@@ -221,7 +308,129 @@ router.get('/search', async (req, res) => {
 
 });
 
+/* =========================================================
+   UPDATE LOCATION
+========================================================= */
 
+router.put(
+	'/locations/:id',
+	async (req, res) => {
+
+		const locationId =
+			req.params.id;
+
+		const {
+            aisle,
+            aisleSide,
+            bay,
+            shelf,
+            modularId,
+            isPrimary
+        } = req.body;
+
+        const finalModularId =
+            modularId?.trim() ||
+            `FF-${aisle}-${aisleSide}-${bay}`;
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					UPDATE modulars
+					SET
+						aisle = $1,
+						aisle_side = $2,
+						bay = $3,
+						shelf = $4,
+						modular_id = $5,
+						is_primary = $6
+					WHERE id = $7
+					RETURNING *
+					`,
+					[
+                        aisle || null,
+                        aisleSide || null,
+                        bay || null,
+                        shelf || null,
+                        finalModularId,
+                        Boolean(isPrimary),
+                        locationId
+                    ]
+				);
+
+
+			if (!result.rows.length) {
+
+				return res.status(404).json({
+					error:
+						'Location not found.'
+				});
+
+			}
+
+
+			/*
+				If this location is being made primary,
+				remove primary status from the other
+				locations belonging to the same item.
+			*/
+
+			if (Boolean(isPrimary)) {
+
+				const itemId =
+					result.rows[0].item_id;
+
+
+				await pool.query(
+					`
+					UPDATE modulars
+					SET is_primary = FALSE
+					WHERE
+						item_id = $1
+						AND id <> $2
+					`,
+					[
+						itemId,
+						locationId
+					]
+				);
+
+
+				await pool.query(
+					`
+					UPDATE modulars
+					SET is_primary = TRUE
+					WHERE id = $1
+					`,
+					[
+						locationId
+					]
+				);
+
+			}
+
+
+			res.json(
+				result.rows[0]
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Failed to update location:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to update location.'
+			});
+
+		}
+
+	}
+);
 
 /* =========================================================
    GET SINGLE PRODUCT

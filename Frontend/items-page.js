@@ -25,11 +25,21 @@
 	const locationsHint = document.querySelector('#locations-hint');
 	const locationList = document.querySelector('#location-list');
 	const locationCount = document.querySelector('#location-count');
-	const locationForm = document.querySelector('#location-form');
+	const locationForm =
+	document.querySelector('#location-form');
+
+	const saveLocationButton =
+		document.querySelector('#save-location');
+
+	const clearLocationButton =
+		document.querySelector('#clear-location');
 
 	let editingUpc = null;
 	let editingItem = null;
 	let formBaseline = '';
+
+	let editingLocationId = null;
+	let locationFormBaseline = '';
 
 	/* =========================================================
 	   API HELPERS
@@ -113,6 +123,20 @@
 				body: JSON.stringify(location)
 			}
 		);
+	};
+	const updateLocation = async (
+		locationId,
+		location
+	) => {
+
+		return await apiRequest(
+			`${API_BASE}/locations/${encodeURIComponent(locationId)}`,
+			{
+				method: 'PUT',
+				body: JSON.stringify(location)
+			}
+		);
+
 	};
 
 	const deleteLocation = async (locationId) => {
@@ -480,51 +504,205 @@
 		}
 	};
 
-	/* =========================================================
-	   LOCATIONS
-	========================================================= */
+/* =========================================================
+   LOCATIONS
+========================================================= */
 
-	const renderLocations = async () => {
-		if (!editingUpc) {
-			locationsPanel.hidden = true;
-			locationsHint.hidden = false;
+const clearLocationForm = () => {
+
+	editingLocationId = null;
+
+	locationForm.reset();
+
+	locationForm.elements.locModularId.value = '';
+
+	saveLocationButton.textContent =
+		'Add location';
+
+	locationFormBaseline =
+		locationFormSnapshot();
+
+	message.textContent =
+		'Ready to add a new location.';
+
+};
+
+
+/* =========================================================
+   LOCATION FORM SNAPSHOT
+========================================================= */
+
+const locationFormSnapshot = () => {
+
+	return Array.from(
+		locationForm.elements
+	)
+		.filter(
+			(element) =>
+				element.name
+		)
+		.map(
+			(element) =>
+				`${element.name}=${element.value}`
+		)
+		.join('&');
+
+};
+
+
+/* =========================================================
+   LOAD LOCATION INTO FORM
+========================================================= */
+
+const startLocationEdit = (location) => {
+
+	const locationId =
+		location.id;
+
+	editingLocationId =
+		locationId;
+
+	const aisle =
+		location.aisle ??
+		'';
+
+	const aisleSide =
+		location.aisleSide ??
+		location.aisle_side ??
+		'';
+
+	const bay =
+		location.bay ??
+		'';
+
+	const shelf =
+		location.shelf ??
+		'';
+
+	const modularId =
+		location.modularId ??
+		location.modular_id ??
+		'';
+
+	locationForm.elements.locAisle.value =
+		aisle;
+
+	locationForm.elements.locAisleSide.value =
+		aisleSide;
+
+	locationForm.elements.locBay.value =
+		bay;
+
+	locationForm.elements.locShelf.value =
+		shelf;
+
+	locationForm.elements.locModularId.value =
+		modularId;
+
+	locationForm.elements.locIsPrimary.checked =
+		Boolean(
+			location.isPrimary ??
+			location.is_primary
+		);
+
+	saveLocationButton.textContent =
+		'Update location';
+
+	locationFormBaseline =
+		locationFormSnapshot();
+
+	message.textContent =
+		'Editing location.';
+
+	locationForm.scrollIntoView({
+		behavior: 'smooth',
+		block: 'nearest'
+	});
+
+};
+
+
+/* =========================================================
+   RENDER LOCATIONS
+========================================================= */
+
+const renderLocations = async () => {
+
+	if (!editingUpc) {
+
+		locationsPanel.hidden =
+			true;
+
+		locationsHint.hidden =
+			false;
+
+		return;
+
+	}
+
+
+	locationsPanel.hidden =
+		false;
+
+	locationsHint.hidden =
+		true;
+
+
+	try {
+
+		const locations =
+			await getLocations(
+				editingUpc
+			);
+
+
+		locationCount.textContent =
+			`${locations.length} location${
+				locations.length === 1
+					? ''
+					: 's'
+			}`;
+
+
+		locationList.replaceChildren();
+
+
+		if (!locations.length) {
+
+			locationList.innerHTML =
+				'<p class="location-empty">No locations set for this item yet.</p>';
+
 			return;
+
 		}
 
-		locationsPanel.hidden = false;
-		locationsHint.hidden = true;
 
-		try {
-			const locations =
-				await getLocations(editingUpc);
-
-			locationCount.textContent =
-				`${locations.length} location${locations.length === 1 ? '' : 's'}`;
-
-			locationList.replaceChildren();
-
-			if (!locations.length) {
-				locationList.innerHTML =
-					'<p class="location-empty">No locations set for this item yet.</p>';
-
-				return;
-			}
-
-			locations.forEach((location) => {
+		locations.forEach(
+			(location) => {
 
 				const row =
-					document.createElement('div');
+					document.createElement(
+						'div'
+					);
 
 				row.className =
-					`location-row${location.isPrimary || location.is_primary ? ' is-primary' : ''}`;
+					`location-row${
+						location.isPrimary ||
+						location.is_primary
+							? ' is-primary'
+							: ''
+					}`;
+
 
 				const isPrimary =
 					location.isPrimary ??
 					location.is_primary ??
 					false;
 
+
 				const aisle =
-					location.aisle ?? '';
+					location.aisle ??
+					'';
 
 				const aisleSide =
 					location.aisleSide ??
@@ -532,10 +710,12 @@
 					'';
 
 				const bay =
-					location.bay ?? '';
+					location.bay ??
+					'';
 
 				const shelf =
-					location.shelf ?? '';
+					location.shelf ??
+					'';
 
 				const modularId =
 					location.modularId ??
@@ -545,68 +725,93 @@
 				const locationId =
 					location.id;
 
-				const codeParts =
-					[
-						aisle,
-						aisleSide,
-						bay
-					].filter(Boolean);
+
+				const codeParts = [
+					aisle,
+					aisleSide,
+					bay
+				].filter(Boolean);
+
 
 				const codeText =
 					codeParts.length
 						? codeParts.join('-')
 						: 'No aisle/bay set';
 
+
 				const metaParts = [];
 
+
 				if (shelf) {
+
 					metaParts.push(
 						`Shelf ${escapeHtml(shelf)}`
 					);
+
 				}
 
+
 				if (modularId) {
+
 					metaParts.push(
 						`Modular ${escapeHtml(modularId)}`
 					);
+
 				}
 
+
 				const details =
-					document.createElement('div');
+					document.createElement(
+						'div'
+					);
 
 				details.className =
 					'location-row-details';
+
 
 				details.innerHTML = `
 					<span class="location-row-code">
 						${escapeHtml(codeText)}
 
-						${isPrimary
-							? '<span class="location-primary-badge">PRIMARY</span>'
-							: ''
+						${
+							isPrimary
+								? '<span class="location-primary-badge">PRIMARY</span>'
+								: ''
 						}
 					</span>
 
 					<span class="location-row-meta">
-						${metaParts.length
-							? metaParts.join(' · ')
-							: 'No shelf/modular set'
+						${
+							metaParts.length
+								? metaParts.join(' · ')
+								: 'No shelf/modular set'
 						}
 					</span>
 				`;
 
-				row.appendChild(details);
+
+				row.appendChild(
+					details
+				);
+
 
 				const rowActions =
-					document.createElement('div');
+					document.createElement(
+						'div'
+					);
 
 				rowActions.className =
 					'location-row-actions';
 
-				/* MAKE PRIMARY */
+
+				/* =================================================
+				   MAKE PRIMARY
+				================================================= */
 
 				const makePrimaryButton =
-					document.createElement('button');
+					document.createElement(
+						'button'
+					);
 
 				makePrimaryButton.type =
 					'button';
@@ -620,12 +825,16 @@
 				makePrimaryButton.disabled =
 					isPrimary;
 
+
 				makePrimaryButton.addEventListener(
 					'click',
 					async (event) => {
+
 						event.stopPropagation();
 
+
 						try {
+
 							await setPrimaryLocation(
 								editingUpc,
 								locationId
@@ -635,23 +844,33 @@
 								'Primary location updated.';
 
 							await renderLocations();
+
 							await renderItems();
 
 						} catch (error) {
+
 							message.textContent =
 								error.message;
+
 						}
+
 					}
 				);
+
 
 				rowActions.appendChild(
 					makePrimaryButton
 				);
 
-				/* REMOVE */
+
+				/* =================================================
+				   REMOVE
+				================================================= */
 
 				const removeButton =
-					document.createElement('button');
+					document.createElement(
+						'button'
+					);
 
 				removeButton.type =
 					'button';
@@ -662,10 +881,13 @@
 				removeButton.textContent =
 					'Remove';
 
+
 				removeButton.addEventListener(
 					'click',
 					async (event) => {
+
 						event.stopPropagation();
+
 
 						if (
 							!window.confirm(
@@ -675,55 +897,106 @@
 							return;
 						}
 
+
 						try {
+
 							await deleteLocation(
 								locationId
 							);
 
+
+							if (
+								editingLocationId ===
+								locationId
+							) {
+
+								clearLocationForm();
+
+							}
+
+
 							message.textContent =
 								'Location removed.';
 
+
 							await renderLocations();
+
 							await renderItems();
 
 						} catch (error) {
+
 							message.textContent =
 								error.message;
+
 						}
+
 					}
 				);
+
 
 				rowActions.appendChild(
 					removeButton
 				);
 
-				row.appendChild(rowActions);
 
-				locationList.appendChild(row);
-			});
+				row.appendChild(
+					rowActions
+				);
 
-		} catch (error) {
-			console.error(
-				'Failed to load locations:',
-				error
-			);
 
-			locationCount.textContent =
-				'0 locations';
+				/* =================================================
+				   CLICK LOCATION TO EDIT
+				================================================= */
 
-			locationList.innerHTML = `
-				<p class="location-empty">
-					Unable to load locations.
-				</p>
-			`;
+				row.addEventListener(
+					'click',
+					() => {
 
-			message.textContent =
-				error.message;
-		}
-	};
+						startLocationEdit(
+							location
+						);
+
+					}
+				);
+
+
+				locationList.appendChild(
+					row
+				);
+
+			}
+		);
+
+
+	} catch (error) {
+
+		console.error(
+			'Failed to load locations:',
+			error
+		);
+
+
+		locationCount.textContent =
+			'0 locations';
+
+
+		locationList.innerHTML = `
+			<p class="location-empty">
+				Unable to load locations.
+			</p>
+		`;
+
+
+		message.textContent =
+			error.message;
+
+	}
+
+};
+
 
 /* =========================================================
-   ADD LOCATION
+   MODULAR ID
 ========================================================= */
 
 const updateModularId = () => {
@@ -741,26 +1014,19 @@ const updateModularId = () => {
 		locationForm.elements.locModularId;
 
 
-	/* =====================================================
-	   REQUIRE AISLE + SIDE + BAY
-	===================================================== */
+	if (
+		!aisle ||
+		!aisleSide ||
+		!bay
+	) {
 
-	if (!aisle || !aisleSide || !bay) {
-
-		modularIdField.value = '';
+		modularIdField.value =
+			'';
 
 		return;
 
 	}
 
-
-	/* =====================================================
-	   NORMALISE AISLE
-
-	   16    → 16
-	   FF16  → 16
-	   FF-16 → 16
-	===================================================== */
 
 	const upperAisle =
 		aisle.toUpperCase();
@@ -769,33 +1035,247 @@ const updateModularId = () => {
 		upperAisle;
 
 
-	if (upperAisle.startsWith('FF-')) {
+	if (
+		upperAisle.startsWith('FF-')
+	) {
 
 		formattedAisle =
 			aisle.substring(3);
 
-	} else if (upperAisle.startsWith('FF')) {
+	} else if (
+		upperAisle.startsWith('FF')
+	) {
 
 		formattedAisle =
 			aisle
 				.substring(2)
-				.replace(/^-/, '');
+				.replace(
+					/^-/,
+					''
+				);
 
 	}
 
-
-	/* =====================================================
-	   GENERATE MODULAR ID
-
-	   FF-16-R-20
-
-	   Shelf is NOT included.
-	===================================================== */
 
 	modularIdField.value =
 		`FF-${formattedAisle}-${aisleSide.toUpperCase()}-${bay}`;
 
 };
+
+
+/* =========================================================
+   AUTO UPDATE MODULAR ID
+========================================================= */
+
+[
+	'locAisle',
+	'locAisleSide',
+	'locBay'
+].forEach(
+	(fieldName) => {
+
+		locationForm.elements[fieldName]
+			.addEventListener(
+				'input',
+				updateModularId
+			);
+
+	}
+);
+
+
+/* =========================================================
+   CLEAR LOCATION
+========================================================= */
+
+clearLocationButton.addEventListener(
+	'click',
+	() => {
+
+		clearLocationForm();
+
+	}
+);
+
+
+/* =========================================================
+   SUBMIT LOCATION
+========================================================= */
+
+locationForm.addEventListener(
+	'submit',
+	async (event) => {
+
+		event.preventDefault();
+
+
+		if (!editingUpc) {
+
+			return;
+
+		}
+
+
+		const aisle =
+			locationForm.elements.locAisle.value.trim();
+
+		const aisleSide =
+			locationForm.elements.locAisleSide.value.trim();
+
+		const bay =
+			locationForm.elements.locBay.value.trim();
+
+		const shelf =
+			locationForm.elements.locShelf.value.trim();
+
+
+		if (!aisle) {
+
+			message.textContent =
+				'Please enter an aisle number.';
+
+			locationForm.elements.locAisle.focus();
+
+			return;
+
+		}
+
+
+		if (!aisleSide) {
+
+			message.textContent =
+				'Please enter an aisle side.';
+
+			locationForm.elements.locAisleSide.focus();
+
+			return;
+
+		}
+
+
+		if (!bay) {
+
+			message.textContent =
+				'Please enter a bay number.';
+
+			locationForm.elements.locBay.focus();
+
+			return;
+
+		}
+
+
+		updateModularId();
+
+
+		const modularId =
+			locationForm.elements.locModularId.value.trim();
+
+
+		if (!modularId) {
+
+			message.textContent =
+				'Unable to generate Modular ID.';
+
+			return;
+
+		}
+
+
+		const location = {
+
+			aisle,
+
+			aisleSide:
+				aisleSide.toUpperCase(),
+
+			bay,
+
+			shelf,
+
+			modularId,
+
+			isPrimary:
+				locationForm.elements
+					.locIsPrimary
+					.checked
+
+		};
+
+
+		try {
+
+			/* =================================================
+			   UPDATE EXISTING LOCATION
+			================================================= */
+
+			if (editingLocationId) {
+
+				const changed =
+					locationFormSnapshot() !==
+					locationFormBaseline;
+
+
+				if (!changed) {
+
+					message.textContent =
+						'No changes to update.';
+
+					return;
+
+				}
+
+
+				await updateLocation(
+					editingLocationId,
+					location
+				);
+
+
+				message.textContent =
+					'Location updated.';
+
+
+			} else {
+
+				/* =============================================
+				   ADD NEW LOCATION
+				============================================= */
+
+				await addLocation(
+					editingUpc,
+					location
+				);
+
+
+				message.textContent =
+					'Location added.';
+
+			}
+
+
+			clearLocationForm();
+
+			await renderLocations();
+
+			await renderItems();
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to save location:',
+				error
+			);
+
+
+			message.textContent =
+				error.message;
+
+		}
+
+	}
+);
 
 
 

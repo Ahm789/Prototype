@@ -247,70 +247,83 @@
 					></div>
 
 					<form
-						class="location-form"
-						id="location-form"
-					>
+	class="location-form"
+	id="location-form"
+>
 
-						<div class="location-grid">
+	<div class="location-grid">
 
-							<label>
-								Aisle
-								<input
-									name="locAisle"
-									placeholder="Optional"
-								>
-							</label>
+		<label>
+			Aisle
+			<input
+				name="locAisle"
+				placeholder="Optional"
+			>
+		</label>
 
-							<label>
-								Aisle side
-								<input
-									name="locAisleSide"
-									placeholder="Optional"
-								>
-							</label>
+		<label>
+			Aisle side
+			<input
+				name="locAisleSide"
+				placeholder="Optional"
+			>
+		</label>
 
-							<label>
-								Bay
-								<input
-									name="locBay"
-									placeholder="Optional"
-								>
-							</label>
+		<label>
+			Bay
+			<input
+				name="locBay"
+				placeholder="Optional"
+			>
+		</label>
 
-							<label>
-								Shelf
-								<input
-									name="locShelf"
-									placeholder="Optional"
-								>
-							</label>
+		<label>
+			Shelf
+			<input
+				name="locShelf"
+				placeholder="Optional"
+			>
+		</label>
 
-							<label class="wide">
-								Modular ID
-								<input
-									name="locModularId"
-									placeholder="Auto-generated as FF-aisle-side-bay-shelf if left blank"
-								>
-							</label>
+		<label class="wide">
+			Modular ID
+			<input
+				name="locModularId"
+				placeholder="Auto-generated as FF-aisle-side-bay"
+			>
+		</label>
 
-						</div>
+	</div>
 
-						<label class="location-primary-check">
-							<input
-								type="checkbox"
-								name="locIsPrimary"
-							>
-							Set as primary location
-						</label>
+	<label class="location-primary-check">
+		<input
+			type="checkbox"
+			name="locIsPrimary"
+		>
+		Set as primary location
+	</label>
 
-						<button
-							type="submit"
-							class="add-location"
-						>
-							Add location
-						</button>
+	<div class="location-form-actions">
 
-					</form>
+		<button
+			type="button"
+			class="clear-location"
+			id="clear-location"
+		>
+			Clear
+		</button>
+
+		<button
+			type="submit"
+			class="add-location"
+			id="save-location"
+		>
+			Add location
+		</button>
+
+	</div>
+
+</form>
 
 				</section>
 
