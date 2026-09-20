@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS items (
 
 	case_size INTEGER NOT NULL DEFAULT 0,
 
-	weight NUMERIC(10, 3),
+	weight TEXT,
 
 	item_number VARCHAR(64),
 
