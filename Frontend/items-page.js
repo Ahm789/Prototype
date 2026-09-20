@@ -1,5 +1,17 @@
 (function () {
-	const API_BASE = 'http://localhost:3000/api/products';
+	const isLocal =
+	window.location.protocol === 'file:' ||
+	window.location.hostname === 'localhost' ||
+	window.location.hostname === '127.0.0.1';
+
+	const API_ORIGIN =
+		isLocal
+			? 'http://localhost:3000'
+			: '';
+
+	const API_BASE =
+		`${API_ORIGIN}/api/products`;
+
 
 	const form = document.querySelector('#item-form');
 	const list = document.querySelector('#items-list');

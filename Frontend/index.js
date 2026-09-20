@@ -1,8 +1,18 @@
+const isLocal =
+	window.location.protocol === 'file:' ||
+	window.location.hostname === 'localhost' ||
+	window.location.hostname === '127.0.0.1';
+
+const API_ORIGIN =
+	isLocal
+		? 'http://localhost:3000'
+		: '';
+
 const API_BASE =
-	'http://localhost:3000/api/products';
+	`${API_ORIGIN}/api/products`;
 
-
-
+const TASK_CLOCK_API =
+	`${API_ORIGIN}/api/task-clock`;
 /* =========================================================
    INITIALISE LUCIDE ICONS
 ========================================================= */
@@ -669,10 +679,6 @@ selectionSlider.addEventListener(
 /* =========================================================
    TASK CLOCK
 ========================================================= */
-
-const TASK_CLOCK_API =
-	'http://localhost:3000/api/task-clock';
-
 
 let taskClockStart =
 	null;
