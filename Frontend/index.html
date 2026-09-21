@@ -47,16 +47,178 @@
             </div>
 
             <div class="filter-panel" hidden>
-                <div class="filter-panel-header"><strong>Filters</strong><button class="close-filters" aria-label="Close filters">×</button></div>
-                <div class="filter-fields">
-                    <label>Task status<select><option>Open tasks</option><option>Backroom</option><option>Shop floor</option></select></label>
-                    <label>Department<select><option>All departments</option><option>Bakery &amp; Frozen</option><option>Fresh Foods</option></select></label>
+
+	<div class="filter-panel-header">
+        <strong>Tasks</strong>
+
+        <button
+            class="close-filters"
+            aria-label="Close filters"
+        >
+            ×
+        </button>
+    </div>
+
+
+	<div class="filter-fields">
+
+		<!-- TASK STATUS -->
+		<label>
+			Task status
+			<select>
+				<option>Open tasks</option>
+				<option>Backroom check</option>
+				<option>Worked</option>
+			</select>
+		</label>
+
+
+		<!-- DEPARTMENT -->
+            <div class="department-filter">
+
+                <label for="department-dropdown">Department</label>
+
+                <button
+                    type="button"
+                    class="department-dropdown"
+                    id="department-dropdown"
+                >
+                    <span>All departments</span>
+                    <span class="department-chevron">⌄</span>
+                </button>
+
+
+                <div class="department-menu" hidden>
+
+                    <label class="department-option">
+                        <input type="checkbox" value="Bakery &amp; Frozen">
+                        <span>Bakery &amp; Frozen</span>
+                    </label>
+
+                    <label class="department-option">
+                        <input type="checkbox" value="Fresh Foods">
+                        <span>Fresh Foods</span>
+                    </label>
+
                 </div>
-                <div class="filter-actions">
-                    <button class="reset-filters">Reset</button>
-                    <button class="apply-filters">Apply filters</button>
-                </div>
+
             </div>
+
+
+		<!-- TASK TYPE -->
+		<div class="task-type-filter">
+
+			<label for="task-type-dropdown">Task type</label>
+
+			<button
+				type="button"
+				class="task-type-dropdown"
+				id="task-type-dropdown"
+			>
+				<span>All task types</span>
+				<span class="task-type-chevron">⌄</span>
+			</button>
+
+
+			<div class="task-type-menu" hidden>
+
+				<!-- STOCK MANAGEMENT -->
+				<div class="task-type-group">
+
+					<div class="task-type-group-title">
+						Stock Management
+					</div>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Out-Of Stock">
+						<span>Out-Of Stock</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Manual Gap Scan">
+						<span>Manual Gap Scan</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Overstock Investigation">
+						<span>Overstock Investigation</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="False Restock">
+						<span>False Restock</span>
+					</label>
+
+				</div>
+
+
+				<!-- MODULAR MANAGEMENT -->
+				<div class="task-type-group">
+
+					<div class="task-type-group-title">
+						Modular Management
+					</div>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Modular Activity">
+						<span>Modular Activity</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Modular Compliance">
+						<span>Modular Compliance</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Item Mapping">
+						<span>Item Mapping</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Obstruction">
+						<span>Obstruction</span>
+					</label>
+
+				</div>
+
+
+				<!-- REVERSE PICK -->
+				<div class="task-type-group">
+
+					<div class="task-type-group-title">
+						Reverse Pick
+					</div>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="In Stock">
+						<span>In Stock</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="Low">
+						<span>Low</span>
+					</label>
+
+					<label class="task-type-option">
+						<input type="checkbox" value="May be Low">
+						<span>May be Low</span>
+					</label>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<div class="filter-actions">
+		<button class="reset-filters">Reset</button>
+		<button class="apply-filters">Apply filters</button>
+	</div>
+
+</div>
 
             <section class="task-list" aria-label="Current item tasks">
                 <div class="task-empty" id="task-empty">Tasks will appear when the next hour starts.</div>

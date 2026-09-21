@@ -1,291 +1,327 @@
 const pool = require('./pool');
 
+
+/* =========================================================
+   MODULAR DATA
+========================================================= */
+
 const products = [
+
 	{
 		upc: '9900000000011',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000001',
-		description: 'ASDA Crispy Skin-On Fries 750g',
-		price: 2.20,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '72',
 		aisle: '15',
 		aisleSide: 'L',
 		bay: '3',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5057172606085?$ProdListProd$',
+		shelf: '1',
 		modularId: 'FF-15-L-3'
 	},
+
 	{
 		upc: '9900000000028',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000002',
-		description: 'ASDA Seasoned Sweet Potato Fries 500g',
-		price: 2.20,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '72',
 		aisle: '15',
 		aisleSide: 'L',
-		bay: '4',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5054781734895?$ProdListProd$',
-		modularId: 'FF-15-L-4'
+		bay: '3',
+		shelf: '1',
+		modularId: 'FF-15-L-3'
 	},
+
 	{
-        upc: '05060198649592',
-        caseBarcode: null,
-        alternativeBarcode: null,
-        itemNumber: '100543572',
-        description: 'Crostam Garlic Flatbread',
-        price: 2.50,
-        onHand: 12,
-        caseSize: 0,
-        maxShelf: 14,
-        department: 'Bakery & Frozen',
-        aisle: 'FF16',
-        aisleSide: 'R',
-        bay: '18',
-        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk1iGjgeKF7KRduJuDDDcJqSh1h21kTbKAz73-LuyqAA&s',
-        modularId: 'FF-FF16-R-18-2'
-    },
+		upc: '9900000000035',
+		aisle: '15',
+		aisleSide: 'R',
+		bay: '5',
+		shelf: '',
+		modularId: 'FF-15-R-5'
+	},
+
 	{
 		upc: '9900000000042',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000004',
-		description: 'ASDA Double Pepperoni Stonebaked Pizza 309g',
-		price: 1.72,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '91',
 		aisle: '16',
 		aisleSide: 'L',
 		bay: '8',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/T_5063089839119?$ProdListProd$',
+		shelf: '1',
 		modularId: 'FF-16-L-8'
 	},
+
 	{
 		upc: '9900000000059',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000005',
-		description: 'ASDA Four Cheese Stonebaked Pizza 315g',
-		price: 1.72,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '91',
 		aisle: '16',
 		aisleSide: 'L',
-		bay: '9',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/T_5063089839096?$ProdListProd$',
-		modularId: 'FF-16-L-9'
+		bay: '8',
+		shelf: '2',
+		modularId: 'FF-16-L-8'
 	},
+
 	{
 		upc: '9900000000066',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000006',
-		description: 'ASDA Chicken Breast Strips 500g',
-		price: 4.58,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '71',
 		aisle: '15',
 		aisleSide: 'L',
 		bay: '12',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5063089891636?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-15-L-12'
 	},
+
 	{
 		upc: '9900000000073',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000007',
-		description: 'Free From by ASDA 20 Chicken Nuggets 400g',
-		price: 4.00,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '91',
 		aisle: '15',
 		aisleSide: 'L',
 		bay: '14',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5063089794227?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-15-L-14'
 	},
+
 	{
 		upc: '9900000000080',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000008',
-		description: 'ASDA 4 Battered Cod Fillets 440g',
-		price: 7.50,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '71',
 		aisle: '14',
 		aisleSide: 'R',
 		bay: '6',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5063089700778?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-14-R-6'
 	},
+
 	{
 		upc: '9900000000097',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000009',
-		description: 'Tiger Tiger Dumpling Pastry 300g',
-		price: 2.50,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '71',
 		aisle: '14',
 		aisleSide: 'L',
 		bay: '15',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5024448572061?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-14-L-15'
 	},
+
 	{
 		upc: '9900000000103',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000010',
-		description: 'Cornetto MAX Hazelnut & Chocolate Ice Cream Cones 4x90ml',
-		price: 4.00,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '73',
 		aisle: '16',
 		aisleSide: 'R',
 		bay: '20',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/8711327680685?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-16-R-20'
 	},
+
 	{
 		upc: '9900000000110',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000011',
-		description: 'Twister Mini Pineapple Ice Cream Lollies 6x50ml',
-		price: 2.74,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '73',
 		aisle: '16',
 		aisleSide: 'R',
 		bay: '21',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/8721274803761?$ProdListProd$',
+		shelf: '1',
 		modularId: 'FF-16-R-21'
 	},
+
 	{
 		upc: '9900000000127',
-		caseBarcode: null,
-		alternativeBarcode: null,
-		itemNumber: '990000012',
-		description: 'ASDA Party Food 2 Mature Cheddar & Spring Onion Bakes 230g',
-		price: 2.17,
-		onHand: 0,
-		caseSize: 0,
-		maxShelf: 0,
-		department: '91',
 		aisle: '14',
 		aisleSide: 'L',
 		bay: '18',
-		imageUrl: 'https://asdagroceries.scene7.com/is/image/asdagroceries/5057172100675?$ProdListProd$',
+		shelf: '',
 		modularId: 'FF-14-L-18'
 	},
+
 	{
-        upc: '05060198649592',
-        caseBarcode: null,
-        alternativeBarcode: null,
-        itemNumber: '100543572',
-        description: 'Crostam Garlic Flatbread',
-        price: 2.50,
-        onHand: 12,
-        caseSize: 0,
-        maxShelf: 14,
-        department: 'Bakery & Frozen',
-        aisle: 'FF16',
-        aisleSide: 'R',
-        bay: '18',
-        imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRk1iGjgeKF7KRduJuDDDcJqSh1h21kTbKAz73-LuyqAA&s',
-        modularId: 'FF-FF16-R-18-2'
-    },
+		upc: '05060198649592',
+		aisle: 'FF16',
+		aisleSide: 'R',
+		bay: '18',
+		shelf: '2',
+		modularId: 'FF-FF16-R-18-2'
+	},
+
+	{
+		upc: '4001724008743',
+		aisle: '16',
+		aisleSide: 'R',
+		bay: '15',
+		shelf: '1',
+		modularId: 'FF-16-R-15'
+	}
+
 ];
 
+
+/* =========================================================
+   SALES HISTORY
+   Chicago Town Subs
+========================================================= */
+
+const salesHistory = {
+
+	'4001724008743': [
+
+		{
+			date: '2026-09-05',
+			units: 4,
+			availability: 100.00,
+			sales: 7.60,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-06',
+			units: 3,
+			availability: 100.00,
+			sales: 5.70,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-07',
+			units: 5,
+			availability: 100.00,
+			sales: 9.50,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-08',
+			units: 2,
+			availability: 99.80,
+			sales: 3.80,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-09',
+			units: 4,
+			availability: 100.00,
+			sales: 7.60,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-10',
+			units: 3,
+			availability: 99.90,
+			sales: 5.70,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-11',
+			units: 4,
+			availability: 100.00,
+			sales: 7.60,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-12',
+			units: 3,
+			availability: 99.70,
+			sales: 5.70,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-13',
+			units: 6,
+			availability: 100.00,
+			sales: 3.78,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-14',
+			units: 5,
+			availability: 98.19,
+			sales: 7.50,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-15',
+			units: 4,
+			availability: 99.00,
+			sales: 6.00,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-16',
+			units: 6,
+			availability: 98.70,
+			sales: 9.00,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-17',
+			units: 3,
+			availability: 98.50,
+			sales: 4.50,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-18',
+			units: 5,
+			availability: 98.40,
+			sales: 7.50,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-19',
+			units: 5,
+			availability: 98.90,
+			sales: 7.50,
+			lostSales: 0.00
+		},
+
+		{
+			date: '2026-09-20',
+			units: 7,
+			availability: 99.00,
+			sales: 10.50,
+			lostSales: 1.90
+		}
+
+	]
+
+};
+
+
+/* =========================================================
+   SEED
+========================================================= */
+
 async function seed() {
+
 	const client = await pool.connect();
 
 	try {
+
 		await client.query('BEGIN');
+
+
+		/* =====================================================
+		   MODULAR LOCATIONS
+		===================================================== */
 
 		for (const product of products) {
 
 			const itemResult = await client.query(
 				`
-				INSERT INTO items (
-					upc,
-					case_barcode,
-					alternative_barcode,
-					item_number,
-					description,
-					on_hand,
-					price,
-					case_size,
-					max_shelf,
-					department,
-					range_status,
-					image_url,
-					image_alt
-				)
-				VALUES (
-					$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13
-				)
-				ON CONFLICT (upc)
-				DO UPDATE SET
-					case_barcode = EXCLUDED.case_barcode,
-					alternative_barcode = EXCLUDED.alternative_barcode,
-					item_number = EXCLUDED.item_number,
-					description = EXCLUDED.description,
-					price = EXCLUDED.price,
-					case_size = EXCLUDED.case_size,
-					max_shelf = EXCLUDED.max_shelf,
-					department = EXCLUDED.department,
-					range_status = EXCLUDED.range_status,
-					image_url = EXCLUDED.image_url,
-					image_alt = EXCLUDED.image_alt,
-					updated_at = CURRENT_TIMESTAMP
-				RETURNING id
+				SELECT id
+				FROM items
+				WHERE upc = $1
 				`,
 				[
-					product.upc,
-					product.caseBarcode,
-					product.alternativeBarcode,
-					product.itemNumber,
-					product.description,
-					product.onHand,
-					product.price,
-					product.caseSize,
-					product.maxShelf,
-					product.department,
-					'in-range',
-					product.imageUrl,
-					product.description
+					product.upc
 				]
 			);
 
-			const itemId = itemResult.rows[0].id;
+
+			if (!itemResult.rows.length) {
+
+				console.warn(
+					`Modular skipped: ${product.upc} was not found.`
+				);
+
+				continue;
+			}
+
+
+			const itemId =
+				itemResult.rows[0].id;
+
 
 			await client.query(
 				`
@@ -298,33 +334,181 @@ async function seed() {
 					modular_id,
 					is_primary
 				)
-				VALUES ($1,$2,$3,$4,$5,$6,$7)
-				ON CONFLICT (item_id, modular_id)
-				DO NOTHING
+
+				VALUES (
+					$1,
+					$2,
+					$3,
+					$4,
+					$5,
+					$6,
+					$7
+				)
+
+				ON CONFLICT (
+					item_id,
+					modular_id
+				)
+
+				DO UPDATE SET
+
+					aisle =
+						EXCLUDED.aisle,
+
+					aisle_side =
+						EXCLUDED.aisle_side,
+
+					bay =
+						EXCLUDED.bay,
+
+					shelf =
+						EXCLUDED.shelf,
+
+					is_primary =
+						EXCLUDED.is_primary
 				`,
 				[
 					itemId,
 					product.aisle,
 					product.aisleSide,
 					product.bay,
-					product.upc === '05060198649592' ? '2' : '',
+					product.shelf,
 					product.modularId,
 					true
 				]
 			);
+
 		}
+
+
+		/* =====================================================
+		   REMOVE SALES DATA OLDER THAN 28 DAYS
+		===================================================== */
+
+		await client.query(
+			`
+			DELETE FROM item_sales_daily
+
+			WHERE sales_date <
+				CURRENT_DATE - INTERVAL '27 days'
+			`
+		);
+
+
+		/* =====================================================
+		   SALES HISTORY
+		===================================================== */
+
+		for (
+			const [upc, dailySales]
+			of Object.entries(salesHistory)
+		) {
+
+			const itemResult = await client.query(
+				`
+				SELECT id
+				FROM items
+				WHERE upc = $1
+				`,
+				[
+					upc
+				]
+			);
+
+
+			if (!itemResult.rows.length) {
+
+				console.warn(
+					`Sales data skipped: ${upc} was not found.`
+				);
+
+				continue;
+			}
+
+
+			const itemId =
+				itemResult.rows[0].id;
+
+
+			for (const day of dailySales) {
+
+				await client.query(
+					`
+					INSERT INTO item_sales_daily (
+						item_id,
+						sales_date,
+						units_sold,
+						availability_percent,
+						sales_value,
+						lost_sales
+					)
+
+					VALUES (
+						$1,
+						$2,
+						$3,
+						$4,
+						$5,
+						$6
+					)
+
+					ON CONFLICT (
+						item_id,
+						sales_date
+					)
+
+					DO UPDATE SET
+
+						units_sold =
+							EXCLUDED.units_sold,
+
+						availability_percent =
+							EXCLUDED.availability_percent,
+
+						sales_value =
+							EXCLUDED.sales_value,
+
+						lost_sales =
+							EXCLUDED.lost_sales,
+
+						updated_at =
+							CURRENT_TIMESTAMP
+					`,
+					[
+						itemId,
+						day.date,
+						day.units,
+						day.availability,
+						day.sales,
+						day.lostSales
+					]
+				);
+
+			}
+
+		}
+
 
 		await client.query('COMMIT');
 
+
 		console.log(
-			`Seed complete: ${products.length} products inserted/updated.`
+			`Seed complete: ${products.length} modulars processed.`
 		);
+
+		console.log(
+			'Sales history seeded for Chicago Town Subs.'
+		);
+
 
 	} catch (error) {
 
 		await client.query('ROLLBACK');
 
-		console.error('Seed failed:', error);
+		console.error(
+			'Seed failed:',
+			error
+		);
 
 	} finally {
 
@@ -333,7 +517,8 @@ async function seed() {
 		await pool.end();
 
 	}
+
 }
 
-seed();
 
+seed();

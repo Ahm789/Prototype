@@ -101,18 +101,547 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 .filter-button { display: flex; align-items: center; gap: 8px; min-height: 42px; margin-left: auto; padding: 0 2px; color: white; background: transparent; font-weight: 700; font-size: 17px; white-space: nowrap; }
 .filter-button svg { width: 27px; height: 27px; stroke-width: 2.5; }
 
-.filter-panel { position: absolute; z-index: 5; inset: 0; display: flex; flex-direction: column; padding: 24px 18px; color: white; background: #15445d; box-shadow: 0 5px 14px #061f2c88; }
-.filter-panel[hidden] { display: none; }
-.filter-panel-header { display: flex; justify-content: space-between; align-items: center; min-height: 69px; margin: -24px -18px 11px; padding: 0 14px; color: white; background: var(--sky); border-bottom: 1px solid #b5e4eb; font-size: 18px; }
-.close-filters { width: 46px; height: 46px; color: white; background: transparent; font-size: 36px; line-height: 1; }
-.filter-fields { display: flex; flex-direction: column; justify-content: center; width: min(100%, 420px); flex: 1; margin: 0 auto; }
-.filter-panel label { display: block; margin-top: 16px; font-size: 12px; font-weight: 700; }
-.filter-panel select { display: block; width: 100%; margin-top: 6px; padding: 11px; color: #164459; background: white; border: 1px solid #9cced2; border-radius: 3px; }
-.filter-actions { display: flex; gap: 10px; width: min(100%, 420px); margin: auto auto 16px; }
-.filter-actions button { flex: 1; padding: 10px; border-radius: 4px; font-weight: 700; }
-.reset-filters { color: #344d57; background: #c8d0d2; }
-.apply-filters { color: #123e56; background: var(--aqua); }
-.scanner-app.filters-open .bottom-nav { display: none; }
+/* =========================================================
+   FILTER PANEL
+========================================================= */
+
+.filter-panel {
+	position: absolute;
+	z-index: 5;
+	inset: 0;
+
+	display: flex;
+	flex-direction: column;
+
+	padding: 24px 18px;
+
+	color: white;
+	background: #15445d;
+
+	box-shadow: 0 5px 14px #061f2c88;
+}
+
+.filter-panel[hidden] {
+	display: none;
+}
+
+
+/* =========================================================
+   FILTER HEADER
+========================================================= */
+
+.filter-panel-header {
+	position: relative;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	min-height: 69px;
+
+	margin: -24px -18px 11px;
+	padding: 0;
+
+	color: white;
+	background: var(--sky);
+
+	border-bottom: 1px solid #b5e4eb;
+
+	font-size: 18px;
+}
+
+.filter-panel-header strong {
+	position: absolute;
+	left: 50%;
+
+	margin: 0;
+
+	transform: translateX(-50%);
+
+	font-size: 18px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.close-filters {
+	position: absolute;
+
+	right: 14px;
+	top: 50%;
+
+	width: 46px;
+	height: 46px;
+
+	transform: translateY(-50%);
+
+	color: white;
+	background: transparent;
+
+	font-size: 36px;
+	line-height: 1;
+}
+
+
+/* =========================================================
+   FILTER FIELDS
+========================================================= */
+
+.filter-fields {
+	display: flex;
+	flex-direction: column;
+
+	width: min(100%, 420px);
+
+	flex: 0 0 auto;
+
+	margin: 0 auto;
+
+	padding-top: 4px;
+}
+
+.filter-panel > .filter-fields > label {
+	display: block;
+
+	margin-top: 16px;
+
+	font-size: 12px;
+	font-weight: 700;
+}
+
+
+.filter-panel select {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+
+	display: block;
+
+	width: 100%;
+	height: 39px;
+
+	margin-top: 6px;
+	padding: 0 36px 0 11px;
+
+	color: #164459;
+	background-color: white;
+
+	border: 1px solid #9cced2;
+	border-radius: 3px;
+
+	font-size: 13px;
+	font-weight: 400;
+
+	cursor: pointer;
+
+	background-image:
+	linear-gradient(
+		45deg,
+		transparent 42%,
+		#66808b 43%,
+		#66808b 58%,
+		transparent 59%
+	),
+	linear-gradient(
+		-45deg,
+		transparent 42%,
+		#66808b 43%,
+		#66808b 58%,
+		transparent 59%
+	);
+
+background-position:
+	calc(100% - 15px) 15px,
+	calc(100% - 10px) 15px;
+
+background-size:
+	7px 7px,
+	7px 7px;
+
+background-repeat: no-repeat;
+}
+.filter-panel select.is-open {
+	background-image:
+		linear-gradient(
+			-45deg,
+			transparent 42%,
+			#66808b 43%,
+			#66808b 58%,
+			transparent 59%
+		),
+		linear-gradient(
+			45deg,
+			transparent 42%,
+			#66808b 43%,
+			#66808b 58%,
+			transparent 59%
+		);
+}
+
+/* =========================================================
+   FILTER ACTIONS
+========================================================= */
+
+.filter-actions {
+	display: flex;
+
+	gap: 10px;
+
+	width: min(100%, 420px);
+
+	margin: auto auto 16px;
+}
+
+.filter-actions button {
+	flex: 1;
+
+	padding: 10px;
+
+	border-radius: 4px;
+
+	font-weight: 700;
+}
+
+.reset-filters {
+	color: #344d57;
+	background: #c8d0d2;
+}
+
+.apply-filters {
+	color: #123e56;
+	background: var(--aqua);
+}
+
+.scanner-app.filters-open .bottom-nav {
+	display: none;
+}
+
+
+/* =========================================================
+   FILTER DROPDOWN CONTAINERS
+========================================================= */
+
+.department-filter,
+.task-type-filter {
+	position: relative;
+
+	width: 100%;
+
+	margin-top: 16px;
+}
+
+.department-filter > label,
+.task-type-filter > label {
+	display: block;
+
+	margin: 0;
+
+	font-size: 12px;
+	font-weight: 700;
+}
+
+
+/* =========================================================
+   DROPDOWN BUTTONS
+========================================================= */
+
+.department-dropdown,
+.task-type-dropdown {
+	position: relative;
+
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	width: 100%;
+	height: 39px;
+
+	margin-top: 6px;
+	padding: 0 11px;
+
+	box-sizing: border-box;
+
+	color: #164459;
+	background: white;
+
+	border: 1px solid #9cced2;
+	border-radius: 3px;
+
+	font-size: 13px;
+	font-weight: 400;
+
+	text-align: left;
+}
+
+.department-dropdown:hover,
+.task-type-dropdown:hover {
+	background: #f5ffff;
+}
+
+
+/* =========================================================
+   DROPDOWN TEXT
+========================================================= */
+
+.department-dropdown > span:first-child,
+.task-type-dropdown > span:first-child {
+	display: block;
+
+	flex: 1;
+
+	min-width: 0;
+
+	overflow: hidden;
+
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   DROPDOWN ARROWS
+========================================================= */
+
+.department-chevron,
+.task-type-chevron {
+	position: relative;
+
+	display: block;
+
+	flex: 0 0 12px;
+
+	width: 12px;
+	height: 12px;
+
+	margin-left: 8px;
+
+	color: transparent;
+	font-size: 0;
+}
+
+.department-chevron::before,
+.task-type-chevron::before {
+	position: absolute;
+
+	left: 2px;
+	top: 1px;
+
+	width: 7px;
+	height: 7px;
+
+	border-right: 2px solid #66808b;
+	border-bottom: 2px solid #66808b;
+
+	content: '';
+
+	transform: rotate(45deg);
+	transform-origin: center;
+
+	transition: transform 0.15s ease;
+}
+
+
+/* =========================================================
+   OPEN STATE
+========================================================= */
+
+.department-dropdown.is-open .department-chevron,
+.task-type-dropdown.is-open .task-type-chevron {
+	transform: scaleY(-1);
+}
+
+
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+
+.department-menu,
+.task-type-menu {
+	position: absolute;
+
+	z-index: 20;
+
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+
+	width: 100%;
+
+	margin: 0;
+	padding: 5px 0;
+
+	box-sizing: border-box;
+
+	color: #30535c;
+	background: #ffffff;
+
+	border: 1px solid #9cced2;
+	border-radius: 4px;
+
+	box-shadow: 0 4px 10px #061f2c55;
+
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.department-menu[hidden],
+.task-type-menu[hidden] {
+	display: none;
+}
+
+/* =========================================================
+   MENU HEIGHTS
+========================================================= */
+
+.task-type-menu {
+	max-height: 300px;
+}
+
+.department-menu {
+	max-height: 150px;
+}
+
+
+/* =========================================================
+   TASK TYPE GROUP
+========================================================= */
+
+.task-type-group {
+	padding: 5px 0;
+}
+
+.task-type-group + .task-type-group {
+	border-top: 1px solid #d9e5e7;
+}
+
+.task-type-group-title {
+	padding: 7px 11px 5px;
+
+	color: #66808b;
+
+	font-size: 10px;
+	font-weight: 700;
+
+	letter-spacing: 0.4px;
+	text-transform: uppercase;
+}
+
+
+/* =========================================================
+   CHECKBOX OPTIONS
+========================================================= */
+
+.task-type-option,
+.department-option {
+	display: flex !important;
+	align-items: center;
+
+	width: 100%;
+
+	margin: 0 !important;
+	padding: 8px 11px;
+
+	box-sizing: border-box;
+
+	color: #30535c;
+	background: transparent;
+
+	font-size: 12px;
+	font-weight: 500;
+
+	line-height: 1.2;
+
+	cursor: pointer;
+}
+
+.task-type-option:hover,
+.department-option:hover {
+	background: #eaf6ee;
+}
+
+
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
+.task-type-option input[type="checkbox"],
+.department-option input[type="checkbox"] {
+	flex: 0 0 auto;
+
+	width: 16px;
+	height: 16px;
+
+	margin: 0 9px 0 0;
+	padding: 0;
+
+	accent-color: var(--aqua);
+
+	cursor: pointer;
+}
+
+
+/* =========================================================
+   CHECKBOX TEXT
+========================================================= */
+
+.task-type-option span,
+.department-option span {
+	display: block;
+
+	flex: 1;
+
+	margin: 0;
+
+	color: #30535c;
+
+	font-size: 12px;
+	font-weight: 600;
+
+	line-height: 1.2;
+}
+
+
+/* =========================================================
+   CHECKBOX FOCUS
+========================================================= */
+
+.task-type-option input[type="checkbox"]:focus-visible,
+.department-option input[type="checkbox"]:focus-visible {
+	outline: 2px solid var(--aqua);
+	outline-offset: 2px;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 420px) {
+
+	.department-dropdown,
+	.task-type-dropdown {
+		height: 39px;
+		padding-left: 10px;
+		padding-right: 36px;
+
+		font-size: 12px;
+	}
+
+	.task-type-option,
+	.department-option {
+		padding: 8px 10px;
+	}
+
+	.task-type-group-title {
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+
+	.task-type-option span,
+	.department-option span {
+		font-size: 11px;
+	}
+
+}
 
 .task-list { flex: 1; overflow-y: auto; padding: 8px 12px 82px; background: var(--deep-navy); }
 .task-empty { padding: 28px 14px; color: #b5d6dc; text-align: center; font-size: 14px; }
@@ -624,7 +1153,15 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	border-top: 9px solid #eaf6ee;
 }
 
+.tab-panel {
+	width: 100%;
+	min-height: 300px;
+	background: #ffffff;
+}
 
+.tab-panel[hidden] {
+	display: none;
+}
 /* =========================================
    PRODUCT INFO TABS
    ========================================= */
@@ -1667,6 +2204,266 @@ h1 { margin: 0; font-size: 16px; letter-spacing: .4px; }
 	text-align: center;
 
 	border: 1px dashed #b8cbce;
+
+}
+/* =====================================================
+   SALES TAB
+===================================================== */
+
+.sales-tab-panel {
+	width: 100%;
+	background: #ffffff;
+	color: #173f52;
+}
+
+
+/* =====================================================
+   YESTERDAY SALES
+===================================================== */
+
+.sales-yesterday {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	width: 100%;
+	min-height: 38px;
+
+	padding: 0 12px;
+
+	background: #e4e8e9;
+
+	border-bottom: 1px solid #cbd3d6;
+}
+
+.sales-section-label {
+	color: #52666d;
+
+	font-size: 11px;
+	font-weight: 700;
+
+	letter-spacing: 0.3px;
+}
+
+.sales-yesterday-value {
+	display: flex;
+	align-items: baseline;
+	justify-content: flex-end;
+
+	gap: 5px;
+
+	color: #52666d;
+
+	font-size: 11px;
+	font-weight: 600;
+}
+
+.sales-yesterday-value #sales-yesterday-units {
+	color: #173f52;
+
+	font-size: 17px;
+	font-weight: 700;
+}
+
+
+/* =====================================================
+   SALES TABLE
+===================================================== */
+
+.sales-table-wrapper {
+	width: 100%;
+	padding: 10px 12px 18px;
+
+	box-sizing: border-box;
+
+	background: #ffffff;
+}
+
+.sales-table {
+	width: 100%;
+
+	border-collapse: collapse;
+	table-layout: fixed;
+
+	color: #52666d;
+
+	font-size: 13px;
+}
+
+
+/* =====================================================
+   TABLE HEADER
+===================================================== */
+
+.sales-table thead th {
+	padding: 6px 10px;
+
+	color: #66808b;
+
+	font-size: 11px;
+	font-weight: 700;
+
+	text-align: center;
+}
+
+.sales-table thead th:first-child {
+	text-align: left;
+}
+
+
+/* =====================================================
+   VERTICAL COLUMN DIVIDERS
+===================================================== */
+
+.sales-table td:first-child {
+	border-right: 1px solid #cbd7dc;
+}
+
+.sales-table td:nth-child(2) {
+	border-right: 1px solid #cbd7dc;
+}
+
+
+/* =====================================================
+   LINE ABOVE UNITS SOLD
+===================================================== */
+
+.sales-table tbody tr:first-child td {
+	border-top: 1px solid #b9c8cd;
+}
+
+
+/* =====================================================
+   TABLE BODY
+===================================================== */
+
+.sales-table tbody td {
+	padding: 8px 10px;
+
+	font-size: 13px;
+
+	border-bottom: none;
+}
+
+.sales-table tbody td:first-child {
+	color: #52666d;
+
+	font-weight: 600;
+
+	text-align: left;
+}
+
+.sales-table tbody td:not(:first-child) {
+	color: #173f52;
+
+	font-weight: 700;
+
+	text-align: center;
+}
+
+
+/* =====================================================
+   TOTAL SALES
+===================================================== */
+
+.sales-table #sales-7-total,
+.sales-table #sales-28-total {
+	color: #173f52;
+}
+
+
+/* =====================================================
+   LOST SALES SEPARATOR
+===================================================== */
+
+/*
+	Remove the normal column dividers from
+	the blank separator row.
+*/
+.sales-table .sales-divider-row td {
+	height: 0;
+
+	padding: 0;
+
+	border: none !important;
+
+	background: #ffffff;
+}
+
+
+/*
+	Line above Lost Sales
+*/
+.sales-table .sales-divider-row td {
+	border-top: 1px solid #b9c8cd !important;
+}
+
+
+/*
+	Keep the column dividers OFF the separator
+	so the horizontal line is continuous.
+*/
+.sales-table .sales-divider-row {
+	border: none;
+}
+
+
+/* =====================================================
+   LOST SALES
+===================================================== */
+
+.sales-table tr:last-child td {
+	padding-top: 9px;
+	padding-bottom: 9px;
+
+	border-bottom: 1px solid #b9c8cd;
+}
+
+.sales-table tr:last-child td:first-child {
+	color: #52666d;
+
+	font-weight: 700;
+}
+
+.sales-table tr:last-child td:not(:first-child) {
+	color: #d62828;
+
+	font-weight: 700;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 420px) {
+
+	.sales-yesterday {
+		min-height: 36px;
+		padding: 0 11px;
+	}
+
+	.sales-section-label {
+		font-size: 10px;
+	}
+
+	.sales-yesterday-value {
+		font-size: 10px;
+	}
+
+	.sales-yesterday-value #sales-yesterday-units {
+		font-size: 16px;
+	}
+
+	.sales-table-wrapper {
+		padding: 8px 9px 16px;
+	}
+
+	.sales-table thead th,
+	.sales-table tbody td {
+		padding-left: 7px;
+		padding-right: 7px;
+	}
 
 }
 /* =========================================================

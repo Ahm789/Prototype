@@ -629,10 +629,10 @@ const renderRandomTasks = async () => {
 appMenuButton.addEventListener(
 	'click',
 	() => {
+		console.log('APP MENU CLICKED');
 
 		window.location.href =
 			'items.html';
-
 	}
 );
 
@@ -1024,6 +1024,284 @@ const setFiltersOpen =
 	};
 
 
+/* =========================================================
+   FILTER ELEMENTS
+========================================================= */
+
+const departmentDropdown =
+	document.querySelector(
+		'#department-dropdown'
+	);
+
+const departmentMenu =
+	document.querySelector(
+		'.department-menu'
+	);
+
+const taskTypeDropdown =
+	document.querySelector(
+		'#task-type-dropdown'
+	);
+
+const taskTypeMenu =
+	document.querySelector(
+		'.task-type-menu'
+	);
+
+const taskStatusSelect =
+	document.querySelector(
+		'.filter-panel select'
+	);
+taskStatusSelect.addEventListener(
+	'mousedown',
+	() => {
+		taskStatusSelect.classList.toggle(
+			'is-open'
+		);
+	}
+);
+
+taskStatusSelect.addEventListener(
+	'change',
+	() => {
+		taskStatusSelect.classList.remove(
+			'is-open'
+		);
+	}
+);
+const departmentCheckboxes =
+	document.querySelectorAll(
+		'.department-option input[type="checkbox"]'
+	);
+
+const taskTypeCheckboxes =
+	document.querySelectorAll(
+		'.task-type-option input[type="checkbox"]'
+	);
+
+
+/* =========================================================
+   FILTER STATE
+========================================================= */
+
+const filterStateKey =
+	'asda-task-filter-state';
+
+
+const defaultFilterState = {
+
+	taskStatus:
+		'Open tasks',
+
+	departments:
+		[],
+
+	taskTypes:
+		[
+			'Manual Gap Scan',
+			'Out-Of Stock'
+		]
+
+};
+
+
+/* =========================================================
+   SAVE FILTER STATE
+========================================================= */
+
+const saveFilterState =
+	() => {
+
+		const state = {
+
+			taskStatus:
+				taskStatusSelect.value,
+
+			departments:
+				[...departmentCheckboxes]
+					.filter(
+						(checkbox) =>
+							checkbox.checked
+					)
+					.map(
+						(checkbox) =>
+							checkbox.value
+					),
+
+			taskTypes:
+				[...taskTypeCheckboxes]
+					.filter(
+						(checkbox) =>
+							checkbox.checked
+					)
+					.map(
+						(checkbox) =>
+							checkbox.value
+					)
+
+		};
+
+
+		localStorage.setItem(
+			filterStateKey,
+			JSON.stringify(state)
+		);
+
+	};
+
+
+/* =========================================================
+   UPDATE DROPDOWN LABELS
+========================================================= */
+
+const updateFilterLabels =
+	() => {
+
+		const selectedDepartments =
+			[...departmentCheckboxes]
+				.filter(
+					(checkbox) =>
+						checkbox.checked
+				)
+				.map(
+					(checkbox) =>
+						checkbox.value
+				);
+
+
+		const selectedTaskTypes =
+			[...taskTypeCheckboxes]
+				.filter(
+					(checkbox) =>
+						checkbox.checked
+				)
+				.map(
+					(checkbox) =>
+						checkbox.value
+				);
+
+
+		/* Department */
+
+		departmentDropdown
+			.querySelector('span')
+			.textContent =
+				selectedDepartments.length === 0
+					? 'All departments'
+					: selectedDepartments.join(', ');
+
+
+		/* Task type */
+
+		taskTypeDropdown
+			.querySelector('span')
+			.textContent =
+				selectedTaskTypes.length === 0
+					? 'All task types'
+					: selectedTaskTypes.join(', ');
+
+	};
+/* =========================================================
+   LOAD FILTER STATE
+========================================================= */
+
+const loadFilterState =
+	() => {
+
+		let state =
+			null;
+
+
+		try {
+
+			state =
+				JSON.parse(
+					localStorage.getItem(
+						filterStateKey
+					)
+				);
+
+		} catch (error) {
+
+			state =
+				null;
+
+		}
+
+
+		/* Use defaults if nothing is saved */
+
+		if (!state) {
+
+			state = {
+				...defaultFilterState,
+
+				departments:
+					[...defaultFilterState.departments],
+
+				taskTypes:
+					[...defaultFilterState.taskTypes]
+
+			};
+
+		}
+
+
+		/* Task status */
+
+		const statusOption =
+			[...taskStatusSelect.options]
+				.find(
+					(option) =>
+						option.textContent ===
+						state.taskStatus
+				);
+
+
+		if (statusOption) {
+
+			taskStatusSelect.value =
+				statusOption.value;
+
+		}
+
+
+		/* Departments */
+
+		departmentCheckboxes.forEach(
+			(checkbox) => {
+
+				checkbox.checked =
+					state.departments.includes(
+						checkbox.value
+					);
+
+			}
+		);
+
+
+		/* Task types */
+
+		taskTypeCheckboxes.forEach(
+			(checkbox) => {
+
+				checkbox.checked =
+					state.taskTypes.includes(
+						checkbox.value
+					);
+
+			}
+		);
+
+
+		updateFilterLabels();
+
+	};
+
+
+/* =========================================================
+   OPEN FILTER PANEL
+========================================================= */
 
 filterButton.addEventListener(
 	'click',
@@ -1037,6 +1315,9 @@ filterButton.addEventListener(
 );
 
 
+/* =========================================================
+   CLOSE FILTER PANEL
+========================================================= */
 
 closeFilters.addEventListener(
 	'click',
@@ -1050,6 +1331,127 @@ closeFilters.addEventListener(
 );
 
 
+/* =========================================================
+   DEPARTMENT DROPDOWN
+========================================================= */
+
+departmentDropdown.addEventListener(
+	'click',
+	() => {
+
+		const isOpen =
+			!departmentMenu.hidden;
+
+
+		taskTypeMenu.hidden =
+			true;
+
+		taskTypeDropdown.classList.remove(
+			'is-open'
+		);
+
+
+		departmentMenu.hidden =
+			isOpen;
+
+		departmentDropdown.classList.toggle(
+			'is-open',
+			!isOpen
+		);
+
+	}
+);
+
+
+/* =========================================================
+   TASK TYPE DROPDOWN
+========================================================= */
+
+taskTypeDropdown.addEventListener(
+	'click',
+	() => {
+
+		const isOpen =
+			!taskTypeMenu.hidden;
+
+
+		departmentMenu.hidden =
+			true;
+
+		departmentDropdown.classList.remove(
+			'is-open'
+		);
+
+
+		taskTypeMenu.hidden =
+			isOpen;
+
+		taskTypeDropdown.classList.toggle(
+			'is-open',
+			!isOpen
+		);
+
+	}
+);
+
+
+/* =========================================================
+   DEPARTMENT CHECKBOXES
+========================================================= */
+
+departmentCheckboxes.forEach(
+	(checkbox) => {
+
+		checkbox.addEventListener(
+			'change',
+			() => {
+
+				updateFilterLabels();
+
+				saveFilterState();
+
+			}
+		);
+
+	}
+);
+
+
+/* =========================================================
+   TASK TYPE CHECKBOXES
+========================================================= */
+
+taskTypeCheckboxes.forEach(
+	(checkbox) => {
+
+		checkbox.addEventListener(
+			'change',
+			() => {
+
+				updateFilterLabels();
+
+				saveFilterState();
+
+			}
+		);
+
+	}
+);
+
+
+/* =========================================================
+   TASK STATUS
+========================================================= */
+
+taskStatusSelect.addEventListener(
+	'change',
+	() => {
+
+		saveFilterState();
+
+	}
+);
+
 
 /* =========================================================
    RESET FILTERS
@@ -1059,21 +1461,117 @@ resetFilters.addEventListener(
 	'click',
 	() => {
 
-		filterSelects.forEach(
-			(select) => {
+		/* Task status */
 
-				select.selectedIndex =
-					0;
+		const openTasksOption =
+			[...taskStatusSelect.options]
+				.find(
+					(option) =>
+						option.textContent ===
+						'Open tasks'
+				);
+
+
+		if (openTasksOption) {
+
+			taskStatusSelect.value =
+				openTasksOption.value;
+
+		}
+
+
+		/* Department = nothing selected */
+
+		departmentCheckboxes.forEach(
+			(checkbox) => {
+
+				checkbox.checked =
+					false;
 
 			}
 		);
 
+
+		/* Task type defaults */
+
+		taskTypeCheckboxes.forEach(
+			(checkbox) => {
+
+				checkbox.checked =
+					checkbox.value ===
+					'Manual Gap Scan' ||
+					checkbox.value ===
+					'Out-Of Stock';
+
+			}
+		);
+
+
+		updateFilterLabels();
+
+
+		/* Save reset state */
+
+		saveFilterState();
+
+
+		/* Close dropdowns */
+
+		departmentMenu.hidden =
+			true;
+
+		taskTypeMenu.hidden =
+			true;
+
+		departmentDropdown.classList.remove(
+			'is-open'
+		);
+
+		taskTypeDropdown.classList.remove(
+			'is-open'
+		);
+
+
+		/* Reset filter counter */
 
 		filterLabel.textContent =
 			'Filters (0)';
 
 	}
 );
+
+
+/* =========================================================
+   APPLY FILTERS
+========================================================= */
+
+applyFilters.addEventListener(
+	'click',
+	() => {
+
+		saveFilterState();
+
+
+		setFiltersOpen(
+			false
+		);
+
+
+		/*
+			For now the task list remains unchanged.
+			The actual filtering logic can use the saved
+			state when we wire it into renderRandomTasks().
+		*/
+
+	}
+);
+
+
+/* =========================================================
+   INITIALISE FILTER STATE
+========================================================= */
+
+loadFilterState();
 
 
 

@@ -51,7 +51,347 @@ const formatItem = (row) => {
 	};
 
 };
+router.post('/', async (req, res) => {
 
+	const {
+		upc,
+		caseBarcode,
+		alternativeBarcode,
+		itemNumber,
+		description,
+		price,
+		onHand,
+		caseSize,
+		weight,
+		maxShelf,
+		department,
+		hffssStatus,
+		rangeStatus,
+		imageUrl,
+		imageAlt
+	} = req.body;
+
+	try {
+
+		if (!upc || !description) {
+			return res.status(400).json({
+				error: 'UPC and description are required.'
+			});
+		}
+
+		const result = await pool.query(
+			`
+			INSERT INTO items (
+				upc,
+				case_barcode,
+				alternative_barcode,
+				item_number,
+				description,
+				price,
+				on_hand,
+				case_size,
+				weight,
+				max_shelf,
+				department,
+				hffss_status,
+				range_status,
+				image_url,
+				image_alt
+			)
+			VALUES (
+				$1,
+				$2,
+				$3,
+				$4,
+				$5,
+				$6,
+				$7,
+				$8,
+				$9,
+				$10,
+				$11,
+				$12,
+				$13,
+				$14,
+				$15
+			)
+			RETURNING *
+			`,
+			[
+				upc,
+				caseBarcode || null,
+				alternativeBarcode || null,
+				itemNumber || null,
+				description,
+				Number(price) || 0,
+				Number(onHand) || 0,
+				Number(caseSize) || 0,
+				weight || null,
+				Number(maxShelf) || 0,
+				department || null,
+				hffssStatus || 'Compliant',
+				rangeStatus || 'in-range',
+				imageUrl || null,
+				imageAlt || description
+			]
+		);
+
+		const row = result.rows[0];
+
+		res.status(201).json({
+			upc: row.upc,
+			caseBarcode: row.case_barcode,
+			alternativeBarcode: row.alternative_barcode,
+			itemNumber: row.item_number,
+			description: row.description,
+			onHand: row.on_hand,
+			price: Number(row.price),
+			caseSize: row.case_size,
+			weight: row.weight,
+			maxShelf: row.max_shelf,
+			department: row.department,
+			hffssStatus: row.hffss_status,
+			rangeStatus: row.range_status,
+			image: row.image_url
+				? {
+					url: row.image_url,
+					alt: row.image_alt || row.description
+				}
+				: null
+		});
+
+	} catch (error) {
+
+		console.error(
+			'Failed to create item:',
+			error
+		);
+
+		if (error.code === '23505') {
+			return res.status(409).json({
+				error: 'An item with this barcode already exists.'
+			});
+		}
+
+		res.status(500).json({
+			error: 'Failed to create item.'
+		});
+	}
+});
+
+
+/* =========================================================
+   GET PRODUCT SALES
+========================================================= */
+
+router.get('/:upc/sales', async (req, res) => {
+
+	const { upc } = req.params;
+
+	try {
+
+		/* =====================================================
+		   FIND PRODUCT
+		===================================================== */
+
+		const itemResult = await pool.query(`
+			SELECT
+				id,
+				upc
+			FROM items
+			WHERE
+				upc = $1
+				OR case_barcode = $1
+				OR alternative_barcode = $1
+			LIMIT 1
+		`, [
+			upc
+		]);
+
+
+		if (!itemResult.rows.length) {
+
+			return res.status(404).json({
+				error: 'Product not found'
+			});
+
+		}
+
+
+		const item =
+			itemResult.rows[0];
+
+
+		/* =====================================================
+		   YESTERDAY
+		===================================================== */
+
+		const yesterdayResult = await pool.query(`
+			SELECT
+				units_sold,
+				sales_value
+			FROM item_sales_daily
+			WHERE
+				item_id = $1
+				AND sales_date = CURRENT_DATE - INTERVAL '1 day'
+			LIMIT 1
+		`, [
+			item.id
+		]);
+
+
+		const yesterday =
+			yesterdayResult.rows.length
+				? yesterdayResult.rows[0]
+				: null;
+
+
+		/* =====================================================
+		   7 DAY TOTAL
+		===================================================== */
+
+		const sevenDayResult = await pool.query(`
+			SELECT
+				COALESCE(
+					SUM(units_sold),
+					0
+				) AS units_sold,
+
+				COALESCE(
+					AVG(availability_percent),
+					0
+				) AS availability,
+
+				COALESCE(
+					SUM(sales_value),
+					0
+				) AS sales_value,
+
+				COALESCE(
+					SUM(lost_sales),
+					0
+				) AS lost_sales
+
+			FROM item_sales_daily
+
+			WHERE
+				item_id = $1
+				AND sales_date >= CURRENT_DATE - INTERVAL '7 days'
+				AND sales_date < CURRENT_DATE
+		`, [
+			item.id
+		]);
+
+
+		/* =====================================================
+		   28 DAY TOTAL
+		===================================================== */
+
+		const twentyEightDayResult = await pool.query(`
+			SELECT
+				COALESCE(
+					SUM(units_sold),
+					0
+				) AS units_sold,
+
+				COALESCE(
+					AVG(availability_percent),
+					0
+				) AS availability,
+
+				COALESCE(
+					SUM(sales_value),
+					0
+				) AS sales_value,
+
+				COALESCE(
+					SUM(lost_sales),
+					0
+				) AS lost_sales
+
+			FROM item_sales_daily
+
+			WHERE
+				item_id = $1
+				AND sales_date >= CURRENT_DATE - INTERVAL '28 days'
+				AND sales_date < CURRENT_DATE
+		`, [
+			item.id
+		]);
+
+
+		const sevenDay =
+			sevenDayResult.rows[0];
+
+		const twentyEightDay =
+			twentyEightDayResult.rows[0];
+
+
+		/* =====================================================
+		   RESPONSE
+		===================================================== */
+
+		res.json({
+
+			upc: item.upc,
+
+			yesterday: {
+				unitsSold:
+					yesterday
+						? Number(yesterday.units_sold)
+						: 0,
+
+				sales:
+					yesterday
+						? Number(yesterday.sales_value)
+						: 0
+			},
+
+			sevenDays: {
+				unitsSold:
+					Number(sevenDay.units_sold),
+
+				availability:
+					Number(sevenDay.availability),
+
+				totalSales:
+					Number(sevenDay.sales_value),
+
+				lostSales:
+					Number(sevenDay.lost_sales)
+			},
+
+			twentyEightDays: {
+				unitsSold:
+					Number(twentyEightDay.units_sold),
+
+				availability:
+					Number(twentyEightDay.availability),
+
+				totalSales:
+					Number(twentyEightDay.sales_value),
+
+				lostSales:
+					Number(twentyEightDay.lost_sales)
+			}
+
+		});
+
+
+	} catch (error) {
+
+		console.error(
+			'Failed to get product sales:',
+			error
+		);
+
+		res.status(500).json({
+			error: 'Failed to retrieve product sales'
+		});
+
+	}
+
+});
 
 router.get(
 	'/modular/:modularId',
@@ -963,10 +1303,12 @@ router.put('/:upc', async (req, res) => {
 		itemNumber,
 		maxShelf,
 		department,
-		image,
+		imageUrl,
+		imageAlt,
 		caseBarcode,
 		alternativeBarcode,
-		hffssStatus
+		hffssStatus,
+		rangeStatus
 	} = req.body;
 
 
@@ -984,17 +1326,22 @@ router.put('/:upc', async (req, res) => {
 				item_number = COALESCE($6, item_number),
 				max_shelf = COALESCE($7, max_shelf),
 				department = COALESCE($8, department),
+
 				image_url = COALESCE($9, image_url),
 				image_alt = COALESCE($10, image_alt),
+
 				case_barcode = COALESCE($11, case_barcode),
 				alternative_barcode = COALESCE($12, alternative_barcode),
+
 				hffss_status = COALESCE($13, hffss_status),
+				range_status = COALESCE($14, range_status),
+
 				updated_at = CURRENT_TIMESTAMP
 
 			WHERE
-				upc = $14
-				OR case_barcode = $14
-				OR alternative_barcode = $14
+				upc = $15
+				OR case_barcode = $15
+				OR alternative_barcode = $15
 
 			RETURNING *
 		`, [
@@ -1006,12 +1353,13 @@ router.put('/:upc', async (req, res) => {
 			itemNumber,         // $6
 			maxShelf,           // $7
 			department,         // $8
-			image?.url,         // $9
-			image?.alt,         // $10
+			imageUrl || null,   // $9
+			imageAlt || null,   // $10
 			caseBarcode,        // $11
 			alternativeBarcode, // $12
 			hffssStatus,        // $13
-			upc                 // $14
+			rangeStatus,        // $14
+			upc                 // $15
 		]);
 
 

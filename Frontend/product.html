@@ -218,328 +218,443 @@
 				</div>
 
 
-				<!-- TAB CONTENT -->
-				<div
-					class="product-info-tab-content"
-					id="tab-content"
-				>
+<!-- TAB CONTENT -->
+<div
+	class="product-info-tab-content"
+	id="tab-content"
+>
 
-					<div class="bay-image-section">
+	<!-- INFO TAB -->
+	<div
+		class="tab-panel info-tab-panel"
+		data-panel="info"
+	>
 
-						<h3>
-							Bay Image
-						</h3>
+		<div class="bay-image-section">
 
+			<h3>
+				Bay Image
+			</h3>
 
-						<!-- BAY LOCATION / TIMESTAMP -->
+			<!-- BAY LOCATION / TIMESTAMP -->
 
-						<div class="bay-info-line">
+			<div class="bay-info-line">
 
-							<span id="bay-loc-text">
-								-
+				<span id="bay-loc-text">
+					-
+				</span>
+
+				<span class="bay-separator">
+					|
+				</span>
+
+				<span>
+					Shelf
+					<span id="bay-shelf-num">
+						-
+					</span>
+				</span>
+
+				<span class="bay-separator">
+					|
+				</span>
+
+				<span class="timestamp">
+
+					<span class="timestamp-time">
+						@ 04:45 PM
+					</span>
+
+					<div class="timestamp-dropdown">
+
+						<button
+							type="button"
+							class="timestamp-day-button"
+							id="timestamp-day-button"
+							aria-haspopup="listbox"
+							aria-expanded="false"
+						>
+							<span id="timestamp-day">
+								Today
 							</span>
 
-							<span class="bay-separator">
-								|
-							</span>
-
-							<span>
-								Shelf
-								<span id="bay-shelf-num">
-									-
-								</span>
-							</span>
-
-							<span class="bay-separator">
-								|
-							</span>
-
-							<span class="timestamp">
-
-								<span class="timestamp-time">
-									@ 04:45 PM
-								</span>
-
-								<div class="timestamp-dropdown">
-
-									<button
-										type="button"
-										class="timestamp-day-button"
-										id="timestamp-day-button"
-										aria-haspopup="listbox"
-										aria-expanded="false"
-									>
-										<span id="timestamp-day">
-											Today
-										</span>
-
-										<i
-											class="timestamp-arrow"
-											data-lucide="chevron-down"
-											aria-hidden="true"
-										></i>
-									</button>
-
-									<div
-										class="timestamp-options"
-										id="timestamp-options"
-										role="listbox"
-										hidden
-									>
-
-										<button
-											type="button"
-											class="timestamp-option active"
-											data-day="Today"
-											role="option"
-											aria-selected="true"
-										>
-											Today
-										</button>
-
-										<button
-											type="button"
-											class="timestamp-option"
-											data-day="Yesterday"
-											role="option"
-											aria-selected="false"
-										>
-											Yesterday
-										</button>
-
-									</div>
-
-								</div>
-
-							</span>
-
-						</div>
-
-
-						<!-- BAY IMAGE -->
-
-						<div class="bay-image-wrapper">
-
-							<img
-								id="bay-image"
-								src=""
-								alt="Bay location image"
-							>
-
-						</div>
-
-
-						<!-- STOCK TIMELINE -->
+							<i
+								class="timestamp-arrow"
+								data-lucide="chevron-down"
+								aria-hidden="true"
+							></i>
+						</button>
 
 						<div
-							class="stock-timeline"
-							id="stock-timeline"
-						></div>
+							class="timestamp-options"
+							id="timestamp-options"
+							role="listbox"
+							hidden
+						>
 
+							<button
+								type="button"
+								class="timestamp-option active"
+								data-day="Today"
+								role="option"
+								aria-selected="true"
+							>
+								Today
+							</button>
 
-						<!-- DETAILS SECTION -->
+							<button
+								type="button"
+								class="timestamp-option"
+								data-day="Yesterday"
+								role="option"
+								aria-selected="false"
+							>
+								Yesterday
+							</button>
 
-						<hr class="details-divider">
+						</div>
 
-						<section class="product-details-section">
+					</div>
 
-							<h3>
-								Details
-							</h3>
+				</span>
 
-							<div class="product-details-grid">
+			</div>
 
-								<div class="product-detail-item">
+			<!-- BAY IMAGE -->
 
-									<span class="product-detail-label">
-										Case size
-									</span>
+			<div class="bay-image-wrapper">
 
-									<span
-										class="product-detail-value"
-										id="detail-case-size"
-									>
-										-
-									</span>
+				<img
+					id="bay-image"
+					src=""
+					alt="Bay location image"
+				>
 
-								</div>
+			</div>
 
+			<!-- STOCK TIMELINE -->
 
-								<div class="product-detail-item">
+			<div
+				class="stock-timeline"
+				id="stock-timeline"
+			></div>
 
-									<span class="product-detail-label">
-										Weight
-									</span>
+			<!-- DETAILS SECTION -->
 
-									<span
-										class="product-detail-value"
-										id="detail-weight"
-									>
-										-
-									</span>
+			<hr class="details-divider">
 
-								</div>
+			<section class="product-details-section">
 
+				<h3>
+					Details
+				</h3>
 
-								<div class="product-detail-item">
+				<div class="product-details-grid">
 
-									<span class="product-detail-label">
-										URL / Barcode
-									</span>
+					<div class="product-detail-item">
 
-									<span
-										class="product-detail-value"
-										id="detail-url-barcode"
-									>
-										-
-									</span>
+						<span class="product-detail-label">
+							Case size
+						</span>
 
-								</div>
+						<span
+							class="product-detail-value"
+							id="detail-case-size"
+						>
+							-
+						</span>
 
+					</div>
 
-								<div class="product-detail-item">
+					<div class="product-detail-item">
 
-									<span class="product-detail-label">
-										Case barcode
-									</span>
+						<span class="product-detail-label">
+							Weight
+						</span>
 
-									<span
-										class="product-detail-value"
-										id="detail-case-barcode"
-									>
-										-
-									</span>
+						<span
+							class="product-detail-value"
+							id="detail-weight"
+						>
+							-
+						</span>
 
-								</div>
+					</div>
 
+					<div class="product-detail-item">
 
-								<div class="product-detail-item">
+						<span class="product-detail-label">
+							URL / Barcode
+						</span>
 
-									<span class="product-detail-label">
-										Item number
-									</span>
+						<span
+							class="product-detail-value"
+							id="detail-url-barcode"
+						>
+							-
+						</span>
 
-									<span
-										class="product-detail-value"
-										id="detail-item-number"
-									>
-										-
-									</span>
+					</div>
 
-								</div>
+					<div class="product-detail-item">
 
+						<span class="product-detail-label">
+							Case barcode
+						</span>
 
-								<div class="product-detail-item">
+						<span
+							class="product-detail-value"
+							id="detail-case-barcode"
+						>
+							-
+						</span>
 
-									<span class="product-detail-label">
-										Department
-									</span>
+					</div>
 
-									<span
-										class="product-detail-value"
-										id="detail-department"
-									>
-										-
-									</span>
+					<div class="product-detail-item">
 
-								</div>
+						<span class="product-detail-label">
+							Item number
+						</span>
 
+						<span
+							class="product-detail-value"
+							id="detail-item-number"
+						>
+							-
+						</span>
 
-								<div class="product-detail-item">
+					</div>
 
-									<span class="product-detail-label">
-										Price
-									</span>
+					<div class="product-detail-item">
 
-									<span
-										class="product-detail-value"
-										id="detail-price"
-									>
-										-
-									</span>
+						<span class="product-detail-label">
+							Department
+						</span>
 
-								</div>
+						<span
+							class="product-detail-value"
+							id="detail-department"
+						>
+							-
+						</span>
 
+					</div>
 
-								<div class="product-detail-item">
+					<div class="product-detail-item">
 
-									<span class="product-detail-label">
-										Max Shelf
-									</span>
+						<span class="product-detail-label">
+							Price
+						</span>
 
-									<span
-										class="product-detail-value"
-										id="detail-max-shelf"
-									>
-										-
-									</span>
+						<span
+							class="product-detail-value"
+							id="detail-price"
+						>
+							-
+						</span>
 
-								</div>
+					</div>
 
+					<div class="product-detail-item">
 
-								<div class="product-detail-item">
+						<span class="product-detail-label">
+							Max Shelf
+						</span>
 
-									<span class="product-detail-label">
-										HFFS
-									</span>
+						<span
+							class="product-detail-value"
+							id="detail-max-shelf"
+						>
+							-
+						</span>
 
-									<span
-										class="product-detail-value"
-										id="detail-hffs"
-									>
-										-
-									</span>
+					</div>
 
-								</div>
+					<div class="product-detail-item">
 
-							</div>
+						<span class="product-detail-label">
+							HFFS
+						</span>
 
-						</section>
-
-						<hr class="details-divider">
-
-						<section class="product-details-section modular-section">
-
-							<h3>
-								Modular
-							</h3>
-
-							<div class="modular-details-row">
-
-								<span>
-									Aisle <strong id="modular-aisle">-</strong>
-								</span>
-
-								<span class="modular-separator">|</span>
-
-								<span>
-									Side <strong id="modular-side">-</strong>
-								</span>
-
-								<span class="modular-separator">|</span>
-
-								<span>
-									Mod <strong id="modular-mod">-</strong>
-								</span>
-
-								<span class="modular-separator">|</span>
-
-								<span>
-									Shelf <strong id="modular-shelf">-</strong>
-								</span>
-
-							</div>
-
-							<div
-								class="modular-visual"
-								id="modular-visual"
-							></div>
-
-						</section>
+						<span
+							class="product-detail-value"
+							id="detail-hffs"
+						>
+							-
+						</span>
 
 					</div>
 
 				</div>
+
+			</section>
+
+			<hr class="details-divider">
+
+			<section class="product-details-section modular-section">
+
+				<h3>
+					Modular
+				</h3>
+
+				<div class="modular-details-row">
+
+					<span>
+						Aisle <strong id="modular-aisle">-</strong>
+					</span>
+
+					<span class="modular-separator">|</span>
+
+					<span>
+						Side <strong id="modular-side">-</strong>
+					</span>
+
+					<span class="modular-separator">|</span>
+
+					<span>
+						Mod <strong id="modular-mod">-</strong>
+					</span>
+
+					<span class="modular-separator">|</span>
+
+					<span>
+						Shelf <strong id="modular-shelf">-</strong>
+					</span>
+
+				</div>
+
+				<div
+					class="modular-visual"
+					id="modular-visual"
+				></div>
+
+			</section>
+
+		</div>
+
+	</div>
+
+
+	<!-- SALES TAB -->
+	<div
+	class="tab-panel sales-tab-panel"
+	data-panel="sales"
+	hidden
+>
+
+	<!-- YESTERDAY SALES -->
+
+	<div class="sales-yesterday">
+
+		<span class="sales-section-label">
+			YESTERDAY
+		</span>
+
+		<div class="sales-yesterday-value">
+			<span id="sales-yesterday-units">
+				0
+			</span>
+
+			<span>
+				units sold
+			</span>
+		</div>
+
+	</div>
+
+
+	<!-- SALES COMPARISON -->
+
+	<div class="sales-table-wrapper">
+
+		<table class="sales-table">
+
+			<thead>
+				<tr>
+					<th></th>
+					<th>7 days</th>
+					<th>28 days</th>
+				</tr>
+			</thead>
+
+			<tbody>
+
+				<tr>
+					<td>Units sold</td>
+
+					<td id="sales-7-units">
+						0
+					</td>
+
+					<td id="sales-28-units">
+						0
+					</td>
+				</tr>
+
+
+				<tr>
+					<td>Availability</td>
+
+					<td id="sales-7-availability">
+						0.00%
+					</td>
+
+					<td id="sales-28-availability">
+						0.00%
+					</td>
+				</tr>
+
+
+				<tr>
+					<td>Total sales</td>
+
+					<td id="sales-7-total">
+						£0.00
+					</td>
+
+					<td id="sales-28-total">
+						£0.00
+					</td>
+				</tr>
+
+
+				<tr class="sales-divider-row">
+					<td colspan="3"></td>
+				</tr>
+
+
+				<tr>
+					<td>Lost sales</td>
+
+					<td id="sales-7-lost">
+						£0.00
+					</td>
+
+					<td id="sales-28-lost">
+						£0.00
+					</td>
+				</tr>
+
+			</tbody>
+
+		</table>
+
+	</div>
+
+</div>
+
+
+	<!-- INVENTORY TAB -->
+	<div
+		class="tab-panel inventory-tab-panel"
+		data-panel="inventory"
+		hidden
+	>
+	</div>
+
+</div>
+
 
 			</div>
 

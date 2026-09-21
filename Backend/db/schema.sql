@@ -41,7 +41,33 @@ CREATE TABLE IF NOT EXISTS items (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS item_sales_daily (
+	id SERIAL PRIMARY KEY,
 
+	item_id INTEGER NOT NULL,
+
+	sales_date DATE NOT NULL,
+
+	units_sold INTEGER NOT NULL DEFAULT 0,
+
+	availability_percent NUMERIC(5,2) NOT NULL DEFAULT 0,
+
+	sales_value NUMERIC(10,2) NOT NULL DEFAULT 0,
+
+	lost_sales NUMERIC(10,2) NOT NULL DEFAULT 0,
+
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	CONSTRAINT fk_sales_item
+		FOREIGN KEY (item_id)
+		REFERENCES items(id)
+		ON DELETE CASCADE,
+
+	CONSTRAINT unique_item_sales_date
+		UNIQUE (item_id, sales_date)
+);
 /* =========================================================
    PREVENT DUPLICATE BARCODES
 ========================================================= */

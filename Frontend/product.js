@@ -105,7 +105,32 @@ const modularShelf =
 	document.querySelector('#modular-shelf');
 const modularVisual =
 	document.querySelector('#modular-visual');
+const salesYesterdayUnits =
+	document.querySelector('#sales-yesterday-units');
+	
+const sales7Units =
+	document.querySelector('#sales-7-units');
 
+const sales28Units =
+	document.querySelector('#sales-28-units');
+
+const sales7Availability =
+	document.querySelector('#sales-7-availability');
+
+const sales28Availability =
+	document.querySelector('#sales-28-availability');
+
+const sales7Total =
+	document.querySelector('#sales-7-total');
+
+const sales28Total =
+	document.querySelector('#sales-28-total');
+
+const sales7Lost =
+	document.querySelector('#sales-7-lost');
+
+const sales28Lost =
+	document.querySelector('#sales-28-lost');
 /* =========================================================
    API REQUEST
 ========================================================= */
@@ -1194,9 +1219,89 @@ const showProductDetail =
 		await renderStockTimeline(
 			product
 		);
+		await loadSalesData(
+	product.upc
+);
 	};
 
+/* =========================================================
+   LOAD SALES DATA
+========================================================= */
 
+const loadSalesData = async (upc) => {
+
+	try {
+
+		const sales =
+			await apiRequest(
+				`${API_BASE}/${encodeURIComponent(upc)}/sales`
+			);
+
+
+		/* =====================================================
+		   YESTERDAY
+		===================================================== */
+
+		salesYesterdayUnits.textContent =
+			sales.yesterday.unitsSold;
+
+
+		/* =====================================================
+		   7 DAYS
+		===================================================== */
+
+		sales7Units.textContent =
+			sales.sevenDays.unitsSold;
+
+		sales7Availability.textContent =
+			`${Number(
+				sales.sevenDays.availability
+			).toFixed(2)}%`;
+
+		sales7Total.textContent =
+			`£${Number(
+				sales.sevenDays.totalSales
+			).toFixed(2)}`;
+
+		sales7Lost.textContent =
+			`£${Number(
+				sales.sevenDays.lostSales
+			).toFixed(2)}`;
+
+
+		/* =====================================================
+		   28 DAYS
+		===================================================== */
+
+		sales28Units.textContent =
+			sales.twentyEightDays.unitsSold;
+
+		sales28Availability.textContent =
+			`${Number(
+				sales.twentyEightDays.availability
+			).toFixed(2)}%`;
+
+		sales28Total.textContent =
+			`£${Number(
+				sales.twentyEightDays.totalSales
+			).toFixed(2)}`;
+
+		sales28Lost.textContent =
+			`£${Number(
+				sales.twentyEightDays.lostSales
+			).toFixed(2)}`;
+
+
+	} catch (error) {
+
+		console.error(
+			'Failed to load sales data:',
+			error
+		);
+
+	}
+
+};
 /* =========================================================
    SEARCH PRODUCTS
 ========================================================= */
@@ -1512,27 +1617,52 @@ const tabButtons =
 		'.tab-btn'
 	);
 
+const tabPanels =
+	document.querySelectorAll(
+		'.tab-panel'
+	);
+
 tabButtons.forEach(
 	button => {
+
 		button.addEventListener(
 			'click',
 			() => {
 
+				const selectedTab =
+					button.dataset.tab;
+
+				/* UPDATE ACTIVE BUTTON */
+
 				tabButtons.forEach(
 					tab => {
-						tab.classList.remove(
-							'active'
+
+						tab.classList.toggle(
+							'active',
+							tab === button
 						);
+
 					}
 				);
 
-				button.classList.add(
-					'active'
+
+				/* SHOW SELECTED PANEL */
+
+				tabPanels.forEach(
+					panel => {
+
+						panel.hidden =
+							panel.dataset.panel !== selectedTab;
+
+					}
 				);
+
 			}
 		);
+
 	}
 );
+
 const timestampDayButton = document.getElementById('timestamp-day-button');
 const timestampDay = document.getElementById('timestamp-day');
 const timestampOptions = document.getElementById('timestamp-options');
