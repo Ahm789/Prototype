@@ -216,7 +216,10 @@ const createModularBaySnapshot =
 		*/
 
 		modularVisual.style.width =
-			'25%';
+			'fit-content';
+
+		modularVisual.style.maxWidth =
+			'none';
 
 		modularVisual.style.background =
 			'#ffffff';
