@@ -245,8 +245,12 @@ router.post('/', async (req, res) => {
 	});
 }
 });
+/* =========================================================
+   GET MODULAR ACTIVITY DATES
+========================================================= */
+
 router.get(
-	'/modular-activity',
+	'/modular-activity/dates',
 	async (req, res) => {
 
 		try {
@@ -255,14 +259,127 @@ router.get(
 				await pool.query(`
 					SELECT
 						TO_CHAR(
-							ma.due_date,
+							due_date,
 							'DD/MM/YYYY'
 						) AS due_date
-					FROM modular_activity ma
-					INNER JOIN modular_bays mb
-						ON ma.planogram_number = mb.id
-					WHERE mb.modular_id IS NULL;
+
+					FROM (
+						SELECT DISTINCT
+							ma.due_date::date AS due_date
+
+						FROM modular_activity ma
+
+						INNER JOIN modular_bays mb
+							ON ma.planogram_number = mb.id
+
+						WHERE mb.modular_id IS NULL
+					) dates
+
+					ORDER BY
+						due_date;
 				`);
+
+
+			res.json(
+				result.rows
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load modular activity dates:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to load modular activity dates.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   GET MODULAR ACTIVITY
+========================================================= */
+
+router.get(
+	'/modular-activity',
+	async (req, res) => {
+
+		try {
+
+			const {
+				dueDates
+			} = req.query;
+
+
+			let query = `
+				SELECT
+					ma.modular_name,
+					ma.department_number,
+					TO_CHAR(
+						ma.due_date,
+						'DD/MM/YYYY'
+					) AS due_date,
+					ma.planogram_number
+
+				FROM modular_activity ma
+
+				INNER JOIN modular_bays mb
+					ON ma.planogram_number = mb.id
+
+				WHERE mb.modular_id IS NULL
+			`;
+
+
+			const values = [];
+
+
+			/* =====================================================
+			   FILTER BY SELECTED DUE DATES
+			===================================================== */
+
+			if (dueDates) {
+
+				const dates =
+					dueDates
+						.split(',')
+						.filter(Boolean);
+
+
+				if (dates.length) {
+
+					values.push(
+						dates
+					);
+
+
+					query += `
+						AND ma.due_date::date = ANY($1::date[])
+					`;
+
+				}
+
+			}
+
+
+			query += `
+				ORDER BY
+					ma.due_date,
+					ma.planogram_number;
+			`;
+
+
+			const result =
+				await pool.query(
+					query,
+					values
+				);
+
 
 			res.json(
 				result.rows
@@ -278,6 +395,139 @@ router.get(
 			res.status(500).json({
 				error:
 					'Unable to load modular activity.'
+			});
+
+		}
+
+	}
+);
+/* =========================================================
+   GET MODULAR BAY PRODUCTS
+========================================================= */
+
+router.get(
+	'/modular-bay/:planogramNumber',
+	async (req, res) => {
+
+		const planogramNumber =
+			req.params.planogramNumber;
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						mi.id AS modular_item_id,
+
+						mi.item_id,
+
+						mi.upc,
+
+						mi.shelf,
+
+						mi.shelf_order,
+
+						mi.max_shelf,
+
+						i.description,
+
+						i.image_url,
+
+						i.image_alt,
+
+						mb.id AS planogram_number,
+
+						mb.modular_id
+
+					FROM modular_bays mb
+
+					INNER JOIN modular_items mi
+						ON mi.modular_bay_id = mb.id
+
+					INNER JOIN items i
+						ON i.id = mi.item_id
+
+					WHERE
+						mb.id = $1
+
+					ORDER BY
+						CAST(
+							NULLIF(
+								REGEXP_REPLACE(
+									mi.shelf,
+									'[^0-9]',
+									'',
+									'g'
+								),
+								''
+							) AS INTEGER
+						),
+						mi.shelf_order
+					`,
+					[
+						planogramNumber
+					]
+				);
+
+
+			res.json(
+				result.rows.map(
+					row => ({
+
+						modularItemId:
+							row.modular_item_id,
+
+						itemId:
+							row.item_id,
+
+						upc:
+							row.upc,
+
+						description:
+							row.description,
+
+						image:
+							row.image_url
+								? {
+									url:
+										row.image_url,
+
+									alt:
+										row.image_alt ||
+										row.description
+								}
+								: null,
+
+						shelf:
+							row.shelf,
+
+						shelfOrder:
+							row.shelf_order,
+
+						maxShelf:
+							row.max_shelf,
+
+						planogramNumber:
+							row.planogram_number,
+
+						modularId:
+							row.modular_id
+
+					})
+				)
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Failed to load modular bay products:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to load modular bay products.'
 			});
 
 		}

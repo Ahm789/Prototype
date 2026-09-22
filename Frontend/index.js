@@ -15,6 +15,10 @@ const TASK_CLOCK_API =
 	`${API_ORIGIN}/api/task-clock`;
 const MODULAR_ACTIVITY_API =
 	`${API_BASE}/modular-activity`;
+const MODULAR_ACTIVITY_DATES_API =
+	`${MODULAR_ACTIVITY_API}/dates`;
+const MODULAR_BAY_API =
+	`${API_BASE}/modular-bay`;
 /* =========================================================
    INITIALISE LUCIDE ICONS
 ========================================================= */
@@ -71,7 +75,10 @@ const appMenuButton =
 	document.querySelector('.app-menu-button');
 
 
-
+const modularActivityCards =
+	document.querySelector(
+		'#modular-activity-cards'
+	);
 /* =========================================================
    DEPARTMENT NAMES
 ========================================================= */
@@ -151,8 +158,552 @@ const apiRequest = async (
 
 };
 
+/* =========================================================
+   GET MODULAR BAY PRODUCTS
+========================================================= */
+
+const getModularBayProducts =
+	async (
+		planogramNumber
+	) => {
+
+		return await apiRequest(
+			`${MODULAR_BAY_API}/${encodeURIComponent(
+				planogramNumber
+			)}`
+		);
+
+	};
+/* =========================================================
+   CREATE MODULAR BAY SNAPSHOT
+========================================================= */
+
+const createModularBaySnapshot =
+	async (
+		planogramNumber
+	) => {
+
+		const products =
+			await getModularBayProducts(
+				planogramNumber
+			);
 
 
+		if (
+			!Array.isArray(products) ||
+			products.length === 0
+		) {
+			return null;
+		}
+
+
+		/* =====================================================
+		   TEMPORARY MODULAR VISUAL
+		===================================================== */
+
+		const modularVisual =
+			document.createElement(
+				'div'
+			);
+
+		modularVisual.className =
+			'modular-visual';
+
+
+		/*
+			Use a fixed width so the generated snapshot
+			has a predictable layout.
+		*/
+
+		modularVisual.style.width =
+			'25%';
+
+		modularVisual.style.background =
+			'#ffffff';
+
+		modularVisual.style.position =
+			'absolute';
+
+		modularVisual.style.left =
+			'-99999px';
+
+		modularVisual.style.top =
+			'0';
+
+		modularVisual.style.visibility =
+			'visible';
+
+
+		document.body.appendChild(
+			modularVisual
+		);
+
+
+		/* =====================================================
+		   GROUP PRODUCTS BY SHELF
+		===================================================== */
+
+		const shelves =
+			new Map();
+
+
+		products.forEach(
+			product => {
+
+				const shelf =
+					String(
+						product.shelf ?? ''
+					).trim();
+
+
+				if (!shelves.has(shelf)) {
+
+					shelves.set(
+						shelf,
+						[]
+					);
+
+				}
+
+
+				shelves
+					.get(shelf)
+					.push(product);
+
+			}
+		);
+
+
+		/* =====================================================
+		   SORT SHELVES
+		===================================================== */
+
+		const sortedShelves =
+			[...shelves.entries()]
+				.sort(
+					([shelfA], [shelfB]) => {
+
+						const numberA =
+							parseInt(
+								shelfA.replace(
+									/[^0-9]/g,
+									''
+								),
+								10
+							);
+
+						const numberB =
+							parseInt(
+								shelfB.replace(
+									/[^0-9]/g,
+									''
+								),
+								10
+							);
+
+
+						if (
+							Number.isNaN(
+								numberA
+							)
+						) {
+							return 1;
+						}
+
+
+						if (
+							Number.isNaN(
+								numberB
+							)
+						) {
+							return -1;
+						}
+
+
+						return (
+							numberA -
+							numberB
+						);
+
+					}
+				);
+
+
+		/* =====================================================
+		   CREATE SHELVES
+		===================================================== */
+
+		sortedShelves.forEach(
+			([
+				shelf,
+				shelfProducts
+			]) => {
+
+				/*
+					shelf_order controls left → right.
+				*/
+
+				shelfProducts.sort(
+					(a, b) =>
+						Number(
+							a.shelfOrder ?? 0
+						) -
+						Number(
+							b.shelfOrder ?? 0
+						)
+				);
+
+
+				const shelfRow =
+					document.createElement(
+						'div'
+					);
+
+				shelfRow.className =
+					'modular-shelf';
+
+
+				const productsContainer =
+					document.createElement(
+						'div'
+					);
+
+				productsContainer.className =
+					'modular-shelf-products';
+
+
+				shelfRow.appendChild(
+					productsContainer
+				);
+
+				modularVisual.appendChild(
+					shelfRow
+				);
+
+			}
+		);
+
+
+		/* =====================================================
+		   WAIT FOR LAYOUT
+		===================================================== */
+
+		await new Promise(
+			resolve =>
+				requestAnimationFrame(
+					resolve
+				)
+		);
+
+
+		const shelfHeight =
+			90;
+
+		const gap =
+			8;
+
+
+		/* =====================================================
+		   RENDER EACH SHELF
+		===================================================== */
+
+		const shelfRows =
+			[
+				...modularVisual.querySelectorAll(
+					'.modular-shelf'
+				)
+			];
+
+
+		for (
+			let shelfIndex = 0;
+			shelfIndex < shelfRows.length;
+			shelfIndex++
+		) {
+
+			const shelfRow =
+				shelfRows[
+					shelfIndex
+				];
+
+
+			const productsContainer =
+				shelfRow.querySelector(
+					'.modular-shelf-products'
+				);
+
+
+			const [
+				,
+				shelfProducts
+			] =
+				sortedShelves[
+					shelfIndex
+				];
+
+
+			const shelfWidth =
+				productsContainer.clientWidth;
+
+
+			/* =================================================
+			   LOAD PRODUCT IMAGES
+			================================================= */
+
+			const loadedProducts =
+				await Promise.all(
+					shelfProducts
+						.filter(
+							product =>
+								product.image &&
+								product.image.url
+						)
+						.map(
+							product =>
+								new Promise(
+									resolve => {
+
+										const image =
+											new Image();
+
+
+										image.onload =
+											() => {
+
+												if (
+													image.naturalWidth &&
+													image.naturalHeight
+												) {
+
+													resolve({
+
+														product,
+
+														width:
+															(
+																image.naturalWidth /
+																image.naturalHeight
+															) *
+															shelfHeight
+
+													});
+
+												} else {
+
+													resolve(
+														null
+													);
+
+												}
+
+											};
+
+
+										image.onerror =
+											() =>
+												resolve(
+													null
+												);
+
+
+										image.src =
+											product.image.url;
+
+									}
+								)
+						)
+				);
+
+
+			const usableProducts =
+				loadedProducts.filter(
+					Boolean
+				);
+
+
+			if (
+				!usableProducts.length
+			) {
+				continue;
+			}
+
+
+			/* =================================================
+			   DIVIDE SHELF BETWEEN PRODUCTS
+			================================================= */
+
+			const productWidth =
+				(
+					shelfWidth -
+					(
+						(
+							usableProducts.length - 1
+						) *
+						gap
+					)
+				) /
+				usableProducts.length;
+
+
+			/* =================================================
+			   CREATE FACINGS
+			================================================= */
+
+			usableProducts.forEach(
+				({
+					product,
+					width
+				}) => {
+
+					const maxFacings =
+						Math.max(
+							1,
+							Math.floor(
+								(
+									productWidth +
+									gap
+								) /
+								(
+									width +
+									gap
+								)
+							)
+						);
+
+
+					for (
+						let i = 0;
+						i < maxFacings;
+						i++
+					) {
+
+						const facing =
+							document.createElement(
+								'img'
+							);
+
+
+						facing.src =
+							product.image.url;
+
+
+						facing.alt =
+							product.image.alt ||
+							product.description ||
+							'Product';
+
+
+						facing.className =
+							'modular-product-image';
+
+
+						facing.style.height =
+							`${shelfHeight}px`;
+
+
+						facing.style.width =
+							`${width}px`;
+
+
+						productsContainer.appendChild(
+							facing
+						);
+
+					}
+
+				}
+			);
+
+		}
+
+
+		/* =====================================================
+		   WAIT FOR ALL IMAGES
+		===================================================== */
+
+		const images =
+			[
+				...modularVisual.querySelectorAll(
+					'img'
+				)
+			];
+
+
+		await Promise.all(
+			images.map(
+				image => {
+
+					if (
+						image.complete
+					) {
+						return Promise.resolve();
+					}
+
+
+					return new Promise(
+						resolve => {
+
+							image.onload =
+								resolve;
+
+							image.onerror =
+								resolve;
+
+						}
+					);
+
+				}
+			)
+		);
+
+
+		await new Promise(
+			resolve =>
+				requestAnimationFrame(
+					() =>
+						requestAnimationFrame(
+							resolve
+						)
+				)
+		);
+
+
+		/* =====================================================
+		   CREATE SNAPSHOT
+		===================================================== */
+
+		const canvas =
+			await html2canvas(
+				modularVisual,
+				{
+					backgroundColor:
+						'#ffffff',
+
+					scale:
+						2,
+
+					useCORS:
+						true
+				}
+			);
+
+
+		const snapshot =
+			canvas.toDataURL(
+				'image/png'
+			);
+
+
+		/* =====================================================
+		   REMOVE TEMPORARY VISUAL
+		===================================================== */
+
+		modularVisual.remove();
+
+
+		return snapshot;
+
+	};
 /* =========================================================
    GET PRODUCTS FROM POSTGRESQL
 ========================================================= */
@@ -1187,15 +1738,18 @@ const updateFilterCount = () => {
 /* =========================================================
    GET MODULAR ACTIVITY
 ========================================================= */
+/* =========================================================
+   GET MODULAR ACTIVITY DATES
+========================================================= */
 
-const getModularActivity =
+const getModularActivityDates =
 	async () => {
 
 		try {
 
 			const data =
 				await apiRequest(
-					MODULAR_ACTIVITY_API
+					MODULAR_ACTIVITY_DATES_API
 				);
 
 
@@ -1204,16 +1758,8 @@ const getModularActivity =
 			}
 
 
-			/* =====================================================
-			   CLEAR EXISTING DATES
-			===================================================== */
-
 			dueDateMenu.replaceChildren();
 
-
-			/* =====================================================
-			   GET UNIQUE DATES
-			===================================================== */
 
 			const dates =
 				[
@@ -1228,10 +1774,6 @@ const getModularActivity =
 				]
 				.sort();
 
-
-			/* =====================================================
-			   CREATE DATE CHECKBOXES
-			===================================================== */
 
 			dates.forEach(
 				(date) => {
@@ -1277,10 +1819,6 @@ const getModularActivity =
 					);
 
 
-					/* =================================================
-					   DATE SELECTION
-					================================================= */
-
 					checkbox.addEventListener(
 						'change',
 						updateDueDateLabel
@@ -1295,6 +1833,578 @@ const getModularActivity =
 		} catch (error) {
 
 			console.error(
+				'Unable to load modular activity dates:',
+				error
+			);
+
+		}
+
+	};
+/* =========================================================
+   GET MODULAR ACTIVITY
+========================================================= */
+
+const getModularActivity =
+	async () => {
+
+		try {
+
+			const selectedDates =
+				[
+					...dueDateMenu.querySelectorAll(
+						'input[type="checkbox"]:checked'
+					)
+				]
+				.map(
+					checkbox =>
+						checkbox.value
+				);
+
+
+			const query =
+				selectedDates.length
+					? `?dueDates=${encodeURIComponent(
+						selectedDates.join(',')
+					)}`
+					: '';
+
+
+			const data =
+				await apiRequest(
+					`${MODULAR_ACTIVITY_API}${query}`
+				);
+
+
+			console.log(
+				'Modular activities:',
+				data
+			);
+
+
+			if (!modularActivityCards) {
+				return;
+			}
+
+
+			/* CLEAR EXISTING CARDS */
+
+			modularActivityCards.replaceChildren();
+
+
+			/* CREATE ONE CARD PER MODULAR ACTIVITY */
+
+			data.forEach(
+				(activity) => {
+
+					const card =
+						document.createElement(
+							'div'
+						);
+
+					card.className =
+						'modular-activity-card';
+
+
+					/* =================================================
+					   MAIN / TITLE AREA
+					================================================= */
+
+					const main =
+						document.createElement(
+							'div'
+						);
+
+					main.className =
+						'modular-activity-card-main';
+
+
+					/* ICON */
+
+					const icon =
+						document.createElement(
+							'div'
+						);
+
+					icon.className =
+						'modular-activity-card-icon';
+
+					icon.innerHTML =
+						'<i data-lucide="layout-grid"></i>';
+
+
+					/* CONTENT */
+
+					const content =
+						document.createElement(
+							'div'
+						);
+
+					content.className =
+						'modular-activity-card-content';
+
+
+					/* TITLE */
+
+					const title =
+						document.createElement(
+							'div'
+						);
+
+					title.className =
+						'modular-activity-card-title';
+
+
+					const titleText =
+						document.createElement(
+							'span'
+						);
+
+					titleText.textContent =
+						`MODULAR ACTIVITY - ${(
+							activity.modular_name ||
+							'MODULAR'
+						).toUpperCase()}`;
+
+
+					title.appendChild(
+						titleText
+					);
+
+
+					content.append(
+						title
+					);
+
+
+					main.append(
+						icon,
+						content
+					);
+
+
+					/* =================================================
+					   PLANOGRAM AREA
+					================================================= */
+
+					const planogram =
+						document.createElement(
+							'div'
+						);
+
+					planogram.className =
+						'modular-activity-card-planogram';
+
+
+					/* PLANOGRAM NAME */
+
+					const planogramName =
+						document.createElement(
+							'span'
+						);
+
+					planogramName.className =
+						'modular-planogram-name';
+
+					planogramName.textContent =
+						`Planogram Name: ${activity.modular_name || '—'}`;
+
+
+					/* PLANOGRAM NUMBER */
+
+					const planogramNumber =
+						document.createElement(
+							'span'
+						);
+
+					planogramNumber.className =
+						'modular-planogram-number';
+
+					planogramNumber.textContent =
+						`Planogram Number: ${activity.planogram_number || '—'}`;
+
+
+					planogram.append(
+						planogramName,
+						planogramNumber
+					);
+					/* =================================================
+						EXECUTION DATE STATUS
+						================================================= */
+
+						const executionStatus =
+							document.createElement(
+								'div'
+							);
+
+						executionStatus.className =
+							'modular-activity-execution-status';
+
+
+						const [
+							day,
+							month,
+							year
+						] =
+							activity.due_date.split('/');
+
+
+						const dueDate =
+							new Date(
+								Number(year),
+								Number(month) - 1,
+								Number(day)
+							);
+
+
+						const today =
+	new Date();
+
+today.setHours(
+	0,
+	0,
+	0,
+	0
+);
+
+
+const differenceMs =
+	dueDate.getTime() -
+	today.getTime();
+
+
+const differenceDays =
+	Math.round(
+		differenceMs /
+		(1000 * 60 * 60 * 24)
+	);
+
+
+/* =================================================
+   EXECUTION STATUS TEXT
+================================================= */
+
+const executionStatusText =
+	document.createElement(
+		'span'
+	);
+
+executionStatusText.className =
+	'modular-activity-execution-status-text';
+
+
+executionStatus.appendChild(
+	executionStatusText
+);
+
+
+/* =================================================
+   UPCOMING
+================================================= */
+
+if (differenceDays > 0) {
+
+	executionStatus.classList.add(
+		'is-upcoming'
+	);
+
+	executionStatusText.textContent =
+		`The modular is due ${differenceDays} day${
+			differenceDays === 1
+				? ''
+				: 's'
+		} from now`;
+
+
+/* =================================================
+   OVERDUE
+================================================= */
+
+} else if (differenceDays < 0) {
+
+	executionStatus.classList.add(
+		'is-overdue'
+	);
+
+	executionStatusText.textContent =
+		`⚠ You're ${
+			Math.abs(differenceDays)
+		} day${
+			Math.abs(differenceDays) === 1
+				? ''
+				: 's'
+		} past your scheduled execution date`;
+
+
+/* =================================================
+   DUE TODAY
+================================================= */
+
+} else {
+
+	executionStatus.classList.add(
+		'is-today'
+	);
+
+	executionStatusText.textContent =
+		'The modular is due today';
+
+}
+
+					/* =================================================
+					   COMPLETE CARD
+					================================================= */
+
+					/* =================================================
+   MODULAR BAY SNAPSHOT
+================================================= */
+
+const modularSnapshot =
+	document.createElement(
+		'div'
+	);
+
+modularSnapshot.className =
+	'modular-activity-snapshot';
+
+
+const snapshotLoading =
+	document.createElement(
+		'div'
+	);
+
+snapshotLoading.className =
+	'modular-activity-snapshot-loading';
+
+snapshotLoading.textContent =
+	'Loading modular visual...';
+
+
+modularSnapshot.appendChild(
+	snapshotLoading
+);
+
+
+/* =================================================
+   COMPLETE CARD
+================================================= */
+
+card.append(
+	main,
+	planogram,
+	executionStatus,
+	modularSnapshot
+);
+
+
+modularActivityCards.appendChild(
+	card
+);
+
+
+/* =================================================
+   GENERATE BAY SNAPSHOT
+================================================= */
+
+createModularBaySnapshot(
+	activity.planogram_number
+)
+	.then(
+		snapshot => {
+
+			if (!snapshot) {
+
+				modularSnapshot.replaceChildren();
+
+
+				const empty =
+					document.createElement(
+						'div'
+					);
+
+				empty.className =
+					'modular-activity-snapshot-empty';
+
+				empty.textContent =
+					'No modular visual available.';
+
+
+				modularSnapshot.appendChild(
+					empty
+				);
+
+				return;
+
+			}
+
+
+			const snapshotImage =
+				document.createElement(
+					'img'
+				);
+
+			snapshotImage.src =
+				snapshot;
+
+			snapshotImage.alt =
+				`Planogram ${activity.planogram_number} modular visual`;
+
+			snapshotImage.className =
+				'modular-activity-snapshot-image';
+
+
+			/* =================================================
+			   CLICK TO ENLARGE
+			================================================= */
+
+			snapshotImage.addEventListener(
+				'click',
+				() => {
+
+					const enlarged =
+						document.createElement(
+							'img'
+						);
+
+					enlarged.src =
+						snapshot;
+
+					enlarged.alt =
+						snapshotImage.alt;
+
+					enlarged.className =
+						'modular-activity-snapshot-large';
+
+
+					const overlay =
+						document.createElement(
+							'div'
+						);
+
+					overlay.className =
+						'modular-activity-snapshot-overlay';
+
+
+					overlay.appendChild(
+						enlarged
+					);
+
+
+					overlay.addEventListener(
+						'click',
+						() => {
+
+							overlay.remove();
+
+						}
+					);
+
+
+					document.body.appendChild(
+						overlay
+					);
+
+				}
+			);
+
+
+			modularSnapshot.replaceChildren(
+				snapshotImage
+			);
+			/* =================================================
+   START BAR
+================================================= */
+
+const startBar =
+	document.createElement(
+		'button'
+	);
+
+startBar.type =
+	'button';
+
+startBar.className =
+	'modular-activity-start';
+
+
+const startIcon =
+	document.createElement(
+		'i'
+	);
+
+startIcon.setAttribute(
+		'data-lucide',
+		'circle-play'
+	);
+
+
+const startText =
+	document.createElement(
+		'span'
+	);
+
+startText.textContent =
+	'START';
+
+
+startBar.append(
+	startIcon,
+	startText
+);
+
+
+modularSnapshot.appendChild(
+	startBar
+);
+
+
+/* CREATE PLAY ICON */
+
+lucide.createIcons();
+		}
+	)
+	.catch(
+		error => {
+
+			console.error(
+				'Unable to create modular snapshot:',
+				error
+			);
+
+
+			modularSnapshot.replaceChildren();
+
+
+			const errorMessage =
+				document.createElement(
+					'div'
+				);
+
+			errorMessage.className =
+				'modular-activity-snapshot-empty';
+
+			errorMessage.textContent =
+				'Unable to load modular visual.';
+
+
+			modularSnapshot.appendChild(
+				errorMessage
+			);
+
+		}
+	);
+
+				}
+			);
+
+
+			/* RECREATE LUCIDE ICONS */
+
+			lucide.createIcons();
+
+
+		} catch (error) {
+
+			console.error(
 				'Unable to load modular activity:',
 				error
 			);
@@ -1302,47 +2412,47 @@ const getModularActivity =
 		}
 
 	};
-	const updateDueDateLabel =
-	() => {
+const updateDueDateLabel =
+() => {
 
-		if (
-			!dueDateMenu ||
-			!dueDateDropdownLabel
-		) {
-			return;
-		}
-
-
-		const selectedDates =
-			[
-				...dueDateMenu.querySelectorAll(
-					'input[type="checkbox"]:checked'
-				)
-			];
+	if (
+		!dueDateMenu ||
+		!dueDateDropdownLabel
+	) {
+		return;
+	}
 
 
-		if (!selectedDates.length) {
+	const selectedDates =
+		[
+			...dueDateMenu.querySelectorAll(
+				'input[type="checkbox"]:checked'
+			)
+		];
 
-			dueDateDropdownLabel.textContent =
-				'All due dates';
 
-			return;
-		}
-
-
-		if (selectedDates.length === 1) {
-
-			dueDateDropdownLabel.textContent =
-				selectedDates[0].value;
-
-			return;
-		}
-
+	if (!selectedDates.length) {
 
 		dueDateDropdownLabel.textContent =
-			`${selectedDates.length} due dates`;
+			'All due dates';
 
-	};
+		return;
+	}
+
+
+	if (selectedDates.length === 1) {
+
+		dueDateDropdownLabel.textContent =
+			selectedDates[0].value;
+
+		return;
+	}
+
+
+	dueDateDropdownLabel.textContent =
+		`${selectedDates.length} due dates`;
+
+};
 /* =========================================================
    DUE DATE DROPDOWN
 ========================================================= */
@@ -1466,7 +2576,7 @@ const updateModularActivityMode = () => {
 	   LOAD MODULAR ACTIVITY
 	================================================ */
 
-	getModularActivity();
+	getModularActivityDates();
 
 } else {
 
@@ -1922,13 +3032,47 @@ resetFilters.addEventListener(
    APPLY FILTERS
 ========================================================= */
 
+/* =========================================================
+   APPLY FILTERS
+========================================================= */
+
 applyFilters.addEventListener(
 	'click',
-	() => {
+	async () => {
 
 		saveFilterState();
 
 		updateFilterCount();
+
+
+		const selectedTaskTypes =
+			[...taskTypeCheckboxes]
+				.filter(
+					(checkbox) =>
+						checkbox.checked
+				)
+				.map(
+					(checkbox) =>
+						checkbox.value
+				);
+
+
+		const modularActivityOnly =
+			selectedTaskTypes.length === 1 &&
+			selectedTaskTypes[0] ===
+				'Modular Activity';
+
+
+		/* =====================================================
+		   LOAD FULL MODULAR ACTIVITY
+		===================================================== */
+
+		if (modularActivityOnly) {
+
+			await getModularActivity();
+
+		}
+
 
 		setFiltersOpen(
 			false

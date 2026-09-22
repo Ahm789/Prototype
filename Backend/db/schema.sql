@@ -322,6 +322,23 @@ CREATE TABLE IF NOT EXISTS modular_bays (
    modular_items
           ↓ item_id
    items
+
+   shelf_order represents the physical order of an item
+   within its shelf.
+
+   Example:
+
+   shelf = 1
+   shelf_order = 1
+
+   shelf = 1
+   shelf_order = 2
+
+   shelf = 2
+   shelf_order = 1
+
+   shelf = 2
+   shelf_order = 2
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_items (
@@ -332,6 +349,8 @@ CREATE TABLE IF NOT EXISTS modular_items (
 	upc VARCHAR(32) NOT NULL,
 
 	shelf VARCHAR(32),
+
+	shelf_order INTEGER NOT NULL,
 
 	max_shelf INTEGER NOT NULL DEFAULT 0,
 
@@ -352,7 +371,10 @@ CREATE TABLE IF NOT EXISTS modular_items (
 		ON DELETE CASCADE,
 
 	CONSTRAINT unique_modular_bay_item
-		UNIQUE (modular_bay_id, item_id)
+		UNIQUE (modular_bay_id, item_id),
+
+	CONSTRAINT unique_modular_bay_shelf_order
+		UNIQUE (modular_bay_id, shelf, shelf_order)
 );
 
 

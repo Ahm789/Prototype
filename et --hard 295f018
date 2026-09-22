@@ -1,0 +1,22 @@
+[33m295f018[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fixed some errors
+[33m1bb55d5[m Fixes a few visual glitches and also hopefully fixed the barcode scanner to now show the item detail and match with an item once scanned
+[33m737d943[m Updated the seed to hopefully seed some new data to the render database
+[33m4f11aad[m changed the barcode to now hopefully support apple products
+[33m02436f6[m Updated the product,html css to match more and look cleaner, added a camera option which will now be tested using a phone
+[33m3b09a48[m Redid the filter bar, and added the sales tab in the product lists, and updated the database to now also store sales data
+[33m055196f[m Slight update to my schema
+[33m3578fa5[m Added the ability to see the items actually on the modulars on each shelf
+[33mfcd1644[m I have now added more data for each item in the database and now each item on the product list has the ability to be shown when searching for it
+[33mcdcff0a[m Render testing
+[33m5d8de13[m Updating some API fixes
+[33m32ad5ac[m Sytnax Frontend error on server
+[33m3d3982f[m Changed the server.js to accomodate the frontend, and change product.js so the back button now works correctly
+[33m3fe7794[m Updates pool.js to work with render
+[33m88319c1[m Finally made it so no mods can be duplicated on an item
+[33mefdbdaf[m Added the detail area and some extra product detail functionality
+[33me953a3b[m It generates times and now the time is synced via the server
+[33mcfb618e[m Now I have changed the database over to a backend one so it can now not run locally entirely
+[33ma801b77[m Able to show multiple modulars now on product info and altered some button redirects
+[33mff5de06[m fixed some slight media issues
+[33m346d475[m Added some product info searching, added some basic showcases for it, further improved the database to handle multiple locations for items
+[33m388ed41[m Added the main page, a product databse and the ability for tasks to show up every hour
