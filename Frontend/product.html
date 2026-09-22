@@ -51,25 +51,21 @@
 				id="product-search-section"
 			>
 
-				<label for="product-input">
-					Enter UPC or product name
-				</label>
-
 				<div class="product-search-box">
 
 					<input
 						id="product-input"
 						type="text"
-						placeholder="UPC or product name"
+						placeholder="Enter UPC or Product Name"
 						autocomplete="off"
 					>
 
 					<button
-						id="product-search"
+						id="product-camera"
 						type="button"
-						aria-label="Search"
+						aria-label="Scan barcode"
 					>
-						<i data-lucide="search"></i>
+						<i data-lucide="camera"></i>
 					</button>
 
 				</div>
@@ -82,7 +78,24 @@
 				class="product-empty"
 				id="product-empty"
 			>
-				Enter a UPC or product name to search.
+
+				<div class="product-empty-icon">
+					<i data-lucide="scan-barcode"></i>
+				</div>
+
+				<strong>
+					Scan a Product for details
+				</strong>
+
+				<p> OR </p>
+				<div class="product-search-info">
+					<i data-lucide="info"></i>
+
+					<span>
+						For UPC enter 6+ digits / For text, enter 3+ characters
+					</span>
+				</div>
+
 			</div>
 
 

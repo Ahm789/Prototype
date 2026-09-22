@@ -22,8 +22,8 @@ const TASK_CLOCK_API =
 const input =
 	document.querySelector('#product-input');
 
-const searchButton =
-	document.querySelector('#product-search');
+const cameraButton =
+	document.querySelector('#product-camera');
 
 const productEmpty =
 	document.querySelector('#product-empty');
@@ -260,7 +260,411 @@ const seededRandom = (
 		Math.floor(value);
 };
 
+/* =========================================================
+   BARCODE CAMERA SCANNER
+========================================================= */
 
+let cameraStream = null;
+let cameraVideo = null;
+let cameraOverlay = null;
+let barcodeScanAnimation = null;
+
+
+/* =========================================================
+   CREATE CAMERA UI
+========================================================= */
+
+const createCameraScanner = () => {
+
+	if (cameraOverlay) {
+		return;
+	}
+
+	cameraOverlay =
+		document.createElement('div');
+
+	cameraOverlay.className =
+		'barcode-camera-overlay';
+
+	cameraOverlay.innerHTML = `
+		<div class="barcode-camera-container">
+
+			<div class="barcode-camera-header">
+				<strong>Scan Barcode</strong>
+
+				<button
+					type="button"
+					class="barcode-camera-close"
+					aria-label="Close camera"
+				>
+					<i data-lucide="x"></i>
+				</button>
+			</div>
+
+			<div class="barcode-camera-view">
+
+				<video
+					class="barcode-camera-video"
+					autoplay
+					playsinline
+					muted
+				></video>
+
+				<div class="barcode-scan-frame">
+					<div class="barcode-scan-line"></div>
+				</div>
+
+			</div>
+
+			<div class="barcode-camera-status">
+				Point the camera at a barcode
+			</div>
+
+		</div>
+	`;
+
+	document.body.appendChild(
+		cameraOverlay
+	);
+
+	cameraVideo =
+		cameraOverlay.querySelector(
+			'.barcode-camera-video'
+		);
+
+	const closeButton =
+		cameraOverlay.querySelector(
+			'.barcode-camera-close'
+		);
+
+	closeButton.addEventListener(
+		'click',
+		stopBarcodeScanner
+	);
+
+	lucide.createIcons();
+};
+
+
+/* =========================================================
+   START CAMERA
+========================================================= */
+
+const startBarcodeScanner = async () => {
+
+	if (
+		typeof BarcodeDetector ===
+		'undefined'
+	) {
+		alert(
+			'Barcode scanning is not supported by this browser.'
+		);
+
+		return;
+	}
+
+	createCameraScanner();
+
+	try {
+
+		cameraOverlay.classList.add(
+			'active'
+		);
+
+		cameraStream =
+			await navigator.mediaDevices.getUserMedia({
+				video: {
+					facingMode: {
+						ideal: 'environment'
+					},
+					width: {
+						ideal: 1280
+					},
+					height: {
+						ideal: 720
+					}
+				},
+				audio: false
+			});
+
+		cameraVideo.srcObject =
+			cameraStream;
+
+		await cameraVideo.play();
+
+		const barcodeDetector =
+			new BarcodeDetector({
+				formats: [
+					'ean_13',
+					'ean_8',
+					'upc_a',
+					'upc_e',
+					'code_128',
+					'code_39',
+					'itf',
+					'codabar'
+				]
+			});
+
+		const scanBarcode =
+			async () => {
+
+				if (
+					!cameraStream ||
+					!cameraVideo ||
+					cameraVideo.readyState <
+						2
+				) {
+					barcodeScanAnimation =
+						requestAnimationFrame(
+							scanBarcode
+						);
+
+					return;
+				}
+
+				try {
+
+					const barcodes =
+						await barcodeDetector.detect(
+							cameraVideo
+						);
+
+					if (
+						barcodes.length > 0
+					) {
+
+						const barcode =
+							barcodes[0].rawValue;
+
+						if (barcode) {
+
+							await handleBarcodeDetected(
+								barcode
+							);
+
+							return;
+						}
+					}
+
+				} catch (error) {
+
+					console.error(
+						'Barcode detection failed:',
+						error
+					);
+
+				}
+
+				barcodeScanAnimation =
+					requestAnimationFrame(
+						scanBarcode
+					);
+			};
+
+		scanBarcode();
+
+	} catch (error) {
+
+		console.error(
+			'Unable to access camera:',
+			error
+		);
+
+		stopBarcodeScanner();
+
+		alert(
+			'Unable to access the camera. Please check your browser camera permission.'
+		);
+	}
+};
+
+
+/* =========================================================
+   BARCODE FOUND
+========================================================= */
+
+const handleBarcodeDetected =
+	async (
+		barcode
+	) => {
+
+		/*
+			Stop scanning immediately so the camera
+			does not continue running while the
+			product is being loaded.
+		*/
+
+		stopBarcodeScanner();
+
+
+		/*
+			Put the scanned barcode into the
+			search box.
+		*/
+
+		input.value =
+			barcode;
+
+
+		try {
+
+			const results =
+				await apiRequest(
+					`${API_BASE}/search?q=` +
+					encodeURIComponent(
+						barcode
+					)
+				);
+
+
+			/*
+				If no product was found, leave the
+				barcode in the search box and show
+				the normal empty state.
+			*/
+
+			if (
+				!Array.isArray(results) ||
+				results.length === 0
+			) {
+
+				productSearchSection.hidden =
+					false;
+
+				productResults.hidden =
+					true;
+
+				productDetailView.hidden =
+					true;
+
+				productEmpty.hidden =
+					false;
+
+				productEmpty.textContent =
+					'No product found for this barcode.';
+
+				input.focus();
+
+				return;
+			}
+
+
+			/*
+				Barcode should normally identify one
+				product. Load the full product and
+				go directly to its detail page.
+			*/
+
+			const product =
+				results[0];
+
+			const fullProduct =
+				await apiRequest(
+					`${API_BASE}/${encodeURIComponent(
+						product.upc
+					)}`
+				);
+
+			await showProductDetail(
+				fullProduct
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load scanned product:',
+				error
+			);
+
+			productSearchSection.hidden =
+				false;
+
+			productResults.hidden =
+				true;
+
+			productDetailView.hidden =
+				true;
+
+			productEmpty.hidden =
+				false;
+
+			productEmpty.textContent =
+				'Unable to find this product.';
+
+		}
+	};
+
+
+/* =========================================================
+   STOP CAMERA
+========================================================= */
+
+const stopBarcodeScanner = () => {
+
+	if (
+		barcodeScanAnimation !== null
+	) {
+
+		cancelAnimationFrame(
+			barcodeScanAnimation
+		);
+
+		barcodeScanAnimation =
+			null;
+	}
+
+
+	if (cameraStream) {
+
+		cameraStream
+			.getTracks()
+			.forEach(
+				track => {
+					track.stop();
+				}
+			);
+
+		cameraStream =
+			null;
+	}
+
+
+	if (cameraVideo) {
+
+		cameraVideo.pause();
+
+		cameraVideo.srcObject =
+			null;
+	}
+
+
+	if (cameraOverlay) {
+
+		cameraOverlay.classList.remove(
+			'active'
+		);
+	}
+};
+
+
+/* =========================================================
+   CAMERA BUTTON
+========================================================= */
+
+if (cameraButton) {
+
+	cameraButton.addEventListener(
+		'click',
+		event => {
+
+			event.preventDefault();
+
+			startBarcodeScanner();
+
+		}
+	);
+}
 /* =========================================================
    TIMELINE TIME FORMAT
 ========================================================= */
@@ -1311,7 +1715,17 @@ const searchProducts =
 		const query =
 			input.value.trim();
 
-		if (!query) {
+		const isNumeric =
+			/^\d+$/.test(query);
+
+		const minimumLength =
+			isNumeric
+				? 6
+				: 3;
+
+		if (
+			query.length < minimumLength
+		) {
 			productResults.hidden =
 				true;
 
@@ -1323,10 +1737,6 @@ const searchProducts =
 
 			productEmpty.hidden =
 				false;
-
-			productEmpty.textContent =
-				'Enter a UPC or product name to search.';
-
 			return;
 		}
 
@@ -1532,10 +1942,6 @@ const searchProducts =
    SEARCH EVENTS
 ========================================================= */
 
-searchButton.addEventListener(
-	'click',
-	searchProducts
-);
 
 input.addEventListener(
 	'input',
