@@ -267,7 +267,9 @@ const seededRandom = (
 let cameraStream = null;
 let cameraVideo = null;
 let cameraOverlay = null;
-let barcodeScanAnimation = null;
+let barcodeReader = null;
+let barcodeControls = null;
+let barcodeScanLocked = false;
 
 
 /* =========================================================
@@ -290,7 +292,10 @@ const createCameraScanner = () => {
 		<div class="barcode-camera-container">
 
 			<div class="barcode-camera-header">
-				<strong>Scan Barcode</strong>
+
+				<strong>
+					Scan Barcode
+				</strong>
 
 				<button
 					type="button"
@@ -299,7 +304,9 @@ const createCameraScanner = () => {
 				>
 					<i data-lucide="x"></i>
 				</button>
+
 			</div>
+
 
 			<div class="barcode-camera-view">
 
@@ -310,14 +317,20 @@ const createCameraScanner = () => {
 					muted
 				></video>
 
+
 				<div class="barcode-scan-frame">
+
 					<div class="barcode-scan-line"></div>
+
 				</div>
 
 			</div>
 
+
 			<div class="barcode-camera-status">
+
 				Point the camera at a barcode
+
 			</div>
 
 		</div>
@@ -347,137 +360,153 @@ const createCameraScanner = () => {
 
 
 /* =========================================================
-   START CAMERA
+   START BARCODE SCANNER
 ========================================================= */
 
-const startBarcodeScanner = async () => {
+const startBarcodeScanner =
+	async () => {
 
-	if (
-		typeof BarcodeDetector ===
-		'undefined'
-	) {
-		alert(
-			'Barcode scanning is not supported by this browser.'
-		);
+		createCameraScanner();
 
-		return;
-	}
+		barcodeScanLocked =
+			false;
 
-	createCameraScanner();
+		try {
 
-	try {
+			cameraOverlay.classList.add(
+				'active'
+			);
 
-		cameraOverlay.classList.add(
-			'active'
-		);
 
-		cameraStream =
-			await navigator.mediaDevices.getUserMedia({
-				video: {
-					facingMode: {
-						ideal: 'environment'
-					},
-					width: {
-						ideal: 1280
-					},
-					height: {
-						ideal: 720
-					}
-				},
-				audio: false
-			});
+			/*
+				Use ZXing's multi-format reader.
 
-		cameraVideo.srcObject =
-			cameraStream;
+				This allows us to scan normal retail
+				barcodes such as EAN and UPC.
+			*/
 
-		await cameraVideo.play();
+			barcodeReader =
+				new ZXingBrowser.BrowserMultiFormatReader();
 
-		const barcodeDetector =
-			new BarcodeDetector({
-				formats: [
-					'ean_13',
-					'ean_8',
-					'upc_a',
-					'upc_e',
-					'code_128',
-					'code_39',
-					'itf',
-					'codabar'
-				]
-			});
 
-		const scanBarcode =
-			async () => {
+			/*
+				Ask for the available cameras.
+			*/
 
-				if (
-					!cameraStream ||
-					!cameraVideo ||
-					cameraVideo.readyState <
-						2
-				) {
-					barcodeScanAnimation =
-						requestAnimationFrame(
-							scanBarcode
-						);
+			const devices =
+				await ZXingBrowser
+					.BrowserCodeReader
+					.listVideoInputDevices();
 
-					return;
-				}
 
-				try {
+			if (
+				!devices ||
+				devices.length === 0
+			) {
 
-					const barcodes =
-						await barcodeDetector.detect(
-							cameraVideo
-						);
+				throw new Error(
+					'No camera found.'
+				);
 
-					if (
-						barcodes.length > 0
-					) {
+			}
 
-						const barcode =
-							barcodes[0].rawValue;
 
-						if (barcode) {
+			/*
+				Prefer the rear/environment camera.
 
-							await handleBarcodeDetected(
-								barcode
-							);
+				On iPhone this normally gives us
+				the rear camera rather than selfie camera.
+			*/
 
+			let selectedDevice =
+				devices.find(
+					device =>
+						/environment|back|rear/i.test(
+							device.label
+						)
+				);
+
+
+			/*
+				If Safari hasn't exposed camera labels
+				yet, just use the last camera.
+
+				This is common before permission has
+				been granted.
+			*/
+
+			if (!selectedDevice) {
+
+				selectedDevice =
+					devices[
+						devices.length - 1
+					];
+
+			}
+
+
+			/*
+				Start continuous scanning.
+			*/
+
+			barcodeControls =
+				await barcodeReader.decodeFromVideoDevice(
+					selectedDevice.deviceId,
+					cameraVideo,
+					async (
+						result,
+						error
+					) => {
+
+						if (
+							barcodeScanLocked
+						) {
 							return;
 						}
+
+
+						if (
+							result
+						) {
+
+							const barcode =
+								result.getText();
+
+
+							if (
+								barcode
+							) {
+
+								barcodeScanLocked =
+									true;
+
+								await handleBarcodeDetected(
+									barcode
+								);
+
+							}
+
+						}
+
 					}
+				);
 
-				} catch (error) {
+		} catch (error) {
 
-					console.error(
-						'Barcode detection failed:',
-						error
-					);
+			console.error(
+				'Unable to start barcode scanner:',
+				error
+			);
 
-				}
+			stopBarcodeScanner();
 
-				barcodeScanAnimation =
-					requestAnimationFrame(
-						scanBarcode
-					);
-			};
+			alert(
+				'Unable to access the camera. Please check your camera permission.'
+			);
 
-		scanBarcode();
+		}
 
-	} catch (error) {
-
-		console.error(
-			'Unable to access camera:',
-			error
-		);
-
-		stopBarcodeScanner();
-
-		alert(
-			'Unable to access the camera. Please check your browser camera permission.'
-		);
-	}
-};
+	};
 
 
 /* =========================================================
@@ -490,17 +519,17 @@ const handleBarcodeDetected =
 	) => {
 
 		/*
-			Stop scanning immediately so the camera
-			does not continue running while the
-			product is being loaded.
+			Stop the camera immediately.
+
+			The user does NOT need to press
+			the close button after scanning.
 		*/
 
 		stopBarcodeScanner();
 
 
 		/*
-			Put the scanned barcode into the
-			search box.
+			Put the barcode into the search box.
 		*/
 
 		input.value =
@@ -519,9 +548,7 @@ const handleBarcodeDetected =
 
 
 			/*
-				If no product was found, leave the
-				barcode in the search box and show
-				the normal empty state.
+				No product found.
 			*/
 
 			if (
@@ -551,13 +578,12 @@ const handleBarcodeDetected =
 
 
 			/*
-				Barcode should normally identify one
-				product. Load the full product and
-				go directly to its detail page.
+				Load the full product.
 			*/
 
 			const product =
 				results[0];
+
 
 			const fullProduct =
 				await apiRequest(
@@ -565,6 +591,12 @@ const handleBarcodeDetected =
 						product.upc
 					)}`
 				);
+
+
+			/*
+				Go straight to the product
+				detail page.
+			*/
 
 			await showProductDetail(
 				fullProduct
@@ -592,67 +624,133 @@ const handleBarcodeDetected =
 			productEmpty.textContent =
 				'Unable to find this product.';
 
+			input.focus();
+
 		}
+
 	};
 
 
 /* =========================================================
-   STOP CAMERA
+   STOP BARCODE SCANNER
 ========================================================= */
 
-const stopBarcodeScanner = () => {
+const stopBarcodeScanner =
+	() => {
 
-	if (
-		barcodeScanAnimation !== null
-	) {
-
-		cancelAnimationFrame(
-			barcodeScanAnimation
-		);
-
-		barcodeScanAnimation =
-			null;
-	}
+		barcodeScanLocked =
+			true;
 
 
-	if (cameraStream) {
+		/*
+			Stop ZXing.
+		*/
 
-		cameraStream
-			.getTracks()
-			.forEach(
-				track => {
-					track.stop();
-				}
+		if (
+			barcodeControls
+		) {
+
+			try {
+
+				barcodeControls.stop();
+
+			} catch (error) {
+
+				console.error(
+					'Unable to stop barcode scanner:',
+					error
+				);
+
+			}
+
+			barcodeControls =
+				null;
+
+		}
+
+
+		/*
+			Reset ZXing reader.
+		*/
+
+		if (
+			barcodeReader
+		) {
+
+			try {
+
+				barcodeReader.reset();
+
+			} catch (error) {
+
+				console.error(
+					'Unable to reset barcode reader:',
+					error
+				);
+
+			}
+
+			barcodeReader =
+				null;
+
+		}
+
+
+		/*
+			Stop camera tracks as an extra
+			safety measure.
+		*/
+
+		if (
+			cameraStream
+		) {
+
+			cameraStream
+				.getTracks()
+				.forEach(
+					track => {
+						track.stop();
+					}
+				);
+
+			cameraStream =
+				null;
+
+		}
+
+
+		if (
+			cameraVideo
+		) {
+
+			cameraVideo.pause();
+
+			cameraVideo.srcObject =
+				null;
+
+		}
+
+
+		if (
+			cameraOverlay
+		) {
+
+			cameraOverlay.classList.remove(
+				'active'
 			);
 
-		cameraStream =
-			null;
-	}
+		}
 
-
-	if (cameraVideo) {
-
-		cameraVideo.pause();
-
-		cameraVideo.srcObject =
-			null;
-	}
-
-
-	if (cameraOverlay) {
-
-		cameraOverlay.classList.remove(
-			'active'
-		);
-	}
-};
+	};
 
 
 /* =========================================================
    CAMERA BUTTON
 ========================================================= */
 
-if (cameraButton) {
+if (
+	cameraButton
+) {
 
 	cameraButton.addEventListener(
 		'click',
@@ -664,6 +762,7 @@ if (cameraButton) {
 
 		}
 	);
+
 }
 /* =========================================================
    TIMELINE TIME FORMAT
