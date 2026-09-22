@@ -1292,9 +1292,11 @@ router.post('/:upc/locations', async (req, res) => {
 
 router.put('/:upc', async (req, res) => {
 
-	const { upc } = req.params;
+	const originalUpc =
+		String(req.params.upc || '').trim();
 
 	const {
+		upc: newUpc,
 		description,
 		onHand,
 		price,
@@ -1312,55 +1314,193 @@ router.put('/:upc', async (req, res) => {
 	} = req.body;
 
 
+	const cleanNewUpc =
+		String(newUpc || '').trim();
+
+
 	try {
 
-		const result = await pool.query(`
-			UPDATE items
+		/* =====================================================
+		   FIND EXISTING PRODUCT
+		===================================================== */
 
-			SET
-				description = COALESCE($1, description),
-				on_hand = COALESCE($2, on_hand),
-				price = COALESCE($3, price),
-				case_size = COALESCE($4, case_size),
-				weight = COALESCE($5, weight),
-				item_number = COALESCE($6, item_number),
-				max_shelf = COALESCE($7, max_shelf),
-				department = COALESCE($8, department),
+		const existingResult =
+			await pool.query(`
+				SELECT
+					id,
+					upc
+				FROM items
+				WHERE
+					upc = $1
+					OR case_barcode = $1
+					OR alternative_barcode = $1
 
-				image_url = COALESCE($9, image_url),
-				image_alt = COALESCE($10, image_alt),
+				LIMIT 1
+			`, [
+				originalUpc
+			]);
 
-				case_barcode = COALESCE($11, case_barcode),
-				alternative_barcode = COALESCE($12, alternative_barcode),
 
-				hffss_status = COALESCE($13, hffss_status),
-				range_status = COALESCE($14, range_status),
+		if (!existingResult.rows.length) {
 
-				updated_at = CURRENT_TIMESTAMP
+			return res.status(404).json({
+				error: 'Product not found'
+			});
 
-			WHERE
-				upc = $15
-				OR case_barcode = $15
-				OR alternative_barcode = $15
+		}
 
-			RETURNING *
-		`, [
-			description,        // $1
-			onHand,             // $2
-			price,              // $3
-			caseSize,           // $4
-			weight,             // $5
-			itemNumber,         // $6
-			maxShelf,           // $7
-			department,         // $8
-			imageUrl || null,   // $9
-			imageAlt || null,   // $10
-			caseBarcode,        // $11
-			alternativeBarcode, // $12
-			hffssStatus,        // $13
-			rangeStatus,        // $14
-			upc                 // $15
-		]);
+
+		const existingItem =
+			existingResult.rows[0];
+
+
+		/* =====================================================
+		   UPC IS REQUIRED
+		===================================================== */
+
+		if (!cleanNewUpc) {
+
+			return res.status(400).json({
+				error: 'UPC is required.'
+			});
+
+		}
+
+
+		/* =====================================================
+		   CHECK WHETHER UPC HAS CHANGED
+		===================================================== */
+
+		const upcHasChanged =
+			existingItem.upc !== cleanNewUpc;
+
+
+		/* =====================================================
+		   IF UPC CHANGED, MAKE SURE NEW UPC IS AVAILABLE
+		===================================================== */
+
+		if (upcHasChanged) {
+
+			const duplicateResult =
+				await pool.query(`
+					SELECT
+						id,
+						upc
+					FROM items
+					WHERE
+						upc = $1
+						OR case_barcode = $1
+						OR alternative_barcode = $1
+
+					LIMIT 1
+				`, [
+					cleanNewUpc
+				]);
+
+
+			if (
+				duplicateResult.rows.length &&
+				duplicateResult.rows[0].id !== existingItem.id
+			) {
+
+				return res.status(409).json({
+					error:
+						'That UPC is already assigned to another item.'
+				});
+
+			}
+
+		}
+
+
+		/* =====================================================
+		   UPDATE EXISTING ITEM
+		   
+		   IMPORTANT:
+		   The existing item ID is preserved.
+		   
+		   Therefore:
+		   - modulars remain linked
+		   - sales history remains linked
+		   - other foreign keys remain linked
+		===================================================== */
+
+		const result =
+			await pool.query(`
+				UPDATE items
+
+				SET
+					upc = $1,
+
+					description =
+						COALESCE($2, description),
+
+					on_hand =
+						COALESCE($3, on_hand),
+
+					price =
+						COALESCE($4, price),
+
+					case_size =
+						COALESCE($5, case_size),
+
+					weight =
+						COALESCE($6, weight),
+
+					item_number =
+						COALESCE($7, item_number),
+
+					max_shelf =
+						COALESCE($8, max_shelf),
+
+					department =
+						COALESCE($9, department),
+
+					image_url =
+						COALESCE($10, image_url),
+
+					image_alt =
+						COALESCE($11, image_alt),
+
+					case_barcode =
+						COALESCE($12, case_barcode),
+
+					alternative_barcode =
+						COALESCE($13, alternative_barcode),
+
+					hffss_status =
+						COALESCE($14, hffss_status),
+
+					range_status =
+						COALESCE($15, range_status),
+
+					updated_at =
+						CURRENT_TIMESTAMP
+
+				WHERE id = $16
+
+				RETURNING *
+			`, [
+
+				cleanNewUpc,       // $1
+				description,       // $2
+				onHand,            // $3
+				price,             // $4
+				caseSize,          // $5
+				weight,             // $6
+				itemNumber,        // $7
+				maxShelf,          // $8
+				department,        // $9
+				imageUrl || null,  // $10
+				imageAlt || null,  // $11
+				caseBarcode,       // $12
+				alternativeBarcode,// $13
+				hffssStatus,       // $14
+				rangeStatus,       // $15
+
+				/* Existing database ID */
+				existingItem.id    // $16
+			]);
 
 
 		if (!result.rows.length) {
@@ -1372,8 +1512,14 @@ router.put('/:upc', async (req, res) => {
 		}
 
 
+		/* =====================================================
+		   RESPONSE
+		===================================================== */
+
 		res.json(
-			formatItem(result.rows[0])
+			formatItem(
+				result.rows[0]
+			)
 		);
 
 
@@ -1410,6 +1556,20 @@ router.put('/:upc', async (req, res) => {
 			return res.status(409).json({
 				error:
 					'Barcode cannot be duplicated within the same item.'
+			});
+
+		}
+
+
+		/* =====================================================
+		   POSTGRES UNIQUE CONSTRAINT
+		===================================================== */
+
+		if (error.code === '23505') {
+
+			return res.status(409).json({
+				error:
+					'That barcode is already assigned to another item.'
 			});
 
 		}

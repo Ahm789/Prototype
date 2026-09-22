@@ -1296,168 +1296,6 @@ locationForm.addEventListener(
 		);
 
 });
-
-
-
-/* =========================================================
-   SUBMIT LOCATION
-========================================================= */
-
-locationForm.addEventListener(
-	'submit',
-	async (event) => {
-
-		event.preventDefault();
-
-
-		if (!editingUpc) {
-
-			return;
-
-		}
-
-
-		/* =====================================================
-		   GET VALUES
-		===================================================== */
-
-		const aisle =
-			locationForm.elements.locAisle.value.trim();
-
-		const aisleSide =
-			locationForm.elements.locAisleSide.value.trim();
-
-		const bay =
-			locationForm.elements.locBay.value.trim();
-
-		const shelf =
-			locationForm.elements.locShelf.value.trim();
-
-
-		/* =====================================================
-		   REQUIRE AISLE
-		===================================================== */
-
-		if (!aisle) {
-
-			message.textContent =
-				'Please enter an aisle number.';
-
-			locationForm.elements.locAisle.focus();
-
-			return;
-
-		}
-
-
-		/* =====================================================
-		   REQUIRE AISLE SIDE
-		===================================================== */
-
-		if (!aisleSide) {
-
-			message.textContent =
-				'Please enter an aisle side.';
-
-			locationForm.elements.locAisleSide.focus();
-
-			return;
-
-		}
-
-
-		/* =====================================================
-		   REQUIRE BAY
-		===================================================== */
-
-		if (!bay) {
-
-			message.textContent =
-				'Please enter a bay number.';
-
-			locationForm.elements.locBay.focus();
-
-			return;
-
-		}
-
-
-		/* =====================================================
-		   GENERATE FINAL MODULAR ID
-		===================================================== */
-
-		updateModularId();
-
-
-		const modularId =
-			locationForm.elements.locModularId.value.trim();
-
-
-		/* =====================================================
-		   FINAL SAFETY CHECK
-		===================================================== */
-
-		if (!modularId) {
-
-			message.textContent =
-				'Unable to generate Modular ID.';
-
-			return;
-
-		}
-
-
-		try {
-
-			await addLocation(
-				editingUpc,
-				{
-					aisle: aisle,
-
-					aisleSide:
-						aisleSide.toUpperCase(),
-
-					bay: bay,
-
-					shelf: shelf,
-
-					modularId: modularId,
-
-					isPrimary:
-						locationForm.elements
-							.locIsPrimary
-							.checked
-				}
-			);
-
-
-			locationForm.reset();
-
-
-			/* Clear generated Modular ID after reset */
-
-			locationForm.elements
-				.locModularId.value = '';
-
-
-			message.textContent =
-				'Location added.';
-
-
-			await renderLocations();
-
-			await renderItems();
-
-
-		} catch (error) {
-
-			message.textContent =
-				error.message;
-
-		}
-
-	}
-);
 	/* =========================================================
 	   FORM HELPERS
 	========================================================= */
@@ -1493,8 +1331,21 @@ locationForm.addEventListener(
 			.join('&');
 
 	const updateSaveState = () => {
+
+		const hasChanges =
+			formSnapshot() !== formBaseline;
+
 		saveButton.disabled =
-			formSnapshot() === formBaseline;
+			!hasChanges;
+
+		if (hasChanges) {
+			saveButton.removeAttribute('disabled');
+		} else {
+			saveButton.setAttribute(
+				'disabled',
+				''
+			);
+		}
 	};
 
 	const resetEditState = () => {
@@ -1528,71 +1379,75 @@ locationForm.addEventListener(
 
 	const startEdit = async (rawItem) => {
 
-		const item =
-			normaliseItem(rawItem);
+	const item =
+		normaliseItem(rawItem);
 
-		editingUpc =
-			item.upc;
+	editingUpc =
+		item.upc;
 
-		editingItem =
-			item;
+	editingItem =
+		item;
 
-		form.classList.add(
-			'editing'
-		);
+	form.classList.add(
+		'editing'
+	);
 
-		formTitle.textContent =
-			'Edit item';
+	formTitle.textContent =
+		'Edit item';
 
-		saveButton.textContent =
-			'Update item';
+	saveButton.textContent =
+		'Update item';
 
-		form.elements.upc.readOnly =
-			true;
+	formBaseline =
+		formSnapshot();
 
-		[
-			'upc',
-			'caseBarcode',
-			'alternativeBarcode',
-			'itemNumber',
-			'description',
-			'price',
-			'onHand',
-			'caseSize',
-			'weight',
-			'maxShelf',
-			'hffssStatus',
-			'department',
-			'rangeStatus'
-		].forEach((name) => {
-			setField(
-				name,
-				item[name]
-			);
-		});
+	updateSaveState();
+	form.elements.upc.readOnly =
+		false;
+
+	[
+		'upc',
+		'caseBarcode',
+		'alternativeBarcode',
+		'itemNumber',
+		'description',
+		'price',
+		'onHand',
+		'caseSize',
+		'weight',
+		'maxShelf',
+		'hffssStatus',
+		'department',
+		'rangeStatus'
+	].forEach((name) => {
 
 		setField(
-			'imageUrl',
-			item.image?.url?.startsWith('data:')
-				? ''
-				: item.image?.url
+			name,
+			item[name]
 		);
 
-		formBaseline =
-			formSnapshot();
+	});
 
-		updateSaveState();
+	setField(
+		'imageUrl',
+		item.image?.url?.startsWith('data:')
+			? ''
+			: item.image?.url
+	);
 
-		message.textContent =
-			`Editing ${item.description}.`;
+	formBaseline =
+		formSnapshot();
 
-		form.scrollIntoView({
-			behavior: 'smooth',
-			block: 'start'
-		});
+	message.textContent =
+		`Editing ${item.description}.`;
 
-		await renderLocations();
-	};
+	form.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start'
+	});
+
+	await renderLocations();
+};
 
 	/* =========================================================
 	   RESET / NEW ITEM
@@ -1628,154 +1483,221 @@ locationForm.addEventListener(
 	);
 
 	/* =========================================================
-	   SAVE / UPDATE ITEM
-	========================================================= */
+   SAVE / UPDATE ITEM
+========================================================= */
 
-	form.addEventListener(
-		'submit',
-		async (event) => {
-			event.preventDefault();
+form.addEventListener(
+	'submit',
+	async (event) => {
 
-			const data =
-				new FormData(form);
+		event.preventDefault();
 
-			const imageFile =
-				data.get('imageFile');
+		const data =
+			new FormData(form);
 
-			const uploadedImage =
-				await readImageFile(
-					imageFile instanceof File &&
-					imageFile.size
-						? imageFile
-						: null
-				);
+		const imageFile =
+			data.get('imageFile');
 
-			const item = {
-				upc:
-					data.get('upc').trim(),
+		const uploadedImage =
+			await readImageFile(
+				imageFile instanceof File &&
+				imageFile.size
+					? imageFile
+					: null
+			);
 
-				caseBarcode:
-					valueOrNull(
-						data
-							.get('caseBarcode')
-							.trim()
-					),
+		const item = {
 
-				alternativeBarcode:
-					valueOrNull(
-						data
-							.get('alternativeBarcode')
-							.trim()
-					),
+			upc:
+				data.get('upc').trim(),
 
-				itemNumber:
-					valueOrNull(
-						data
-							.get('itemNumber')
-							.trim()
-					),
-
-				description:
+			caseBarcode:
+				valueOrNull(
 					data
-						.get('description')
-						.trim(),
-
-				onHand:
-					numberOrNull(
-						data.get('onHand')
-					) ?? 0,
-
-				caseSize:
-					numberOrNull(
-						data.get('caseSize')
-					) ?? 0,
-
-				weight:
-					valueOrNull(
-						data.get('weight').trim()
-					),
-
-				maxShelf:
-					numberOrNull(
-						data.get('maxShelf')
-					) ?? 0,
-
-				hffssStatus:
-					data.get('hffssStatus') ||
-					'Compliant',
-
-				department:
-					data
-						.get('department')
-						.trim() || '9999',
-
-				rangeStatus:
-					data.get('rangeStatus') ||
-					'in-range',
-
-				price:
-					numberOrNull(
-						data.get('price')
-					) ?? 1,
-
-				imageUrl:
-					uploadedImage ||
-					data
-						.get('imageUrl')
-						.trim() ||
-					editingItem?.image?.url ||
-					'',
-
-				imageAlt:
-					data
-						.get('description')
+						.get('caseBarcode')
 						.trim()
-			};
+				),
 
-			try {
-				const wasNewItem =
-					!editingUpc;
+			alternativeBarcode:
+				valueOrNull(
+					data
+						.get('alternativeBarcode')
+						.trim()
+				),
 
-				if (wasNewItem) {
+			itemNumber:
+				valueOrNull(
+					data
+						.get('itemNumber')
+						.trim()
+				),
+
+			description:
+				data
+					.get('description')
+					.trim(),
+
+			onHand:
+				numberOrNull(
+					data.get('onHand')
+				) ?? 0,
+
+			caseSize:
+				numberOrNull(
+					data.get('caseSize')
+				) ?? 0,
+
+			weight:
+				valueOrNull(
+					data.get('weight').trim()
+				),
+
+			maxShelf:
+				numberOrNull(
+					data.get('maxShelf')
+				) ?? 0,
+
+			hffssStatus:
+				data.get('hffssStatus') ||
+				'Compliant',
+
+			department:
+				data
+					.get('department')
+					.trim() ||
+				'9999',
+
+			rangeStatus:
+				data.get('rangeStatus') ||
+				'in-range',
+
+			price:
+				numberOrNull(
+					data.get('price')
+				) ?? 1,
+
+			imageUrl:
+				uploadedImage ||
+				data
+					.get('imageUrl')
+					.trim() ||
+				editingItem?.image?.url ||
+				'',
+
+			imageAlt:
+				data
+					.get('description')
+					.trim()
+		};
+
+		try {
+
+			const wasNewItem =
+				!editingUpc;
+
+
+			/* =================================================
+			   CREATE NEW ITEM
+			================================================= */
+
+			if (wasNewItem) {
+
+				const savedItem =
 					await createItem(
 						item
 					);
 
-					message.textContent =
-						'Item saved. Add its locations below.';
+				message.textContent =
+					'Item saved. Add its locations below.';
 
-				} else {
-					await updateItem(
-						editingUpc,
-						item
-					);
-
-					message.textContent =
-						'Item updated.';
-				}
-
-				const savedItem =
-					await getItem(
-						item.upc
-					);
+				/*
+					Enter edit mode for the newly
+					created item so locations can
+					be added immediately.
+				*/
 
 				await startEdit(
 					savedItem
 				);
 
-				await renderItems();
+			}
 
-			} catch (error) {
-				console.error(
-					'Failed to save item:',
-					error
+
+			/* =================================================
+			   UPDATE EXISTING ITEM
+			================================================= */
+
+			else {
+
+				const oldUpc =
+					editingUpc;
+
+				await updateItem(
+					oldUpc,
+					item
 				);
 
+				/*
+					The database row has now been
+					updated, including a possible
+					UPC change.
+
+					Clear the old edit state so the
+					page is not permanently locked
+					to this item.
+				*/
+
+				editingUpc =
+					null;
+
+				editingItem =
+					null;
+
+				form.classList.remove(
+					'editing'
+				);
+
+				formTitle.textContent =
+					'New item';
+
+				saveButton.textContent =
+					'Save item';
+
+				form.elements.upc.readOnly =
+					false;
+
 				message.textContent =
-					error.message;
+					'Item updated.';
+
+				/*
+					Reset the form baseline so the
+					next item can be selected normally.
+				*/
+
+				formBaseline =
+					formSnapshot();
+
+				updateSaveState();
+
+				await renderLocations();
 			}
+
+
+			await renderItems();
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to save item:',
+				error
+			);
+
+			message.textContent =
+				error.message;
 		}
-	);
+	}
+);
 
 	/* =========================================================
 	   INITIAL LOAD
