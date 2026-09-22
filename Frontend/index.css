@@ -2863,3 +2863,12 @@ background-repeat: no-repeat;
 	}
 
 }
+.product-search[hidden] {
+	display: none !important;
+}
+.status-bar,
+.app-titlebar,
+.task-controls {
+	flex: 0 0 auto;
+	flex-shrink: 0;
+}

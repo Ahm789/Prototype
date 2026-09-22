@@ -131,6 +131,8 @@ const sales7Lost =
 
 const sales28Lost =
 	document.querySelector('#sales-28-lost');
+const productSearch =
+	document.querySelector('.product-search');
 /* =========================================================
    API REQUEST
 ========================================================= */
@@ -520,12 +522,34 @@ const handleBarcodeDetected =
 
 		/*
 			Stop the camera immediately.
-
-			The user does NOT need to press
-			the close button after scanning.
 		*/
 
 		stopBarcodeScanner();
+
+
+		/*
+			Normalise the scanned barcode.
+
+			Remove anything except numbers so that
+			spaces or scanner formatting cannot cause
+			the lookup to fail.
+		*/
+
+		const cleanBarcode =
+			String(barcode)
+				.trim()
+				.replace(/\D/g, '');
+
+
+		console.log(
+			'Scanned barcode:',
+			barcode
+		);
+
+		console.log(
+			'Clean barcode:',
+			cleanBarcode
+		);
 
 
 		/*
@@ -533,74 +557,34 @@ const handleBarcodeDetected =
 		*/
 
 		input.value =
-			barcode;
+			cleanBarcode;
 
 
 		try {
 
-			const results =
-				await apiRequest(
-					`${API_BASE}/search?q=` +
-					encodeURIComponent(
-						barcode
-					)
-				);
-
-
 			/*
-				No product found.
+				Look up the exact UPC directly.
+
+				This avoids relying on the product search
+				endpoint to match the barcode.
 			*/
-
-			if (
-				!Array.isArray(results) ||
-				results.length === 0
-			) {
-
-				productSearchSection.hidden =
-					false;
-
-				productResults.hidden =
-					true;
-
-				productDetailView.hidden =
-					true;
-
-				productEmpty.hidden =
-					false;
-
-				productEmpty.textContent =
-					'No product found for this barcode.';
-
-				input.focus();
-
-				return;
-			}
-
-
-			/*
-				Load the full product.
-			*/
-
-			const product =
-				results[0];
-
 
 			const fullProduct =
 				await apiRequest(
 					`${API_BASE}/${encodeURIComponent(
-						product.upc
+						cleanBarcode
 					)}`
 				);
 
 
 			/*
-				Go straight to the product
-				detail page.
+				Go straight to the product detail page.
 			*/
 
 			await showProductDetail(
 				fullProduct
 			);
+
 
 		} catch (error) {
 
@@ -608,6 +592,11 @@ const handleBarcodeDetected =
 				'Unable to load scanned product:',
 				error
 			);
+
+
+			/*
+				No matching product.
+			*/
 
 			productSearchSection.hidden =
 				false;
@@ -622,14 +611,13 @@ const handleBarcodeDetected =
 				false;
 
 			productEmpty.textContent =
-				'Unable to find this product.';
+				`No product found for barcode ${cleanBarcode}.`;
 
 			input.focus();
 
 		}
 
 	};
-
 
 /* =========================================================
    STOP BARCODE SCANNER
@@ -1428,21 +1416,31 @@ const showProductDetail =
 	async (
 		product
 	) => {
+
 		currentProduct =
 			product;
 
-		productEmpty.hidden =
-			true;
+		input.value =
+			'';
 
-		productResults.hidden =
+		/* HIDE SEARCH UI */
+
+		productSearch.hidden =
 			true;
 
 		productSearchSection.hidden =
 			true;
 
+		productResults.hidden =
+			true;
+
+		productEmpty.hidden =
+			true;
+
+		/* SHOW PRODUCT DETAILS */
+
 		productDetailView.hidden =
 			false;
-
 
 		/* =====================================================
 		   PRODUCT IMAGE
@@ -1836,6 +1834,7 @@ const searchProducts =
 
 			productEmpty.hidden =
 				false;
+
 			return;
 		}
 
