@@ -5,207 +5,588 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Asda Tasks</title>
 	<link rel="stylesheet" href="index.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+	<script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
+
 	<main class="device-shell">
+
 		<section class="scanner-app" aria-label="Asda stock tasks">
 
 			<div class="app-titlebar">
-                <button class="icon-button app-menu-button" type="button" aria-label="Open product info">
-                    <i class="app-icon" data-lucide="clipboard" aria-hidden="true"></i>
-                </button>
 
-                <div class="tasks-title">
-                    <h1>TASKS</h1>
-                    <div class="task-timer" aria-label="Task timer">
-                        <button id="task-clock" type="button" aria-label="Advance clock by one hour"><span id="task-timer-value">9:00:00 am</span></button>
-                    </div>
-                </div>
+				<button
+					class="icon-button app-menu-button"
+					type="button"
+					aria-label="Open product info"
+				>
+					<i
+						class="app-icon"
+						data-lucide="clipboard"
+						aria-hidden="true"
+					></i>
+				</button>
 
-                <button class="icon-button menu-button" aria-label="More options">
-                    <i data-lucide="more-vertical"></i>
-                </button>
-            </div>
+				<div class="tasks-title">
+
+					<h1>TASKS</h1>
+
+					<div
+						class="task-timer"
+						aria-label="Task timer"
+					>
+						<button
+							id="task-clock"
+							type="button"
+							aria-label="Advance clock by one hour"
+						>
+							<span id="task-timer-value">
+								9:00:00 am
+							</span>
+						</button>
+					</div>
+
+				</div>
+
+				<button
+					class="icon-button menu-button"
+					aria-label="More options"
+				>
+					<i data-lucide="more-vertical"></i>
+				</button>
+
+			</div>
+
 
 			<div class="task-controls">
-                <div class="open-count">
-                    0 <span>Open</span> <small>(0% <i data-lucide="check"></i>)</small>
-                </div>
 
-                <div class="selection-group" aria-label="Task selection controls">
-                    <span class="view-toggle" aria-hidden="true">
-                        <span class="collapse-icon" aria-hidden="true"></span>
-                    </span>
-                    <button class="selection-slider" aria-label="Toggle task selection"><span></span></button>
-                </div>
+				<div class="open-count">
+					0
+					<span>Open</span>
+					<small>
+						(0%
+						<i data-lucide="check"></i>
+						)
+					</small>
+				</div>
 
-                <button class="filter-button" aria-label="Open filters">
-                    <i data-lucide="sliders-horizontal"></i>
-                    <span>Filters (0)</span>
-                </button>
-            </div>
+				<div
+					class="selection-group"
+					aria-label="Task selection controls"
+				>
 
-            <div class="filter-panel" hidden>
+					<span
+						class="view-toggle"
+						aria-hidden="true"
+					>
+						<span
+							class="collapse-icon"
+							aria-hidden="true"
+						></span>
+					</span>
 
-	<div class="filter-panel-header">
-        <strong>Tasks</strong>
+					<button
+						class="selection-slider"
+						aria-label="Toggle task selection"
+					>
+						<span></span>
+					</button>
 
-        <button
-            class="close-filters"
-            aria-label="Close filters"
-        >
-            ×
-        </button>
-    </div>
+				</div>
 
+				<button
+					class="filter-button"
+					aria-label="Open filters"
+				>
+					<i data-lucide="sliders-horizontal"></i>
+					<span>Filters (0)</span>
+				</button>
 
-	<div class="filter-fields">
-
-		<!-- TASK STATUS -->
-		<label>
-			Task status
-			<select>
-				<option>Open tasks</option>
-				<option>Backroom check</option>
-				<option>Worked</option>
-			</select>
-		</label>
-
-
-		<!-- DEPARTMENT -->
-            <div class="department-filter">
-
-                <label for="department-dropdown">Department</label>
-
-                <button
-                    type="button"
-                    class="department-dropdown"
-                    id="department-dropdown"
-                >
-                    <span>All departments</span>
-                    <span class="department-chevron">⌄</span>
-                </button>
+			</div>
 
 
-                <div class="department-menu" hidden>
+			<!-- FILTER PANEL -->
 
-                    <label class="department-option">
-                        <input type="checkbox" value="Bakery &amp; Frozen">
-                        <span>Bakery &amp; Frozen</span>
-                    </label>
+			<div class="filter-panel" hidden>
 
-                    <label class="department-option">
-                        <input type="checkbox" value="Fresh Foods">
-                        <span>Fresh Foods</span>
-                    </label>
+				<div class="filter-panel-header">
 
-                </div>
+					<strong>Tasks</strong>
 
-            </div>
-
-
-		<!-- TASK TYPE -->
-		<div class="task-type-filter">
-
-			<label for="task-type-dropdown">Task type</label>
-
-			<button
-				type="button"
-				class="task-type-dropdown"
-				id="task-type-dropdown"
-			>
-				<span>All task types</span>
-				<span class="task-type-chevron">⌄</span>
-			</button>
-
-
-			<div class="task-type-menu" hidden>
-
-				<!-- STOCK MANAGEMENT -->
-				<div class="task-type-group">
-
-					<div class="task-type-group-title">
-						Stock Management
-					</div>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="Out-Of Stock">
-						<span>Out-Of Stock</span>
-					</label>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="Manual Gap Scan">
-						<span>Manual Gap Scan</span>
-					</label>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="Overstock Investigation">
-						<span>Overstock Investigation</span>
-					</label>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="False Restock">
-						<span>False Restock</span>
-					</label>
+					<button
+						class="close-filters"
+						aria-label="Close filters"
+					>
+						×
+					</button>
 
 				</div>
 
 
-				<!-- MODULAR MANAGEMENT -->
-				<div class="task-type-group">
+				<div class="filter-fields">
 
-					<div class="task-type-group-title">
-						Modular Management
+					<!-- TASK STATUS -->
+
+					<label>
+
+						Task status
+
+						<select>
+
+							<option>Open tasks</option>
+							<option>Backroom check</option>
+							<option>Worked</option>
+
+						</select>
+
+					</label>
+
+
+					<!-- DEPARTMENT -->
+
+					<div class="department-filter">
+
+						<label for="department-dropdown">
+							Department
+						</label>
+
+						<button
+							type="button"
+							class="department-dropdown"
+							id="department-dropdown"
+						>
+							<span>All departments</span>
+							<span class="department-chevron">⌄</span>
+						</button>
+
+
+						<div
+							class="department-menu"
+							hidden
+						>
+
+							<label class="department-option">
+
+								<input
+									type="checkbox"
+									value="Bakery &amp; Frozen"
+								>
+
+								<span>
+									Bakery &amp; Frozen
+								</span>
+
+							</label>
+
+
+							<label class="department-option">
+
+								<input
+									type="checkbox"
+									value="Fresh Foods"
+								>
+
+								<span>
+									Fresh Foods
+								</span>
+
+							</label>
+
+						</div>
+
 					</div>
 
-					<label class="task-type-option">
-						<input type="checkbox" value="Modular Activity">
-						<span>Modular Activity</span>
-					</label>
 
-					<label class="task-type-option">
-						<input type="checkbox" value="Modular Compliance">
-						<span>Modular Compliance</span>
-					</label>
+					<!-- DUE DATE -->
 
-					<label class="task-type-option">
-						<input type="checkbox" value="Item Mapping">
-						<span>Item Mapping</span>
-					</label>
+					<div class="due-date-filter">
 
-					<label class="task-type-option">
-						<input type="checkbox" value="Obstruction">
-						<span>Obstruction</span>
-					</label>
+						<label for="due-date-dropdown">
+							Due date
+						</label>
+
+						<button
+							type="button"
+							class="due-date-dropdown"
+							id="due-date-dropdown"
+						>
+
+							<span>
+								All due dates
+							</span>
+
+							<span class="due-date-chevron">
+								⌄
+							</span>
+
+						</button>
+
+
+						<div
+							class="due-date-menu"
+							id="due-date-menu"
+							hidden
+						>
+
+							<!-- Options populated via JavaScript -->
+
+						</div>
+
+					</div>
+
+
+					<!-- TASK TYPE -->
+
+					<div class="task-type-filter">
+
+						<label for="task-type-dropdown">
+							Task type
+						</label>
+
+						<button
+							type="button"
+							class="task-type-dropdown"
+							id="task-type-dropdown"
+						>
+
+							<span>
+								All task types
+							</span>
+
+							<span class="task-type-chevron">
+								⌄
+							</span>
+
+						</button>
+
+
+						<div
+							class="task-type-menu"
+							hidden
+						>
+
+							<!-- STOCK MANAGEMENT -->
+
+							<div class="task-type-group">
+
+								<div class="task-type-group-title">
+									Stock Management
+								</div>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Out-Of Stock"
+									>
+
+									<span>
+										Out-Of Stock
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Manual Gap Scan"
+									>
+
+									<span>
+										Manual Gap Scan
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Overstock Investigation"
+									>
+
+									<span>
+										Overstock Investigation
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="False Restock"
+									>
+
+									<span>
+										False Restock
+									</span>
+
+								</label>
+
+							</div>
+
+
+							<!-- MODULAR MANAGEMENT -->
+
+							<div class="task-type-group">
+
+								<div class="task-type-group-title">
+									Modular Management
+								</div>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Modular Activity"
+									>
+
+									<span>
+										Modular Activity
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Modular Compliance"
+									>
+
+									<span>
+										Modular Compliance
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Item Mapping"
+									>
+
+									<span>
+										Item Mapping
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Obstruction"
+									>
+
+									<span>
+										Obstruction
+									</span>
+
+								</label>
+
+							</div>
+
+
+							<!-- REVERSE PICK -->
+
+							<div class="task-type-group">
+
+								<div class="task-type-group-title">
+									Reverse Pick
+								</div>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="In Stock"
+									>
+
+									<span>
+										In Stock
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="Low"
+									>
+
+									<span>
+										Low
+									</span>
+
+								</label>
+
+
+								<label class="task-type-option">
+
+									<input
+										type="checkbox"
+										value="May be Low"
+									>
+
+									<span>
+										May be Low
+									</span>
+
+								</label>
+
+							</div>
+
+						</div>
+
+					</div>
 
 				</div>
 
 
-				<!-- REVERSE PICK -->
-				<div class="task-type-group">
+				<div class="filter-actions">
 
-					<div class="task-type-group-title">
-						Reverse Pick
-					</div>
+					<button class="reset-filters">
+						Reset
+					</button>
 
-					<label class="task-type-option">
-						<input type="checkbox" value="In Stock">
-						<span>In Stock</span>
-					</label>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="Low">
-						<span>Low</span>
-					</label>
-
-					<label class="task-type-option">
-						<input type="checkbox" value="May be Low">
-						<span>May be Low</span>
-					</label>
+					<button class="apply-filters">
+						Apply filters
+					</button>
 
 				</div>
 
+			</div>
+
+
+			<!-- TASK LIST -->
+
+			<div class="task-list">
+
+				<div id="task-cards"></div>
+
+
+				<div
+					id="task-empty"
+					class="task-empty"
+				>
+
+					<i data-lucide="check-circle"></i>
+
+					<p>
+						No tasks found
+					</p>
+
+				</div>
+
+
+				<!-- MODULAR ACTIVITY CENTRE -->
+
+				<div
+					id="modular-activity-centre"
+					class="modular-activity-centre"
+					hidden
+				>
+
+					<!-- MODULAR SEARCH -->
+
+					<div class="modular-search">
+
+						<div class="modular-search-title">
+
+							<i data-lucide="search"></i>
+
+							<span>
+								Scan Product to Search Modular
+							</span>
+
+						</div>
+
+
+						<div class="modular-search-manual-row">
+
+							<button
+								type="button"
+								id="modular-search-camera"
+								class="modular-search-camera"
+								aria-label="Scan product"
+							>
+
+								<i data-lucide="camera"></i>
+
+							</button>
+
+
+							<div class="modular-search-or">
+
+								<span>
+									OR
+								</span>
+
+							</div>
+
+
+							<div class="modular-search-input">
+
+								<input
+									type="text"
+									id="modular-search-upc"
+									placeholder="Enter UPC"
+									autocomplete="off"
+								>
+
+							</div>
+
+						</div>
+
+					</div>
+
+
+					<!-- MODULAR ACTIVITY CARDS -->
+
+					<div id="modular-activity-cards">
+
+						<!-- Empty Modular Activity card for now -->
+
+						<div class="modular-activity-card">
+
+	<div class="modular-activity-card-main">
+
+		<div class="modular-activity-card-icon">
+
+			<i data-lucide="layout-grid"></i>
+
+		</div>
+
+
+		<div class="modular-activity-card-content">
+
+			<div class="modular-activity-card-title">
+
+				<span>
+					Modular Activity
+				</span>
+
+			</div>
+
+
+			<div class="modular-activity-card-name">
+				Modular Name
 			</div>
 
 		</div>
@@ -213,89 +594,85 @@
 	</div>
 
 
-	<div class="filter-actions">
-		<button class="reset-filters">Reset</button>
-		<button class="apply-filters">Apply filters</button>
+	<div class="modular-activity-card-planogram">
+
+		<span class="modular-planogram-name">
+			Planogram Name
+		</span>
+
+		<span class="modular-planogram-number">
+			Planogram Number
+		</span>
+
 	</div>
 
 </div>
 
-            <div class="task-list">
+					</div>
 
-                <div id="task-cards"></div>
+				</div>
 
-                <div id="task-empty" class="task-empty">
-                    <i data-lucide="check-circle"></i>
-                    <p>No tasks found</p>
-                </div>
+			</div>
 
-                <div id="modular-activity-centre" class="modular-activity-centre" hidden>
-                    <!-- Modular Activity content -->
-                     <div class="modular-search">
 
-                        <div class="modular-search-title">
-                            <i data-lucide="search"></i>
-                            <span>Scan Product to Search Modular</span>
-                        </div>
+			<!-- BOTTOM NAVIGATION -->
 
-                        <div class="modular-search-manual-row">
+			<nav
+				class="bottom-nav"
+				aria-label="Main navigation"
+			>
 
-                            <button
-                                type="button"
-                                id="modular-search-camera"
-                                class="modular-search-camera"
-                                aria-label="Scan product"
-                            >
-                                <i data-lucide="camera"></i>
-                            </button>
+				<button class="active">
 
-                            <div class="modular-search-or">
-                                <span>OR</span>
-                            </div>
+					<i data-lucide="clipboard-list"></i>
 
-                            <div class="modular-search-input">
+					TASKS
 
-                                <input
-                                    type="text"
-                                    id="modular-search-upc"
-                                    placeholder="Enter UPC"
-                                    autocomplete="off"
-                                >
-                            </div>
+				</button>
 
-                        </div>
-                </div>
 
-            </div>
+				<a
+					class="nav-link"
+					href="product.html"
+				>
 
-			<nav class="bottom-nav" aria-label="Main navigation">
-                <button class="active">
-                    <i data-lucide="clipboard-list"></i>
-                    TASKS
-                </button>
+					<i data-lucide="scan-barcode"></i>
 
-                <a class="nav-link" href="product.html">
-                    <i data-lucide="scan-barcode"></i>
-                    PRODUCT INFO
-                </a>
+					PRODUCT INFO
 
-                <button>
-                    <i data-lucide="undo-2"></i>
-                    REVERSE
-                </button>
+				</a>
 
-                <button>
-                    <i data-lucide="more-vertical"></i>
-                    MORE
-                </button>
-            </nav>
 
-            <script>
-                lucide.createIcons();
-            </script>
+				<button>
+
+					<i data-lucide="undo-2"></i>
+
+					REVERSE
+
+				</button>
+
+
+				<button>
+
+					<i data-lucide="more-vertical"></i>
+
+					MORE
+
+				</button>
+
+			</nav>
+
+
+			<script>
+				lucide.createIcons();
+			</script>
+
 		</section>
+
 	</main>
 
+
 	<script src="index.js"></script>
+
 </body>
 </html>

@@ -13,6 +13,8 @@ const API_BASE =
 
 const TASK_CLOCK_API =
 	`${API_ORIGIN}/api/task-clock`;
+const MODULAR_ACTIVITY_API =
+	`${API_BASE}/modular-activity`;
 /* =========================================================
    INITIALISE LUCIDE ICONS
 ========================================================= */
@@ -1046,7 +1048,25 @@ const taskTypeMenu =
 	document.querySelector(
 		'.task-type-menu'
 	);
+const dueDateFilter =
+	document.querySelector(
+		'.due-date-filter'
+	);
 
+const dueDateMenu =
+	document.querySelector(
+		'#due-date-menu'
+	);
+
+const dueDateDropdown =
+	document.querySelector(
+		'#due-date-dropdown'
+	);
+
+const dueDateDropdownLabel =
+	dueDateDropdown?.querySelector(
+		'span:first-child'
+	);
 const taskStatusSelect =
 	document.querySelector(
 		'.filter-panel select'
@@ -1165,6 +1185,202 @@ const updateFilterCount = () => {
 
 };
 /* =========================================================
+   GET MODULAR ACTIVITY
+========================================================= */
+
+const getModularActivity =
+	async () => {
+
+		try {
+
+			const data =
+				await apiRequest(
+					MODULAR_ACTIVITY_API
+				);
+
+
+			if (!dueDateMenu) {
+				return;
+			}
+
+
+			/* =====================================================
+			   CLEAR EXISTING DATES
+			===================================================== */
+
+			dueDateMenu.replaceChildren();
+
+
+			/* =====================================================
+			   GET UNIQUE DATES
+			===================================================== */
+
+			const dates =
+				[
+					...new Set(
+						data
+							.map(
+								row =>
+									row.due_date
+							)
+							.filter(Boolean)
+					)
+				]
+				.sort();
+
+
+			/* =====================================================
+			   CREATE DATE CHECKBOXES
+			===================================================== */
+
+			dates.forEach(
+				(date) => {
+
+					const label =
+						document.createElement(
+							'label'
+						);
+
+					label.className =
+						'due-date-option';
+
+
+					const checkbox =
+						document.createElement(
+							'input'
+						);
+
+					checkbox.type =
+						'checkbox';
+
+					checkbox.value =
+						date;
+
+
+					const span =
+						document.createElement(
+							'span'
+						);
+
+					span.textContent =
+						date;
+
+
+					label.append(
+						checkbox,
+						span
+					);
+
+
+					dueDateMenu.appendChild(
+						label
+					);
+
+
+					/* =================================================
+					   DATE SELECTION
+					================================================= */
+
+					checkbox.addEventListener(
+						'change',
+						updateDueDateLabel
+					);
+
+				}
+			);
+
+
+			updateDueDateLabel();
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load modular activity:',
+				error
+			);
+
+		}
+
+	};
+	const updateDueDateLabel =
+	() => {
+
+		if (
+			!dueDateMenu ||
+			!dueDateDropdownLabel
+		) {
+			return;
+		}
+
+
+		const selectedDates =
+			[
+				...dueDateMenu.querySelectorAll(
+					'input[type="checkbox"]:checked'
+				)
+			];
+
+
+		if (!selectedDates.length) {
+
+			dueDateDropdownLabel.textContent =
+				'All due dates';
+
+			return;
+		}
+
+
+		if (selectedDates.length === 1) {
+
+			dueDateDropdownLabel.textContent =
+				selectedDates[0].value;
+
+			return;
+		}
+
+
+		dueDateDropdownLabel.textContent =
+			`${selectedDates.length} due dates`;
+
+	};
+/* =========================================================
+   DUE DATE DROPDOWN
+========================================================= */
+
+dueDateDropdown.addEventListener(
+	'click',
+	() => {
+
+		const isOpen =
+			!dueDateMenu.hidden;
+
+
+		departmentMenu.hidden =
+			true;
+
+		taskTypeMenu.hidden =
+			true;
+
+		departmentDropdown.classList.remove(
+			'is-open'
+		);
+
+		taskTypeDropdown.classList.remove(
+			'is-open'
+		);
+
+
+		dueDateMenu.hidden =
+			isOpen;
+
+		dueDateDropdown.classList.toggle(
+			'is-open',
+			!isOpen
+		);
+
+	}
+);
+/* =========================================================
    MODULAR ACTIVITY FILTER MODE
 ========================================================= */
 
@@ -1195,6 +1411,18 @@ const updateModularActivityMode = () => {
 
 
 	/* =====================================================
+	   DUE DATE FILTER
+	===================================================== */
+
+	if (dueDateFilter) {
+
+		dueDateFilter.hidden =
+			!modularActivityOnly;
+
+	}
+
+
+	/* =====================================================
 	   TASK STATUS
 	===================================================== */
 
@@ -1213,27 +1441,34 @@ const updateModularActivityMode = () => {
 
 	if (modularActivityOnly) {
 
-		taskCards.replaceChildren();
+	taskCards.replaceChildren();
 
-		taskCards.style.display =
-			'none';
+	taskCards.style.display =
+		'none';
 
-		taskEmpty.style.display =
-			'none';
+	taskEmpty.style.display =
+		'none';
 
 
-		/* ================================================
-		   SHOW MODULAR ACTIVITY
-		================================================ */
+	/* ================================================
+	   SHOW MODULAR ACTIVITY
+	================================================ */
 
-		if (modularActivityCentre) {
+	if (modularActivityCentre) {
 
-			modularActivityCentre.hidden =
-				false;
+		modularActivityCentre.hidden =
+			false;
 
-		}
+	}
 
-	} else {
+
+	/* ================================================
+	   LOAD MODULAR ACTIVITY
+	================================================ */
+
+	getModularActivity();
+
+} else {
 
 		taskCards.style.display =
 			'';

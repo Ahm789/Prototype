@@ -236,17 +236,13 @@ CREATE TABLE IF NOT EXISTS modulars (
    ---------------------------------------------------------
    Stores planned modular work.
 
-   planogram_number is the unique identifier for the
-   planned modular activity.
-
-   modular_id remains NULL until the activity is actually
-   landed/live.
+   This table represents the planned activity itself.
+   Current/live modular state is stored against the
+   individual modular bays.
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_activity (
 	id SERIAL PRIMARY KEY,
-
-	modular_id VARCHAR(128),
 
 	modular_name VARCHAR(255) NOT NULL,
 
@@ -256,24 +252,12 @@ CREATE TABLE IF NOT EXISTS modular_activity (
 
 	due_date DATE,
 
-	status VARCHAR(20) NOT NULL DEFAULT 'Not done',
-
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	CONSTRAINT unique_planogram_number
-		UNIQUE (planogram_number),
-
-	CONSTRAINT check_modular_activity_status
-		CHECK (
-			status IN (
-				'Live',
-				'Changed',
-				'Not done',
-				'Due to land'
-			)
-		)
+		UNIQUE (planogram_number)
 );
 
 
@@ -283,22 +267,33 @@ CREATE TABLE IF NOT EXISTS modular_activity (
    Represents the physical bays belonging to a planned
    modular activity.
 
+   Also stores the current/live state of each bay.
+
    Example:
 
    planogram_number = 1
    bay_number = 11
 
    means Bay 11 belongs to Planogram 1.
+
+   modular_id remains NULL until the bay is assigned to
+   a live modular.
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_bays (
 	id SERIAL PRIMARY KEY,
 
-	planogram_number INTEGER NOT NULL,
-
 	bay_number VARCHAR(32) NOT NULL,
 
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	planogram_number INTEGER NOT NULL,
+
+	modular_id INTEGER,
+
+	status TEXT,
+
+	last_updated TIMESTAMP,
 
 	CONSTRAINT fk_modular_bay_planogram
 		FOREIGN KEY (planogram_number)
@@ -381,16 +376,8 @@ CREATE INDEX IF NOT EXISTS idx_modular_activity_planogram
 ON modular_activity(planogram_number);
 
 
-CREATE INDEX IF NOT EXISTS idx_modular_activity_modular_id
-ON modular_activity(modular_id);
-
-
 CREATE INDEX IF NOT EXISTS idx_modular_activity_department
 ON modular_activity(department_number);
-
-
-CREATE INDEX IF NOT EXISTS idx_modular_activity_status
-ON modular_activity(status);
 
 
 CREATE INDEX IF NOT EXISTS idx_modular_activity_due_date
@@ -407,6 +394,18 @@ ON modular_bays(planogram_number);
 
 CREATE INDEX IF NOT EXISTS idx_modular_bays_bay_number
 ON modular_bays(bay_number);
+
+
+CREATE INDEX IF NOT EXISTS idx_modular_bays_modular_id
+ON modular_bays(modular_id);
+
+
+CREATE INDEX IF NOT EXISTS idx_modular_bays_status
+ON modular_bays(status);
+
+
+CREATE INDEX IF NOT EXISTS idx_modular_bays_last_updated
+ON modular_bays(last_updated);
 
 
 /* =========================================================

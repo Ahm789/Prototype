@@ -321,6 +321,7 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .department-filter,
+.due-date-filter,
 .task-type-filter {
 	position: relative;
 
@@ -330,6 +331,7 @@ background-repeat: no-repeat;
 }
 
 .department-filter > label,
+.due-date-filter > label,
 .task-type-filter > label {
 	display: block;
 
@@ -345,6 +347,7 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .department-dropdown,
+.due-date-dropdown,
 .task-type-dropdown {
 	position: relative;
 
@@ -370,9 +373,12 @@ background-repeat: no-repeat;
 	font-weight: 400;
 
 	text-align: left;
+
+	cursor: pointer;
 }
 
 .department-dropdown:hover,
+.due-date-dropdown:hover,
 .task-type-dropdown:hover {
 	background: #f5ffff;
 }
@@ -383,11 +389,11 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .department-dropdown > span:first-child,
+.due-date-dropdown > span:first-child,
 .task-type-dropdown > span:first-child {
 	display: block;
 
 	flex: 1;
-
 	min-width: 0;
 
 	overflow: hidden;
@@ -402,6 +408,7 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .department-chevron,
+.due-date-chevron,
 .task-type-chevron {
 	position: relative;
 
@@ -419,6 +426,7 @@ background-repeat: no-repeat;
 }
 
 .department-chevron::before,
+.due-date-chevron::before,
 .task-type-chevron::before {
 	position: absolute;
 
@@ -445,16 +453,18 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .department-dropdown.is-open .department-chevron,
+.due-date-dropdown.is-open .due-date-chevron,
 .task-type-dropdown.is-open .task-type-chevron {
 	transform: scaleY(-1);
 }
 
 
 /* =========================================================
-   DROPDOWN MENU
+   DROPDOWN MENUS
 ========================================================= */
 
 .department-menu,
+.due-date-menu,
 .task-type-menu {
 	position: absolute;
 
@@ -484,9 +494,11 @@ background-repeat: no-repeat;
 }
 
 .department-menu[hidden],
+.due-date-menu[hidden],
 .task-type-menu[hidden] {
 	display: none;
 }
+
 
 /* =========================================================
    MENU HEIGHTS
@@ -498,6 +510,77 @@ background-repeat: no-repeat;
 
 .department-menu {
 	max-height: 150px;
+}
+
+.due-date-menu {
+	max-height: 200px;
+}
+
+
+/* =========================================================
+   DUE DATE OPTIONS
+========================================================= */
+
+.due-date-option {
+	display: flex;
+	align-items: center;
+
+	width: 100%;
+
+	margin: 0;
+	padding: 8px 11px;
+
+	box-sizing: border-box;
+
+	color: #30535c;
+	background: transparent;
+
+	font-size: 12px;
+	font-weight: 600;
+
+	line-height: 1.2;
+
+	text-align: left;
+
+	cursor: pointer;
+}
+
+.due-date-option:hover {
+	background: #eaf6ee;
+}
+
+.due-date-option.active {
+	color: #0a928c;
+	font-weight: 700;
+}
+
+.due-date-option input[type="checkbox"] {
+	flex: 0 0 auto;
+
+	width: 16px;
+	height: 16px;
+
+	margin: 0 9px 0 0;
+	padding: 0;
+
+	accent-color: var(--aqua);
+
+	cursor: pointer;
+}
+
+.due-date-option span {
+	display: block;
+
+	flex: 1;
+
+	margin: 0;
+
+	color: #30535c;
+
+	font-size: 12px;
+	font-weight: 600;
+
+	line-height: 1.2;
 }
 
 
@@ -810,18 +893,215 @@ background-repeat: no-repeat;
 	display: none;
 }
 /* =========================================================
+   MODULAR ACTIVITY TASK CARD
+========================================================= */
+
+.modular-activity-card {
+	display: flex;
+	flex-direction: column;
+
+	width: 100%;
+
+	margin: 14px 0 14px;
+
+	box-sizing: border-box;
+
+	background: #f3e5f5;
+
+	border-radius: 9px;
+
+	box-shadow: 0 2px 4px #082431;
+
+	overflow: hidden;
+}
+
+
+/* =========================================================
+   TOP TITLE STRIP
+========================================================= */
+
+.modular-activity-card-icon {
+	display: grid;
+	place-items: center;
+
+	flex: 0 0 36px;
+
+	width: 36px;
+	height: 36px;
+
+	color: white;
+	background: #d45bd9;
+
+	border-radius: 6px;
+}
+
+.modular-activity-card-icon svg {
+	width: 20px;
+	height: 20px;
+
+	color: white;
+
+	stroke-width: 2.5;
+}
+
+
+/* =========================================================
+   TOP ROW
+========================================================= */
+
+.modular-activity-card-main {
+	display: flex;
+	align-items: center;
+
+	width: 100%;
+	min-width: 0;
+
+	padding: 6px 12px;
+
+	box-sizing: border-box;
+
+	background: #d45bd9;
+
+	border-radius: 0 0 6px 6px;
+
+	gap: 10px;
+}
+
+
+/* =========================================================
+   TOP ROW CONTENT
+========================================================= */
+
+.modular-activity-card-content {
+	display: contents;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.modular-activity-card-title {
+	display: flex;
+	align-items: center;
+
+	flex: 0 0 auto;
+
+	color: white;
+
+	font-size: 15px;
+	font-weight: 700;
+
+	line-height: 1.2;
+}
+
+.modular-activity-card-title span {
+	white-space: nowrap;
+}
+
+
+/* =========================================================
+   MODULAR NAME
+========================================================= */
+
+.modular-activity-card-name {
+	flex: 1;
+	min-width: 0;
+
+	color: white;
+
+	font-size: 15px;
+	font-weight: 600;
+
+	line-height: 1.2;
+
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+
+/* =========================================================
+   PLANOGRAM DETAILS
+========================================================= */
+
+.modular-activity-card-planogram {
+	display: flex;
+	flex-direction: column;
+
+	width: 100%;
+
+	margin: 0;
+
+	padding: 9px 12px 9px 18px;
+
+	box-sizing: border-box;
+
+	background: #d8b9dd;
+
+	gap: 4px;
+}
+
+
+/* =========================================================
+   PLANOGRAM NAME
+========================================================= */
+
+.modular-planogram-name {
+	display: block;
+
+	color: #2f2f2f;
+
+	font-size: 11px;
+	font-weight: 600;
+
+	line-height: 1.2;
+
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+
+/* =========================================================
+   PLANOGRAM NUMBER
+========================================================= */
+
+.modular-planogram-number {
+	display: block;
+
+	color: #2f2f2f;
+
+	font-size: 11px;
+	font-weight: 600;
+
+	line-height: 1.2;
+
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+/* =========================================================
    MOBILE
 ========================================================= */
 
 @media (max-width: 420px) {
 
 	.department-dropdown,
+	.due-date-dropdown,
 	.task-type-dropdown {
 		height: 39px;
+
 		padding-left: 10px;
 		padding-right: 36px;
 
 		font-size: 12px;
+	}
+
+	.due-date-option {
+		padding: 8px 10px;
+
+		font-size: 11px;
 	}
 
 	.task-type-option,

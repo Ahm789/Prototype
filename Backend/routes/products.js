@@ -245,8 +245,45 @@ router.post('/', async (req, res) => {
 	});
 }
 });
+router.get(
+	'/modular-activity',
+	async (req, res) => {
 
+		try {
 
+			const result =
+				await pool.query(`
+					SELECT
+						TO_CHAR(
+							ma.due_date,
+							'DD/MM/YYYY'
+						) AS due_date
+					FROM modular_activity ma
+					INNER JOIN modular_bays mb
+						ON ma.planogram_number = mb.id
+					WHERE mb.modular_id IS NULL;
+				`);
+
+			res.json(
+				result.rows
+			);
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load modular activity:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to load modular activity.'
+			});
+
+		}
+
+	}
+);
 /* =========================================================
    GET PRODUCT SALES
 ========================================================= */
