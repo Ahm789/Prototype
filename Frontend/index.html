@@ -220,10 +220,53 @@
 
 </div>
 
-            <section class="task-list" aria-label="Current item tasks">
-                <div class="task-empty" id="task-empty">Tasks will appear when the next hour starts.</div>
-                <div class="task-cards" id="task-cards"></div>
-            </section>
+            <div class="task-list">
+
+                <div id="task-cards"></div>
+
+                <div id="task-empty" class="task-empty">
+                    <i data-lucide="check-circle"></i>
+                    <p>No tasks found</p>
+                </div>
+
+                <div id="modular-activity-centre" class="modular-activity-centre" hidden>
+                    <!-- Modular Activity content -->
+                     <div class="modular-search">
+
+                        <div class="modular-search-title">
+                            <i data-lucide="search"></i>
+                            <span>Scan Product to Search Modular</span>
+                        </div>
+
+                        <div class="modular-search-manual-row">
+
+                            <button
+                                type="button"
+                                id="modular-search-camera"
+                                class="modular-search-camera"
+                                aria-label="Scan product"
+                            >
+                                <i data-lucide="camera"></i>
+                            </button>
+
+                            <div class="modular-search-or">
+                                <span>OR</span>
+                            </div>
+
+                            <div class="modular-search-input">
+
+                                <input
+                                    type="text"
+                                    id="modular-search-upc"
+                                    placeholder="Enter UPC"
+                                    autocomplete="off"
+                                >
+                            </div>
+
+                        </div>
+                </div>
+
+            </div>
 
 			<nav class="bottom-nav" aria-label="Main navigation">
                 <button class="active">

@@ -59,7 +59,6 @@ const taskCards =
 
 const taskEmpty =
 	document.querySelector('#task-empty');
-
 const timerValue =
 	document.querySelector('#task-timer-value');
 
@@ -1103,8 +1102,160 @@ const defaultFilterState = {
 		]
 
 };
+const updateFilterCount = () => {
+
+	let count = 0;
+
+	/* Task status */
+
+	if (
+		taskStatusSelect.options[
+			taskStatusSelect.selectedIndex
+		]?.textContent !==
+		defaultFilterState.taskStatus
+	) {
+		count++;
+	}
 
 
+	/* Department checkboxes */
+
+	departmentCheckboxes.forEach(
+		(checkbox) => {
+
+			const shouldBeChecked =
+				defaultFilterState.departments.includes(
+					checkbox.value
+				);
+
+			if (
+				checkbox.checked !==
+				shouldBeChecked
+			) {
+				count++;
+			}
+
+		}
+	);
+
+
+	/* Task type checkboxes */
+
+	taskTypeCheckboxes.forEach(
+		(checkbox) => {
+
+			const shouldBeChecked =
+				defaultFilterState.taskTypes.includes(
+					checkbox.value
+				);
+
+			if (
+				checkbox.checked !==
+				shouldBeChecked
+			) {
+				count++;
+			}
+
+		}
+	);
+
+
+	filterLabel.textContent =
+		`Filters (${count})`;
+
+};
+/* =========================================================
+   MODULAR ACTIVITY FILTER MODE
+========================================================= */
+
+const modularActivityCentre =
+	document.querySelector(
+		'#modular-activity-centre'
+	);
+
+
+const updateModularActivityMode = () => {
+
+	const selectedTaskTypes =
+		[...taskTypeCheckboxes]
+			.filter(
+				(checkbox) =>
+					checkbox.checked
+			)
+			.map(
+				(checkbox) =>
+					checkbox.value
+			);
+
+
+	const modularActivityOnly =
+		selectedTaskTypes.length === 1 &&
+		selectedTaskTypes[0] ===
+			'Modular Activity';
+
+
+	/* =====================================================
+	   TASK STATUS
+	===================================================== */
+
+	taskStatusSelect.disabled =
+		modularActivityOnly;
+
+	taskStatusSelect.classList.toggle(
+		'is-disabled',
+		modularActivityOnly
+	);
+
+
+	/* =====================================================
+	   NORMAL TASK AREA
+	===================================================== */
+
+	if (modularActivityOnly) {
+
+		taskCards.replaceChildren();
+
+		taskCards.style.display =
+			'none';
+
+		taskEmpty.style.display =
+			'none';
+
+
+		/* ================================================
+		   SHOW MODULAR ACTIVITY
+		================================================ */
+
+		if (modularActivityCentre) {
+
+			modularActivityCentre.hidden =
+				false;
+
+		}
+
+	} else {
+
+		taskCards.style.display =
+			'';
+
+		taskEmpty.style.display =
+			'';
+
+
+		/* ================================================
+		   HIDE MODULAR ACTIVITY
+		================================================ */
+
+		if (modularActivityCentre) {
+
+			modularActivityCentre.hidden =
+				true;
+
+		}
+
+	}
+
+};
 /* =========================================================
    SAVE FILTER STATE
 ========================================================= */
@@ -1168,7 +1319,6 @@ const updateFilterLabels =
 						checkbox.value
 				);
 
-
 		const selectedTaskTypes =
 			[...taskTypeCheckboxes]
 				.filter(
@@ -1180,7 +1330,6 @@ const updateFilterLabels =
 						checkbox.value
 				);
 
-
 		/* Department */
 
 		departmentDropdown
@@ -1189,7 +1338,6 @@ const updateFilterLabels =
 				selectedDepartments.length === 0
 					? 'All departments'
 					: selectedDepartments.join(', ');
-
 
 		/* Task type */
 
@@ -1200,6 +1348,8 @@ const updateFilterLabels =
 					? 'All task types'
 					: selectedTaskTypes.join(', ');
 
+		updateFilterCount();
+		updateModularActivityMode();
 	};
 /* =========================================================
    LOAD FILTER STATE
@@ -1293,8 +1443,9 @@ const loadFilterState =
 			}
 		);
 
-
+		updateModularActivityMode();
 		updateFilterLabels();
+		saveFilterState();
 
 	};
 
@@ -1447,11 +1598,12 @@ taskStatusSelect.addEventListener(
 	'change',
 	() => {
 
+		updateFilterCount();
+
 		saveFilterState();
 
 	}
 );
-
 
 /* =========================================================
    RESET FILTERS
@@ -1471,7 +1623,6 @@ resetFilters.addEventListener(
 						'Open tasks'
 				);
 
-
 		if (openTasksOption) {
 
 			taskStatusSelect.value =
@@ -1480,7 +1631,7 @@ resetFilters.addEventListener(
 		}
 
 
-		/* Department = nothing selected */
+		/* Department = default: nothing selected */
 
 		departmentCheckboxes.forEach(
 			(checkbox) => {
@@ -1492,28 +1643,27 @@ resetFilters.addEventListener(
 		);
 
 
-		/* Task type defaults */
+		/* Task type = default selections */
 
 		taskTypeCheckboxes.forEach(
 			(checkbox) => {
 
 				checkbox.checked =
-					checkbox.value ===
-					'Manual Gap Scan' ||
-					checkbox.value ===
-					'Out-Of Stock';
+					defaultFilterState.taskTypes.includes(
+						checkbox.value
+					);
 
 			}
 		);
 
 
+		/* Update labels and count */
+
 		updateFilterLabels();
-
-
-		/* Save reset state */
 
 		saveFilterState();
 
+		updateModularActivityMode();
 
 		/* Close dropdowns */
 
@@ -1531,16 +1681,8 @@ resetFilters.addEventListener(
 			'is-open'
 		);
 
-
-		/* Reset filter counter */
-
-		filterLabel.textContent =
-			'Filters (0)';
-
 	}
 );
-
-
 /* =========================================================
    APPLY FILTERS
 ========================================================= */
@@ -1551,51 +1693,20 @@ applyFilters.addEventListener(
 
 		saveFilterState();
 
+		updateFilterCount();
 
 		setFiltersOpen(
 			false
 		);
 
-
-		/*
-			For now the task list remains unchanged.
-			The actual filtering logic can use the saved
-			state when we wire it into renderRandomTasks().
-		*/
-
 	}
 );
-
-
 /* =========================================================
    INITIALISE FILTER STATE
 ========================================================= */
 
 loadFilterState();
-
-
-
-/* =========================================================
-   APPLY FILTERS
-========================================================= */
-
-applyFilters.addEventListener(
-	'click',
-	() => {
-
-		setFiltersOpen(
-			false
-		);
-
-
-		filterLabel.textContent =
-			'Filters (1)';
-
-	}
-);
-
-
-
+updateModularActivityMode();
 /* =========================================================
    INITIAL TASK LOAD
 ========================================================= */
