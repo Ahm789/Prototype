@@ -167,16 +167,83 @@ router.post('/', async (req, res) => {
 			error
 		);
 
-		if (error.code === '23505') {
-			return res.status(409).json({
-				error: 'An item with this barcode already exists.'
-			});
-		}
+		/* =====================================================
+	   DATABASE VALIDATION ERRORS
+	===================================================== */
 
-		res.status(500).json({
-			error: 'Failed to create item.'
+	if (
+		error.code === 'P0001' &&
+		error.message ===
+			'Barcode or Asda item number already exists on another item.'
+	) {
+
+		return res.status(409).json({
+			error:
+				'Barcode or Asda item number already exists on another item.'
 		});
 	}
+
+
+	if (
+		error.code === 'P0001' &&
+		error.message ===
+			'UPC cannot match another identifier on the same item.'
+	) {
+
+		return res.status(409).json({
+			error:
+				'UPC cannot match another identifier on the same item.'
+		});
+	}
+
+
+	if (
+		error.code === 'P0001' &&
+		error.message ===
+			'Case barcode cannot match another identifier on the same item.'
+	) {
+
+		return res.status(409).json({
+			error:
+				'Case barcode cannot match another identifier on the same item.'
+		});
+	}
+
+
+	if (
+		error.code === 'P0001' &&
+		error.message ===
+			'Alternative barcode cannot match the item number on the same item.'
+	) {
+
+		return res.status(409).json({
+			error:
+				'Alternative barcode cannot match the item number on the same item.'
+		});
+	}
+
+
+	/* =====================================================
+	   NORMAL POSTGRES UNIQUE CONSTRAINT
+	===================================================== */
+
+	if (error.code === '23505') {
+
+		return res.status(409).json({
+			error:
+				'Barcode or Asda item number already exists.'
+		});
+	}
+
+
+	/* =====================================================
+	   GENERIC ERROR
+	===================================================== */
+
+	res.status(500).json({
+		error: 'Failed to create item.'
+	});
+}
 });
 
 
@@ -1769,6 +1836,99 @@ router.put(
 	}
 );
 
+/* =========================================================
+   DELETE PRODUCT
+========================================================= */
 
+router.delete('/:upc', async (req, res) => {
+
+	const { upc } = req.params;
+
+
+	try {
+
+		/* =====================================================
+		   FIND PRODUCT
+		===================================================== */
+
+		const itemResult =
+			await pool.query(`
+				SELECT id, upc
+				FROM items
+				WHERE
+					upc = $1
+					OR case_barcode = $1
+					OR alternative_barcode = $1
+
+				LIMIT 1
+			`, [
+				upc
+			]);
+
+
+		if (!itemResult.rows.length) {
+
+			return res.status(404).json({
+				error: 'Product not found'
+			});
+
+		}
+
+
+		const item =
+			itemResult.rows[0];
+
+
+		/* =====================================================
+		   DELETE PRODUCT
+		   
+		   Because the database relationships use
+		   ON DELETE CASCADE, this will also remove:
+		   
+		   - modulars
+		   - item_sales_daily
+		   - modular_items
+		   ===================================================== */
+
+		const result =
+			await pool.query(`
+				DELETE FROM items
+				WHERE id = $1
+				RETURNING id, upc
+			`, [
+				item.id
+			]);
+
+
+		if (!result.rows.length) {
+
+			return res.status(404).json({
+				error: 'Product not found'
+			});
+
+		}
+
+
+		res.json({
+			success: true,
+			upc: result.rows[0].upc
+		});
+
+
+	} catch (error) {
+
+		console.error(
+			'Failed to delete product:',
+			error
+		);
+
+
+		res.status(500).json({
+			error: 'Failed to delete product'
+		});
+
+	}
+
+});
 
 module.exports = router;

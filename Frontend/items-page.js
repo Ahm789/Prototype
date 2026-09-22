@@ -1438,6 +1438,8 @@ locationForm.addEventListener(
 	formBaseline =
 		formSnapshot();
 
+	message.classList.remove('error');
+
 	message.textContent =
 		`Editing ${item.description}.`;
 
@@ -1609,6 +1611,7 @@ form.addEventListener(
 
 				message.textContent =
 					'Item saved. Add its locations below.';
+					message.classList.remove('error');
 
 				/*
 					Enter edit mode for the newly
@@ -1668,7 +1671,7 @@ form.addEventListener(
 
 				message.textContent =
 					'Item updated.';
-
+				message.classList.remove('error');
 				/*
 					Reset the form baseline so the
 					next item can be selected normally.
@@ -1695,10 +1698,22 @@ form.addEventListener(
 
 			message.textContent =
 				error.message;
+
+			message.classList.add('error');
 		}
 	}
 );
+newItemButton.addEventListener(
+	'click',
+	() => {
+		form.reset();
 
+		message.classList.remove('error');
+
+		message.textContent =
+			'Ready for a new item.';
+	}
+);
 	/* =========================================================
 	   INITIAL LOAD
 	========================================================= */
