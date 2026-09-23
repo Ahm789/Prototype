@@ -83,6 +83,10 @@ const modularSearch =
 	document.querySelector(
 		'#modular-search-upc'
 	);
+const modularSearchCamera =
+	document.querySelector(
+		'#modular-search-camera'
+	);
 /* =========================================================
    DEPARTMENT NAMES
 ========================================================= */
@@ -1743,8 +1747,51 @@ const updateFilterCount = () => {
 
 };
 /* =========================================================
-   GET MODULAR ACTIVITY
+   MODULAR SEARCH CAMERA
 ========================================================= */
+
+if (
+	modularSearchCamera
+) {
+
+	modularSearchCamera.addEventListener(
+		'click',
+		event => {
+
+			event.preventDefault();
+
+
+			startBarcodeScanner(
+				async (
+					barcode
+				) => {
+
+					const cleanBarcode =
+						String(barcode)
+							.trim()
+							.replace(/\D/g, '');
+
+
+					modularSearch.value =
+						cleanBarcode;
+
+
+					modularSearch.dispatchEvent(
+						new Event(
+							'input',
+							{
+								bubbles: true
+							}
+						)
+					);
+
+				}
+			);
+
+		}
+	);
+
+}
 /* =========================================================
    GET MODULAR ACTIVITY DATES
 ========================================================= */
