@@ -451,108 +451,121 @@ router.get(
 		try {
 
 			const result =
-				await pool.query(
-					`
-					SELECT
-						mi.id AS modular_item_id,
+	await pool.query(
+		`
+		SELECT
+			mi.id AS modular_item_id,
 
-						mi.item_id,
+			mi.item_id,
 
-						mi.upc,
+			mi.upc,
 
+			mi.shelf,
+
+			mi.shelf_order,
+
+			mi.max_shelf,
+
+			i.description,
+
+			i.image_url,
+
+			i.image_alt,
+
+			mb.id AS bay_id,
+
+			mb.bay_number,
+
+			mb.planogram_number,
+
+			mb.modular_id
+
+		FROM modular_bays mb
+
+		INNER JOIN modular_items mi
+			ON mi.modular_bay_id = mb.id
+
+		INNER JOIN items i
+			ON i.id = mi.item_id
+
+		WHERE
+			mb.planogram_number = $1
+
+		ORDER BY
+			mb.bay_number,
+
+			CAST(
+				NULLIF(
+					REGEXP_REPLACE(
 						mi.shelf,
+						'[^0-9]',
+						'',
+						'g'
+					),
+					''
+				) AS INTEGER
+			),
 
-						mi.shelf_order,
-
-						mi.max_shelf,
-
-						i.description,
-
-						i.image_url,
-
-						i.image_alt,
-
-						mb.id AS planogram_number,
-
-						mb.modular_id
-
-					FROM modular_bays mb
-
-					INNER JOIN modular_items mi
-						ON mi.modular_bay_id = mb.id
-
-					INNER JOIN items i
-						ON i.id = mi.item_id
-
-					WHERE
-						mb.id = $1
-
-					ORDER BY
-						CAST(
-							NULLIF(
-								REGEXP_REPLACE(
-									mi.shelf,
-									'[^0-9]',
-									'',
-									'g'
-								),
-								''
-							) AS INTEGER
-						),
-						mi.shelf_order
-					`,
-					[
-						planogramNumber
-					]
-				);
+			mi.shelf_order
+		`,
+		[
+			planogramNumber
+		]
+	);
 
 
 			res.json(
-				result.rows.map(
-					row => ({
+	result.rows.map(
+		row => ({
 
-						modularItemId:
-							row.modular_item_id,
+			modularItemId:
+				row.modular_item_id,
 
-						itemId:
-							row.item_id,
+			itemId:
+				row.item_id,
 
-						upc:
-							row.upc,
+			upc:
+				row.upc,
 
-						description:
-							row.description,
+			description:
+				row.description,
 
-						image:
-							row.image_url
-								? {
-									url:
-										row.image_url,
+			image:
+				row.image_url
+					? {
+						url:
+							row.image_url,
 
-									alt:
-										row.image_alt ||
-										row.description
-								}
-								: null,
+						alt:
+							row.image_alt ||
+							row.description
+					}
+					: null,
 
-						shelf:
-							row.shelf,
+			shelf:
+				row.shelf,
 
-						shelfOrder:
-							row.shelf_order,
+			shelfOrder:
+				row.shelf_order,
 
-						maxShelf:
-							row.max_shelf,
+			maxShelf:
+				row.max_shelf,
 
-						planogramNumber:
-							row.planogram_number,
+			planogramNumber:
+				row.planogram_number,
 
-						modularId:
-							row.modular_id
+			bayNumber:
+				row.bay_number,
 
-					})
-				)
-			);
+			bayId:
+				row.bay_id,
+
+			modularId:
+				row.modular_id
+
+		})
+	)
+);
 
 		} catch (error) {
 

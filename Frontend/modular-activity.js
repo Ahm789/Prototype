@@ -67,6 +67,72 @@ const searchUPC =
 
 
 /* =========================================================
+   LOAD MODULAR SNAPSHOT
+========================================================= */
+
+const modularSnapshot =
+	planogramNumber
+		? sessionStorage.getItem(
+			`modular-snapshot-${planogramNumber}`
+		)
+		: null;
+
+
+const modularProductVisual =
+	document.querySelector(
+		'#modular-activity-product-visual'
+	);
+
+
+if (
+	modularProductVisual
+) {
+
+	if (
+		modularSnapshot
+	) {
+
+		modularProductVisual.replaceChildren();
+
+
+		const image =
+			document.createElement(
+				'img'
+			);
+
+
+		image.src =
+			modularSnapshot;
+
+
+		image.alt =
+			`${modularName || 'Modular'} visual`;
+
+
+		image.className =
+			'modular-activity-product-image';
+
+
+		modularProductVisual.appendChild(
+			image
+		);
+
+	}
+
+	else {
+
+		modularProductVisual.innerHTML = `
+			<div class="modular-activity-product-loading">
+				No modular visual available.
+			</div>
+		`;
+
+	}
+
+}
+
+
+/* =========================================================
    LOAD MODULAR NAME
 ========================================================= */
 

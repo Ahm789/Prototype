@@ -1212,15 +1212,74 @@ background-repeat: no-repeat;
 	border-radius: 6px;
 	cursor: default;
 }
+/* =========================================================
+   MODULAR ACTIVITY BAY SNAPSHOTS
+========================================================= */
+
+.modular-activity-snapshot {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	gap: 8px;
+
+	width: 100%;
+	box-sizing: border-box;
+}
+
+
+.modular-activity-snapshot-bay {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	width: 100%;
+	margin: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+	border: 1px solid #d6e9e9;
+	border-radius: 4px;
+	overflow: hidden;
+}
+
+
+.modular-activity-snapshot-bay-label {
+	width: 100%;
+	padding: 5px 6px;
+
+	box-sizing: border-box;
+
+	color: #0A928C;
+	background: white;
+
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1;
+
+	text-align: center;
+
+	border-bottom: 1px solid #d6e9e9;
+}
+
+
+.modular-activity-snapshot-image {
+	display: block;
+
+	width: 100%;
+	height: auto;
+
+	cursor: pointer;
+}
 /* =========================================
    MODULAR ACTIVITY START BAR
 ========================================= */
 
 .modular-activity-start {
+	grid-column: 1 / -1;
+
 	width: 100%;
 	height: 40px;
 
-	margin-top: 5px;
+	margin-top: 0;
 
 	display: flex;
 	align-items: center;
@@ -3541,44 +3600,460 @@ background-repeat: no-repeat;
    MODULAR ACTIVITY PAGE HEADER
 ========================================================= */
 
-.modular-activity-title {
-	display: flex;
-	flex-direction: column;
+.scanner-app .app-titlebar:has(.modular-activity-title) {
+	display: grid;
+
+	grid-template-columns:
+		32px
+		1fr
+		32px;
+
 	align-items: center;
-	justify-content: center;
-	gap: 2px;
 }
 
+
+/* =========================================================
+   MODULAR ACTIVITY TITLE
+========================================================= */
+
+.scanner-app .app-titlebar
+.modular-activity-title {
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+	justify-content: center;
+
+	gap: 2px;
+
+	min-width: 0;
+
+	width: auto;
+
+	justify-self: center;
+}
+
+
+.scanner-app .app-titlebar
 .modular-activity-title h1 {
+
 	margin: 0;
 
 	font-size: 15px;
 	font-weight: 700;
+
 	line-height: 1.1;
 
 	white-space: nowrap;
 }
 
+
+.scanner-app .app-titlebar
 .modular-activity-subtitle {
+
 	font-size: 9px;
 	font-weight: 700;
+
 	line-height: 1;
 
 	letter-spacing: 0.3px;
+
+	white-space: nowrap;
 }
 
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.scanner-app .app-titlebar
 .modular-activity-back {
+
 	display: flex;
+
 	align-items: center;
 	justify-content: center;
 }
 
+
+.scanner-app .app-titlebar
 .modular-activity-back svg {
+
 	width: 20px;
 	height: 20px;
 }
 
-.app-titlebar-spacer {
-	width: 32px;
-	height: 32px;
+
+/* =========================================================
+   MORE BUTTON
+========================================================= */
+
+.scanner-app .app-titlebar
+.menu-button {
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+}
+
+
+.scanner-app .app-titlebar
+.menu-button svg {
+
+	width: 20px;
+	height: 20px;
+}
+/* =========================================================
+   MODULAR ACTIVITY ACTION BAR
+========================================================= */
+
+.modular-activity-action-bar {
+	display: flex;
+	align-items: center;
+
+	width: 100%;
+	height: 52px;
+
+	padding: 6px 8px;
+
+	box-sizing: border-box;
+
+	gap: 8px;
+
+	background: white;
+
+	border-top: 1px solid #d6e9e9;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.modular-activity-action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	flex: 1;
+	min-width: 0;
+
+	height: 40px;
+
+	padding: 0 8px;
+
+	box-sizing: border-box;
+
+	border-radius: 4px;
+
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+
+	cursor: pointer;
+
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease;
+}
+
+
+/* =========================================================
+   END TASK
+========================================================= */
+
+.modular-activity-end {
+	color: #0A928C;
+
+	background: white;
+
+	border: 1px solid #9cced2;
+}
+
+.modular-activity-end:hover {
+	background: #eefafa;
+
+	border-color: #0A928C;
+}
+
+
+/* =========================================================
+   CLEAR ALL
+========================================================= */
+
+.modular-activity-clear {
+	color: #0A928C;
+
+	background: white;
+
+	border: 1px solid #9cced2;
+}
+
+.modular-activity-clear:hover {
+	background: #eefafa;
+
+	border-color: #0A928C;
+}
+
+
+/* =========================================================
+   NEXT
+========================================================= */
+
+.modular-activity-next {
+	color: white;
+
+	background: #8fcfcb;
+
+	border: 1px solid #7bc3bf;
+
+	cursor: not-allowed;
+
+	opacity: 1;
+}
+
+.modular-activity-next:disabled {
+	color: white;
+
+	background: #8fcfcb;
+
+	border-color: #7bc3bf;
+
+	cursor: not-allowed;
+
+	opacity: 1;
+}
+/* =========================================================
+   SCAN MODE BAR
+========================================================= */
+
+.modular-scan-mode {
+	display: flex;
+
+	align-items: center;
+	justify-content: space-between;
+
+	width: 100%;
+	height: 48px;
+
+	margin-top: 10px;
+
+	padding: 6px 12px 8px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border-bottom: 1px solid #d6e9e9;
+}
+
+
+/* =========================================================
+   SCAN MODE LABEL
+========================================================= */
+
+.modular-scan-mode-label {
+	display: flex;
+
+	align-items: center;
+
+	gap: 7px;
+
+	color: #1a1a1a;
+
+	font-size: 12px;
+	font-weight: 700;
+
+	line-height: 1;
+}
+
+.modular-scan-mode-label svg {
+	width: 17px;
+	height: 17px;
+
+	margin-right: 7px;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+	stroke-width: 2.5;
+}
+
+/* =========================================================
+   MODE TOGGLE
+========================================================= */
+
+.modular-scan-mode-toggle {
+	display: flex;
+
+	align-items: center;
+
+	gap: 8px;
+
+	font-size: 12px;
+	font-weight: 700;
+
+	line-height: 1;
+}
+
+
+/* =========================================================
+   SMART
+========================================================= */
+
+.modular-scan-smart {
+	color: #0A928C;
+}
+
+
+/* =========================================================
+   STANDARD
+========================================================= */
+
+.modular-scan-standard {
+	color: #1a1a1a;
+}
+
+
+/* =========================================================
+   TOGGLE SWITCH
+========================================================= */
+
+.scan-mode-switch {
+	position: relative;
+
+	display: block;
+
+	width: 34px;
+	height: 19px;
+
+	flex: 0 0 34px;
+}
+
+
+/* Hide checkbox */
+
+.scan-mode-switch input {
+	width: 0;
+	height: 0;
+
+	opacity: 0;
+}
+
+
+/* Track */
+
+.scan-mode-slider {
+	position: absolute;
+
+	inset: 0;
+
+	background: #c7d1d1;
+
+	border-radius: 19px;
+
+	cursor: pointer;
+
+	transition:
+		background 0.2s ease;
+}
+
+
+/* Slider circle */
+
+.scan-mode-slider::before {
+	content: '';
+
+	position: absolute;
+
+	width: 15px;
+	height: 15px;
+
+	left: 2px;
+	top: 2px;
+
+	background: white;
+
+	border-radius: 50%;
+
+	box-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.2);
+
+	transition:
+		transform 0.2s ease;
+}
+
+
+/* =========================================================
+   SMART SELECTED
+========================================================= */
+
+.scan-mode-switch input:checked
++ .scan-mode-slider {
+	background: #0A928C;
+}
+
+
+.scan-mode-switch input:checked
++ .scan-mode-slider::before {
+	transform: translateX(15px);
+}
+/* =========================================================
+   MODULAR ACTIVITY PRODUCT VISUAL
+========================================================= */
+
+.modular-activity-product-visual {
+
+	width: 100%;
+
+	padding: 12px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	overflow-x: auto;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.modular-activity-product-loading {
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+
+	min-height: 120px;
+
+	color: #0A928C;
+
+	font-size: 12px;
+	font-weight: 700;
+
+	text-align: center;
+}
+
+
+/* =========================================================
+   PRODUCT SNAPSHOT
+========================================================= */
+
+.modular-activity-product-image {
+
+	display: block;
+
+	width: 100%;
+	height: auto;
+
+	max-width: none;
+
+	background: white;
 }

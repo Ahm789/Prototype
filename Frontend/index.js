@@ -13,38 +13,23 @@ const API_BASE =
 
 const TASK_CLOCK_API =
 	`${API_ORIGIN}/api/task-clock`;
+
 const MODULAR_ACTIVITY_API =
 	`${API_BASE}/modular-activity`;
+
 const MODULAR_ACTIVITY_DATES_API =
 	`${MODULAR_ACTIVITY_API}/dates`;
+
 const MODULAR_BAY_API =
 	`${API_BASE}/modular-bay`;
+
+
 /* =========================================================
    INITIALISE LUCIDE ICONS
 ========================================================= */
 
 lucide.createIcons();
 
-/* =========================================================
-   RETURN FROM MODULAR ACTIVITY
-========================================================= */
-
-const pageParams =
-	new URLSearchParams(
-		window.location.search
-	);
-
-
-const returnedFromModularActivity =
-	pageParams.get(
-		'modularActivity'
-	) === 'true';
-
-
-const returnedModularUPC =
-	pageParams.get(
-		'upc'
-	) || '';
 
 /* =========================================================
    ELEMENTS
@@ -84,6 +69,7 @@ const taskCards =
 
 const taskEmpty =
 	document.querySelector('#task-empty');
+
 const timerValue =
 	document.querySelector('#task-timer-value');
 
@@ -98,14 +84,18 @@ const modularActivityCards =
 	document.querySelector(
 		'#modular-activity-cards'
 	);
+
 const modularSearch =
 	document.querySelector(
 		'#modular-search-upc'
 	);
+
 const modularSearchCamera =
 	document.querySelector(
 		'#modular-search-camera'
 	);
+
+
 /* =========================================================
    DEPARTMENT NAMES
 ========================================================= */
@@ -125,7 +115,6 @@ const departmentNames = {
 		'Free From, Pizza, Ready Meals & Party Food'
 
 };
-
 
 
 /* =========================================================
@@ -165,8 +154,10 @@ const apiRequest = async (
 				await response.json();
 
 			if (data.error) {
+
 				message =
 					data.error;
+
 			}
 
 		} catch (error) {
@@ -185,6 +176,7 @@ const apiRequest = async (
 
 };
 
+
 /* =========================================================
    GET MODULAR BAY PRODUCTS
 ========================================================= */
@@ -201,8 +193,10 @@ const getModularBayProducts =
 		);
 
 	};
+
+
 /* =========================================================
-   CREATE MODULAR BAY SNAPSHOT
+   CREATE MODULAR BAY SNAPSHOTS
 ========================================================= */
 
 const createModularBaySnapshot =
@@ -220,84 +214,41 @@ const createModularBaySnapshot =
 			!Array.isArray(products) ||
 			products.length === 0
 		) {
+
 			return null;
+
 		}
 
 
 		/* =====================================================
-		   TEMPORARY MODULAR VISUAL
+		   GROUP PRODUCTS BY BAY
 		===================================================== */
 
-		const modularVisual =
-			document.createElement(
-				'div'
-			);
-
-		modularVisual.className =
-			'modular-visual';
-
-
-		/*
-			Use a fixed width so the generated snapshot
-			has a predictable layout.
-		*/
-
-		modularVisual.style.width =
-			'fit-content';
-
-		modularVisual.style.maxWidth =
-			'none';
-
-		modularVisual.style.background =
-			'#ffffff';
-
-		modularVisual.style.position =
-			'absolute';
-
-		modularVisual.style.left =
-			'-99999px';
-
-		modularVisual.style.top =
-			'0';
-
-		modularVisual.style.visibility =
-			'visible';
-
-
-		document.body.appendChild(
-			modularVisual
-		);
-
-
-		/* =====================================================
-		   GROUP PRODUCTS BY SHELF
-		===================================================== */
-
-		const shelves =
+		const bays =
 			new Map();
 
 
 		products.forEach(
 			product => {
 
-				const shelf =
+				const bayNumber =
 					String(
-						product.shelf ?? ''
+						product.bayNumber ?? ''
 					).trim();
 
 
-				if (!shelves.has(shelf)) {
+				if (!bays.has(bayNumber)) {
 
-					shelves.set(
-						shelf,
+					bays.set(
+						bayNumber,
 						[]
 					);
 
 				}
 
 
-				shelves
-					.get(shelf)
+				bays
+					.get(bayNumber)
 					.push(product);
 
 			}
@@ -305,435 +256,560 @@ const createModularBaySnapshot =
 
 
 		/* =====================================================
-		   SORT SHELVES
+		   GENERATE ONE SNAPSHOT PER BAY
 		===================================================== */
 
-		const sortedShelves =
-			[...shelves.entries()]
-				.sort(
-					([shelfA], [shelfB]) => {
-
-						const numberA =
-							parseInt(
-								shelfA.replace(
-									/[^0-9]/g,
-									''
-								),
-								10
-							);
-
-						const numberB =
-							parseInt(
-								shelfB.replace(
-									/[^0-9]/g,
-									''
-								),
-								10
-							);
-
-
-						if (
-							Number.isNaN(
-								numberA
-							)
-						) {
-							return 1;
-						}
-
-
-						if (
-							Number.isNaN(
-								numberB
-							)
-						) {
-							return -1;
-						}
-
-
-						return (
-							numberA -
-							numberB
-						);
-
-					}
-				);
-
-
-		/* =====================================================
-		   CREATE SHELVES
-		===================================================== */
-
-		sortedShelves.forEach(
-			([
-				shelf,
-				shelfProducts
-			]) => {
-
-				/*
-					shelf_order controls left → right.
-				*/
-
-				shelfProducts.sort(
-					(a, b) =>
-						Number(
-							a.shelfOrder ?? 0
-						) -
-						Number(
-							b.shelfOrder ?? 0
-						)
-				);
-
-
-				const shelfRow =
-					document.createElement(
-						'div'
-					);
-
-				shelfRow.className =
-					'modular-shelf';
-
-
-				const productsContainer =
-					document.createElement(
-						'div'
-					);
-
-				productsContainer.className =
-					'modular-shelf-products';
-
-
-				shelfRow.appendChild(
-					productsContainer
-				);
-
-				modularVisual.appendChild(
-					shelfRow
-				);
-
-			}
-		);
-
-
-		/* =====================================================
-		   WAIT FOR LAYOUT
-		===================================================== */
-
-		await new Promise(
-			resolve =>
-				requestAnimationFrame(
-					resolve
-				)
-		);
-
-
-		const shelfHeight =
-			90;
-
-		const gap =
-			8;
-
-
-		/* =====================================================
-		   RENDER EACH SHELF
-		===================================================== */
-
-		const shelfRows =
-			[
-				...modularVisual.querySelectorAll(
-					'.modular-shelf'
-				)
-			];
+		const snapshots = [];
 
 
 		for (
-			let shelfIndex = 0;
-			shelfIndex < shelfRows.length;
-			shelfIndex++
+			const [
+				bayNumber,
+				bayProducts
+			]
+			of bays
 		) {
 
-			const shelfRow =
-				shelfRows[
-					shelfIndex
-				];
+			/* =================================================
+			   TEMPORARY MODULAR VISUAL
+			================================================= */
 
-
-			const productsContainer =
-				shelfRow.querySelector(
-					'.modular-shelf-products'
+			const modularVisual =
+				document.createElement(
+					'div'
 				);
 
-
-			const [
-				,
-				shelfProducts
-			] =
-				sortedShelves[
-					shelfIndex
-				];
+			modularVisual.className =
+				'modular-visual';
 
 
-			const shelfWidth =
-				productsContainer.clientWidth;
+			/*
+				Use a fixed width so the generated snapshot
+				has a predictable layout.
+			*/
+
+			modularVisual.style.width =
+				'fit-content';
+
+			modularVisual.style.maxWidth =
+				'none';
+
+			modularVisual.style.background =
+				'#ffffff';
+
+			modularVisual.style.position =
+				'absolute';
+
+			modularVisual.style.left =
+				'-99999px';
+
+			modularVisual.style.top =
+				'0';
+
+			modularVisual.style.visibility =
+				'visible';
+
+
+			document.body.appendChild(
+				modularVisual
+			);
 
 
 			/* =================================================
-			   LOAD PRODUCT IMAGES
+			   GROUP PRODUCTS BY SHELF
 			================================================= */
 
-			const loadedProducts =
-				await Promise.all(
+			const shelves =
+				new Map();
+
+
+			bayProducts.forEach(
+				product => {
+
+					const shelf =
+						String(
+							product.shelf ?? ''
+						).trim();
+
+
+					if (!shelves.has(shelf)) {
+
+						shelves.set(
+							shelf,
+							[]
+						);
+
+					}
+
+
+					shelves
+						.get(shelf)
+						.push(product);
+
+				}
+			);
+
+
+			/* =================================================
+			   SORT SHELVES
+			================================================= */
+
+			const sortedShelves =
+				[...shelves.entries()]
+					.sort(
+						([shelfA], [shelfB]) => {
+
+							const numberA =
+								parseInt(
+									shelfA.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+							const numberB =
+								parseInt(
+									shelfB.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+
+							if (
+								Number.isNaN(
+									numberA
+								)
+							) {
+
+								return 1;
+
+							}
+
+
+							if (
+								Number.isNaN(
+									numberB
+								)
+							) {
+
+								return -1;
+
+							}
+
+
+							return (
+								numberA -
+								numberB
+							);
+
+						}
+					);
+
+
+			/* =================================================
+			   CREATE SHELVES
+			================================================= */
+
+			sortedShelves.forEach(
+				([
+					shelf,
 					shelfProducts
-						.filter(
-							product =>
-								product.image &&
-								product.image.url
-						)
-						.map(
-							product =>
-								new Promise(
-									resolve => {
+				]) => {
 
-										const image =
-											new Image();
+					/*
+						shelf_order controls left → right.
+					*/
+
+					shelfProducts.sort(
+						(a, b) =>
+							Number(
+								a.shelfOrder ?? 0
+							) -
+							Number(
+								b.shelfOrder ?? 0
+							)
+					);
 
 
-										image.onload =
-											() => {
+					const shelfRow =
+						document.createElement(
+							'div'
+						);
 
-												if (
-													image.naturalWidth &&
-													image.naturalHeight
-												) {
+					shelfRow.className =
+						'modular-shelf';
 
-													resolve({
 
-														product,
+					const productsContainer =
+						document.createElement(
+							'div'
+						);
 
-														width:
-															(
-																image.naturalWidth /
-																image.naturalHeight
-															) *
-															shelfHeight
+					productsContainer.className =
+						'modular-shelf-products';
 
-													});
 
-												} else {
+					shelfRow.appendChild(
+						productsContainer
+					);
 
+
+					modularVisual.appendChild(
+						shelfRow
+					);
+
+				}
+			);
+
+
+			/* =================================================
+			   WAIT FOR LAYOUT
+			================================================= */
+
+			await new Promise(
+				resolve =>
+					requestAnimationFrame(
+						resolve
+					)
+			);
+
+
+			const shelfHeight =
+				90;
+
+			const gap =
+				8;
+
+
+			/* =================================================
+			   RENDER EACH SHELF
+			================================================= */
+
+			const shelfRows =
+				[
+					...modularVisual.querySelectorAll(
+						'.modular-shelf'
+					)
+				];
+
+
+			for (
+				let shelfIndex = 0;
+				shelfIndex < shelfRows.length;
+				shelfIndex++
+			) {
+
+				const shelfRow =
+					shelfRows[
+						shelfIndex
+					];
+
+
+				const productsContainer =
+					shelfRow.querySelector(
+						'.modular-shelf-products'
+					);
+
+
+				const [
+					,
+					shelfProducts
+				] =
+					sortedShelves[
+						shelfIndex
+					];
+
+
+				const shelfWidth =
+					productsContainer.clientWidth;
+
+
+				/* =============================================
+				   LOAD PRODUCT IMAGES
+				============================================= */
+
+				const loadedProducts =
+					await Promise.all(
+						shelfProducts
+							.filter(
+								product =>
+									product.image &&
+									product.image.url
+							)
+							.map(
+								product =>
+									new Promise(
+										resolve => {
+
+											const image =
+												new Image();
+
+
+											image.onload =
+												() => {
+
+													if (
+														image.naturalWidth &&
+														image.naturalHeight
+													) {
+
+														resolve({
+
+															product,
+
+															width:
+																(
+																	image.naturalWidth /
+																	image.naturalHeight
+																) *
+																shelfHeight
+
+														});
+
+													} else {
+
+														resolve(
+															null
+														);
+
+													}
+
+												};
+
+
+											image.onerror =
+												() =>
 													resolve(
 														null
 													);
 
-												}
 
-											};
+											image.src =
+												product.image.url;
 
-
-										image.onerror =
-											() =>
-												resolve(
-													null
-												);
+										}
+									)
+							)
+					);
 
 
-										image.src =
-											product.image.url;
+				const usableProducts =
+					loadedProducts.filter(
+						Boolean
+					);
 
-									}
-								)
+
+				if (
+					!usableProducts.length
+				) {
+
+					continue;
+
+				}
+
+
+				/* =============================================
+				   DIVIDE SHELF BETWEEN PRODUCTS
+				============================================= */
+
+				const productWidth =
+					(
+						shelfWidth -
+						(
+							(
+								usableProducts.length - 1
+							) *
+							gap
 						)
+					) /
+					usableProducts.length;
+
+
+				/* =============================================
+				   CREATE FACINGS
+				============================================= */
+
+				usableProducts.forEach(
+					({
+						product,
+						width
+					}) => {
+
+						const maxFacings =
+							Math.max(
+								1,
+								Math.floor(
+									(
+										productWidth +
+										gap
+									) /
+									(
+										width +
+										gap
+									)
+								)
+							);
+
+
+						for (
+							let i = 0;
+							i < maxFacings;
+							i++
+						) {
+
+							const facing =
+								document.createElement(
+									'img'
+								);
+
+
+							facing.src =
+								product.image.url;
+
+
+							facing.alt =
+								product.image.alt ||
+								product.description ||
+								'Product';
+
+
+							facing.className =
+								'modular-product-image';
+
+
+							facing.style.height =
+								`${shelfHeight}px`;
+
+
+							facing.style.width =
+								`${width}px`;
+
+
+							productsContainer.appendChild(
+								facing
+							);
+
+						}
+
+					}
 				);
 
-
-			const usableProducts =
-				loadedProducts.filter(
-					Boolean
-				);
-
-
-			if (
-				!usableProducts.length
-			) {
-				continue;
 			}
 
 
 			/* =================================================
-			   DIVIDE SHELF BETWEEN PRODUCTS
+			   WAIT FOR ALL IMAGES
 			================================================= */
 
-			const productWidth =
-				(
-					shelfWidth -
-					(
-						(
-							usableProducts.length - 1
-						) *
-						gap
+			const images =
+				[
+					...modularVisual.querySelectorAll(
+						'img'
 					)
-				) /
-				usableProducts.length;
+				];
 
 
-			/* =================================================
-			   CREATE FACINGS
-			================================================= */
+			await Promise.all(
+				images.map(
+					image => {
 
-			usableProducts.forEach(
-				({
-					product,
-					width
-				}) => {
+						if (
+							image.complete
+						) {
 
-					const maxFacings =
-						Math.max(
-							1,
-							Math.floor(
-								(
-									productWidth +
-									gap
-								) /
-								(
-									width +
-									gap
-								)
-							)
-						);
+							return Promise.resolve();
+
+						}
 
 
-					for (
-						let i = 0;
-						i < maxFacings;
-						i++
-					) {
+						return new Promise(
+							resolve => {
 
-						const facing =
-							document.createElement(
-								'img'
-							);
+								image.onload =
+									resolve;
 
+								image.onerror =
+									resolve;
 
-						facing.src =
-							product.image.url;
-
-
-						facing.alt =
-							product.image.alt ||
-							product.description ||
-							'Product';
-
-
-						facing.className =
-							'modular-product-image';
-
-
-						facing.style.height =
-							`${shelfHeight}px`;
-
-
-						facing.style.width =
-							`${width}px`;
-
-
-						productsContainer.appendChild(
-							facing
+							}
 						);
 
 					}
-
-				}
+				)
 			);
+
+
+			await new Promise(
+				resolve =>
+					requestAnimationFrame(
+						() =>
+							requestAnimationFrame(
+								resolve
+							)
+					)
+			);
+
+
+			/* =================================================
+			   CREATE SNAPSHOT
+			================================================= */
+
+			const canvas =
+				await html2canvas(
+					modularVisual,
+					{
+						backgroundColor:
+							'#ffffff',
+
+						scale:
+							2,
+
+						useCORS:
+							true
+					}
+				);
+
+
+			const snapshot =
+				canvas.toDataURL(
+					'image/png'
+				);
+
+
+			/* =================================================
+			   STORE BAY SNAPSHOT
+			================================================= */
+
+			snapshots.push({
+
+				bayNumber,
+
+				snapshot
+
+			});
+
+
+			/* =================================================
+			   REMOVE TEMPORARY VISUAL
+			================================================= */
+
+			modularVisual.remove();
 
 		}
 
 
 		/* =====================================================
-		   WAIT FOR ALL IMAGES
+		   RETURN ALL BAY SNAPSHOTS
 		===================================================== */
 
-		const images =
-			[
-				...modularVisual.querySelectorAll(
-					'img'
-				)
-			];
-
-
-		await Promise.all(
-			images.map(
-				image => {
-
-					if (
-						image.complete
-					) {
-						return Promise.resolve();
-					}
-
-
-					return new Promise(
-						resolve => {
-
-							image.onload =
-								resolve;
-
-							image.onerror =
-								resolve;
-
-						}
-					);
-
-				}
-			)
-		);
-
-
-		await new Promise(
-			resolve =>
-				requestAnimationFrame(
-					() =>
-						requestAnimationFrame(
-							resolve
-						)
-				)
-		);
-
-
-		/* =====================================================
-		   CREATE SNAPSHOT
-		===================================================== */
-
-		const canvas =
-			await html2canvas(
-				modularVisual,
-				{
-					backgroundColor:
-						'#ffffff',
-
-					scale:
-						2,
-
-					useCORS:
-						true
-				}
-			);
-
-
-		const snapshot =
-			canvas.toDataURL(
-				'image/png'
-			);
-
-
-		/* =====================================================
-		   REMOVE TEMPORARY VISUAL
-		===================================================== */
-
-		modularVisual.remove();
-
-
-		return snapshot;
+		return snapshots;
 
 	};
+
+
 /* =========================================================
    GET PRODUCTS FROM POSTGRESQL
 ========================================================= */
@@ -745,7 +821,6 @@ const getItems = async () => {
 	);
 
 };
-
 
 
 /* =========================================================
@@ -783,7 +858,6 @@ const renderRandomTasks = async () => {
 	}
 
 
-
 	/* -----------------------------------------------------
 	   SELECT RANDOM PRODUCTS
 	----------------------------------------------------- */
@@ -803,7 +877,6 @@ const renderRandomTasks = async () => {
 			);
 
 
-
 	/* Clear existing tasks */
 
 	taskCards.replaceChildren();
@@ -811,7 +884,6 @@ const renderRandomTasks = async () => {
 
 	taskEmpty.hidden =
 		selectedItems.length > 0;
-
 
 
 	/* -----------------------------------------------------
@@ -828,7 +900,6 @@ const renderRandomTasks = async () => {
 
 			card.className =
 				'task-card';
-
 
 
 			/* -------------------------------------------------
@@ -862,7 +933,6 @@ const renderRandomTasks = async () => {
 			);
 
 
-
 			/* -------------------------------------------------
 			   BODY
 			------------------------------------------------- */
@@ -874,7 +944,6 @@ const renderRandomTasks = async () => {
 
 			body.className =
 				'task-card-body';
-
 
 
 			/* -------------------------------------------------
@@ -890,12 +959,10 @@ const renderRandomTasks = async () => {
 				'task-card-visual';
 
 
-
 			const imageUrl =
 				item.imageUrl ||
 				item.image?.url ||
 				'';
-
 
 
 			if (imageUrl) {
@@ -940,7 +1007,6 @@ const renderRandomTasks = async () => {
 			}
 
 
-
 			/* -------------------------------------------------
 			   INVENTORY BUTTON
 			------------------------------------------------- */
@@ -965,11 +1031,9 @@ const renderRandomTasks = async () => {
 				'<i data-lucide="archive"></i>';
 
 
-
 			body.appendChild(
 				visual
 			);
-
 
 
 			/* -------------------------------------------------
@@ -985,7 +1049,6 @@ const renderRandomTasks = async () => {
 				'task-card-right';
 
 
-
 			/* -------------------------------------------------
 			   META
 			------------------------------------------------- */
@@ -999,7 +1062,6 @@ const renderRandomTasks = async () => {
 				'task-card-meta';
 
 
-
 			const department =
 				departmentNames[
 					String(
@@ -1007,7 +1069,6 @@ const renderRandomTasks = async () => {
 					)
 				] ||
 				'Bakery & Frozen';
-
 
 
 			meta.innerHTML = `
@@ -1034,7 +1095,6 @@ const renderRandomTasks = async () => {
 			);
 
 
-
 			/* -------------------------------------------------
 			   DETAILS
 			------------------------------------------------- */
@@ -1046,7 +1106,6 @@ const renderRandomTasks = async () => {
 
 			details.className =
 				'task-card-details';
-
 
 
 			details.innerHTML = `
@@ -1099,7 +1158,6 @@ const renderRandomTasks = async () => {
 			);
 
 
-
 			/* -------------------------------------------------
 			   ACTIONS
 			------------------------------------------------- */
@@ -1113,11 +1171,9 @@ const renderRandomTasks = async () => {
 				'task-card-actions';
 
 
-
 			actions.appendChild(
 				inventoryAction
 			);
-
 
 
 			const responseActions =
@@ -1127,7 +1183,6 @@ const renderRandomTasks = async () => {
 
 			responseActions.className =
 				'task-response-actions';
-
 
 
 			[
@@ -1195,13 +1250,11 @@ const renderRandomTasks = async () => {
 	);
 
 
-
 	/* Re-render Lucide icons */
 
 	lucide.createIcons();
 
 };
-
 
 
 /* =========================================================
@@ -1211,13 +1264,16 @@ const renderRandomTasks = async () => {
 appMenuButton.addEventListener(
 	'click',
 	() => {
-		console.log('APP MENU CLICKED');
+
+		console.log(
+			'APP MENU CLICKED'
+		);
 
 		window.location.href =
 			'items.html';
+
 	}
 );
-
 
 
 /* =========================================================
@@ -1257,7 +1313,6 @@ selectionSlider.addEventListener(
 );
 
 
-
 /* =========================================================
    TASK CLOCK
 ========================================================= */
@@ -1267,7 +1322,6 @@ let taskClockStart =
 
 let previousHour =
 	null;
-
 
 
 /* =========================================================
@@ -1313,7 +1367,6 @@ const getTaskClock = async () => {
 	}
 
 };
-
 
 
 /* =========================================================
@@ -1398,7 +1451,6 @@ const renderTimer = () => {
 };
 
 
-
 /* =========================================================
    ADVANCE SERVER CLOCK BY ONE HOUR
 ========================================================= */
@@ -1457,8 +1509,7 @@ taskClock.addEventListener(
 
 			/*
 				Generate a fresh set of tasks
-				when the clock is manually
-				advanced.
+				when the clock is manually advanced.
 			*/
 
 			renderRandomTasks();
@@ -1475,7 +1526,6 @@ taskClock.addEventListener(
 
 	}
 );
-
 
 
 /* =========================================================
@@ -1538,7 +1588,6 @@ setInterval(
 );
 
 
-
 /* =========================================================
    INITIALISE TASK CLOCK
 ========================================================= */
@@ -1585,8 +1634,8 @@ const initialiseTaskClock =
 	};
 
 
-
 initialiseTaskClock();
+
 
 /* =========================================================
    FILTER PANEL
@@ -1629,6 +1678,7 @@ const taskTypeMenu =
 	document.querySelector(
 		'.task-type-menu'
 	);
+
 const dueDateFilter =
 	document.querySelector(
 		'.due-date-filter'
@@ -1648,27 +1698,37 @@ const dueDateDropdownLabel =
 	dueDateDropdown?.querySelector(
 		'span:first-child'
 	);
+
 const taskStatusSelect =
 	document.querySelector(
 		'.filter-panel select'
 	);
+
+
 taskStatusSelect.addEventListener(
 	'mousedown',
 	() => {
+
 		taskStatusSelect.classList.toggle(
 			'is-open'
 		);
+
 	}
 );
+
 
 taskStatusSelect.addEventListener(
 	'change',
 	() => {
+
 		taskStatusSelect.classList.remove(
 			'is-open'
 		);
+
 	}
 );
+
+
 const departmentCheckboxes =
 	document.querySelectorAll(
 		'.department-option input[type="checkbox"]'
@@ -1703,9 +1763,202 @@ const defaultFilterState = {
 		]
 
 };
+
+
+/* =========================================================
+   TASK PAGE SESSION STATE
+========================================================= */
+
+const taskPageStateKey =
+	'asda-task-page-state';
+
+
+/* =========================================================
+   SAVE TASK PAGE SESSION STATE
+========================================================= */
+
+const saveTaskPageState =
+	() => {
+
+		const selectedTaskTypes =
+			[...taskTypeCheckboxes]
+				.filter(
+					checkbox =>
+						checkbox.checked
+				)
+				.map(
+					checkbox =>
+						checkbox.value
+				);
+
+
+		const selectedDepartments =
+			[...departmentCheckboxes]
+				.filter(
+					checkbox =>
+						checkbox.checked
+				)
+				.map(
+					checkbox =>
+						checkbox.value
+				);
+
+
+		const state = {
+
+			taskStatus:
+				taskStatusSelect.value,
+
+			taskTypes:
+				selectedTaskTypes,
+
+			departments:
+				selectedDepartments,
+
+			modularUPC:
+				modularSearch
+					?.value
+					.trim() || ''
+
+		};
+
+
+		sessionStorage.setItem(
+			taskPageStateKey,
+			JSON.stringify(state)
+		);
+
+	};
+
+
+/* =========================================================
+   RESTORE TASK PAGE SESSION STATE
+========================================================= */
+
+const restoreTaskPageState =
+	() => {
+
+		let state =
+			null;
+
+
+		try {
+
+			state =
+				JSON.parse(
+					sessionStorage.getItem(
+						taskPageStateKey
+					)
+				);
+
+		} catch (error) {
+
+			state =
+				null;
+
+		}
+
+
+		if (!state) {
+
+			return false;
+
+		}
+
+
+		/* =====================================================
+		   TASK STATUS
+		===================================================== */
+
+		if (
+			state.taskStatus
+		) {
+
+			const option =
+				[...taskStatusSelect.options]
+					.find(
+						option =>
+							option.value ===
+							state.taskStatus
+					);
+
+
+			if (option) {
+
+				taskStatusSelect.value =
+					state.taskStatus;
+
+			}
+
+		}
+
+
+		/* =====================================================
+		   DEPARTMENTS
+		===================================================== */
+
+		departmentCheckboxes.forEach(
+			checkbox => {
+
+				checkbox.checked =
+					(
+						state.departments ||
+						[]
+					).includes(
+						checkbox.value
+					);
+
+			}
+		);
+
+
+		/* =====================================================
+		   TASK TYPES
+		===================================================== */
+
+		taskTypeCheckboxes.forEach(
+			checkbox => {
+
+				checkbox.checked =
+					(
+						state.taskTypes ||
+						[]
+					).includes(
+						checkbox.value
+					);
+
+			}
+		);
+
+
+		/* =====================================================
+		   MODULAR UPC
+		===================================================== */
+
+		if (
+			modularSearch
+		) {
+
+			modularSearch.value =
+				state.modularUPC ||
+				'';
+
+		}
+
+
+		return true;
+
+	};
+
+
+/* =========================================================
+   UPDATE FILTER COUNT
+========================================================= */
+
 const updateFilterCount = () => {
 
 	let count = 0;
+
 
 	/* Task status */
 
@@ -1715,7 +1968,9 @@ const updateFilterCount = () => {
 		]?.textContent !==
 		defaultFilterState.taskStatus
 	) {
+
 		count++;
+
 	}
 
 
@@ -1729,11 +1984,14 @@ const updateFilterCount = () => {
 					checkbox.value
 				);
 
+
 			if (
 				checkbox.checked !==
 				shouldBeChecked
 			) {
+
 				count++;
+
 			}
 
 		}
@@ -1750,11 +2008,14 @@ const updateFilterCount = () => {
 					checkbox.value
 				);
 
+
 			if (
 				checkbox.checked !==
 				shouldBeChecked
 			) {
+
 				count++;
+
 			}
 
 		}
@@ -1765,6 +2026,8 @@ const updateFilterCount = () => {
 		`Filters (${count})`;
 
 };
+
+
 /* =========================================================
    MODULAR SEARCH CAMERA
 ========================================================= */
@@ -1831,6 +2094,8 @@ if (
 	);
 
 }
+
+
 /* =========================================================
    GET MODULAR ACTIVITY DATES
 ========================================================= */
@@ -1914,7 +2179,15 @@ const getModularActivityDates =
 
 					checkbox.addEventListener(
 						'change',
-						updateDueDateLabel
+						() => {
+
+							updateDueDateLabel();
+
+							saveTaskPageState();
+
+							getModularActivity();
+
+						}
 					);
 
 				}
@@ -1933,6 +2206,8 @@ const getModularActivityDates =
 		}
 
 	};
+
+
 /* =========================================================
    GET MODULAR ACTIVITY
 ========================================================= */
@@ -1964,7 +2239,9 @@ const getModularActivity =
 				new URLSearchParams();
 
 
-			if (selectedDates.length) {
+			if (
+				selectedDates.length
+			) {
 
 				queryParams.set(
 					'dueDates',
@@ -1974,7 +2251,9 @@ const getModularActivity =
 			}
 
 
-			if (searchUPC) {
+			if (
+				searchUPC
+			) {
 
 				queryParams.set(
 					'upc',
@@ -1988,7 +2267,6 @@ const getModularActivity =
 				queryParams.toString()
 					? `?${queryParams.toString()}`
 					: '';
-
 
 
 			const data =
@@ -2149,179 +2427,185 @@ const getModularActivity =
 						planogramName,
 						planogramNumber
 					);
+
+
 					/* =================================================
-						EXECUTION DATE STATUS
-						================================================= */
+					   EXECUTION DATE STATUS
+					================================================= */
 
-						const executionStatus =
-							document.createElement(
-								'div'
-							);
+					const executionStatus =
+						document.createElement(
+							'div'
+						);
 
-						executionStatus.className =
-							'modular-activity-execution-status';
-
-
-						const [
-							day,
-							month,
-							year
-						] =
-							activity.due_date.split('/');
+					executionStatus.className =
+						'modular-activity-execution-status';
 
 
-						const dueDate =
-							new Date(
-								Number(year),
-								Number(month) - 1,
-								Number(day)
-							);
+					const [
+						day,
+						month,
+						year
+					] =
+						activity.due_date.split('/');
 
 
-						const today =
-	new Date();
-
-today.setHours(
-	0,
-	0,
-	0,
-	0
-);
-
-const differenceMs =
-	dueDate.getTime() -
-	today.getTime();
+					const dueDate =
+						new Date(
+							Number(year),
+							Number(month) - 1,
+							Number(day)
+						);
 
 
-const differenceDays =
-	Math.round(
-		differenceMs /
-		(1000 * 60 * 60 * 24)
-	);
+					const today =
+						new Date();
 
 
-/* =================================================
-   EXECUTION STATUS TEXT
-================================================= */
-
-const executionStatusText =
-	document.createElement(
-		'span'
-	);
-
-executionStatusText.className =
-	'modular-activity-execution-status-text';
+					today.setHours(
+						0,
+						0,
+						0,
+						0
+					);
 
 
-executionStatus.appendChild(
-	executionStatusText
-);
+					const differenceMs =
+						dueDate.getTime() -
+						today.getTime();
 
 
-/* =================================================
-   UPCOMING
-================================================= */
-
-if (differenceDays > 0) {
-
-	executionStatus.classList.add(
-		'is-upcoming'
-	);
-
-	executionStatusText.textContent =
-		`The modular is due ${differenceDays} day${
-			differenceDays === 1
-				? ''
-				: 's'
-		} from now`;
+					const differenceDays =
+						Math.round(
+							differenceMs /
+							(1000 * 60 * 60 * 24)
+						);
 
 
-/* =================================================
-   OVERDUE
-================================================= */
+					/* =================================================
+					   EXECUTION STATUS TEXT
+					================================================= */
 
-} else if (differenceDays < 0) {
+					const executionStatusText =
+						document.createElement(
+							'span'
+						);
 
-	executionStatus.classList.add(
-		'is-overdue'
-	);
-
-	executionStatusText.textContent =
-		`⚠ You're ${
-			Math.abs(differenceDays)
-		} day${
-			Math.abs(differenceDays) === 1
-				? ''
-				: 's'
-		} past your scheduled execution date`;
+					executionStatusText.className =
+						'modular-activity-execution-status-text';
 
 
-/* =================================================
-   DUE TODAY
-================================================= */
+					executionStatus.appendChild(
+						executionStatusText
+					);
 
-} else {
 
-	executionStatus.classList.add(
-		'is-today'
-	);
+					/* =================================================
+					   UPCOMING
+					================================================= */
 
-	executionStatusText.textContent =
-		'The modular is due today';
+					if (
+						differenceDays > 0
+					) {
 
-}
+						executionStatus.classList.add(
+							'is-upcoming'
+						);
+
+						executionStatusText.textContent =
+							`The modular is due ${differenceDays} day${
+								differenceDays === 1
+									? ''
+									: 's'
+							} from now`;
+
+
+					/* =================================================
+					   OVERDUE
+					================================================= */
+
+					} else if (
+						differenceDays < 0
+					) {
+
+						executionStatus.classList.add(
+							'is-overdue'
+						);
+
+						executionStatusText.textContent =
+							`⚠ You're ${
+								Math.abs(differenceDays)
+							} day${
+								Math.abs(differenceDays) === 1
+									? ''
+									: 's'
+							} past your scheduled execution date`;
+
+
+					/* =================================================
+					   DUE TODAY
+					================================================= */
+
+					} else {
+
+						executionStatus.classList.add(
+							'is-today'
+						);
+
+						executionStatusText.textContent =
+							'The modular is due today';
+
+					}
+
+
+					/* =================================================
+					   MODULAR BAY SNAPSHOT
+					================================================= */
+
+					const modularSnapshot =
+						document.createElement(
+							'div'
+						);
+
+					modularSnapshot.className =
+						'modular-activity-snapshot';
+
+
+					const snapshotLoading =
+						document.createElement(
+							'div'
+						);
+
+					snapshotLoading.className =
+						'modular-activity-snapshot-loading';
+
+					snapshotLoading.textContent =
+						'Loading modular visual...';
+
+
+					modularSnapshot.appendChild(
+						snapshotLoading
+					);
+
 
 					/* =================================================
 					   COMPLETE CARD
 					================================================= */
 
+					card.append(
+						main,
+						planogram,
+						executionStatus,
+						modularSnapshot
+					);
+
+
+					modularActivityCards.appendChild(
+						card
+					);
+
+
 					/* =================================================
-   MODULAR BAY SNAPSHOT
-================================================= */
-
-const modularSnapshot =
-	document.createElement(
-		'div'
-	);
-modularSnapshot.className =
-	'modular-activity-snapshot';
-
-
-const snapshotLoading =
-	document.createElement(
-		'div'
-	);
-
-snapshotLoading.className =
-	'modular-activity-snapshot-loading';
-
-snapshotLoading.textContent =
-	'Loading modular visual...';
-
-
-modularSnapshot.appendChild(
-	snapshotLoading
-);
-
-
-/* =================================================
-   COMPLETE CARD
-================================================= */
-
-card.append(
-	main,
-	planogram,
-	executionStatus,
-	modularSnapshot
-);
-
-
-modularActivityCards.appendChild(
-	card
-);
-
-
-/* =================================================
    GENERATE BAY SNAPSHOT
 ================================================= */
 
@@ -2329,9 +2613,12 @@ createModularBaySnapshot(
 	activity.planogram_number
 )
 	.then(
-		snapshot => {
+		snapshots => {
 
-			if (!snapshot) {
+			if (
+				!Array.isArray(snapshots) ||
+				snapshots.length === 0
+			) {
 
 				modularSnapshot.replaceChildren();
 
@@ -2357,193 +2644,254 @@ createModularBaySnapshot(
 			}
 
 
-			const snapshotImage =
-				document.createElement(
-					'img'
-				);
-
-			snapshotImage.src =
-				snapshot;
-
-			snapshotImage.alt =
-				`Planogram ${activity.planogram_number} modular visual`;
-
-			snapshotImage.className =
-				'modular-activity-snapshot-image';
-
-
 			/* =================================================
-			   CLICK TO ENLARGE
+			   CREATE SNAPSHOT IMAGES
 			================================================= */
 
-			snapshotImage.addEventListener(
-				'click',
-				() => {
-
-					const enlarged =
-						document.createElement(
-							'img'
-						);
-
-					enlarged.src =
-						snapshot;
-
-					enlarged.alt =
-						snapshotImage.alt;
-
-					enlarged.className =
-						'modular-activity-snapshot-large';
+			modularSnapshot.replaceChildren();
 
 
-					const overlay =
+			snapshots.forEach(
+				baySnapshot => {
+
+					const snapshotWrapper =
 						document.createElement(
 							'div'
 						);
 
-					overlay.className =
-						'modular-activity-snapshot-overlay';
+					snapshotWrapper.className =
+						'modular-activity-snapshot-bay';
 
 
-					overlay.appendChild(
-						enlarged
-					);
+					/* =================================================
+					   BAY LABEL
+					================================================= */
+
+					const bayLabel =
+						document.createElement(
+							'div'
+						);
+
+					bayLabel.className =
+						'modular-activity-snapshot-bay-label';
+
+					bayLabel.textContent =
+						`Bay ${baySnapshot.bayNumber}`;
 
 
-					overlay.addEventListener(
+					/* =================================================
+					   IMAGE
+					================================================= */
+
+					const snapshotImage =
+						document.createElement(
+							'img'
+						);
+
+					snapshotImage.src =
+						baySnapshot.snapshot;
+
+					snapshotImage.alt =
+						`Planogram ${activity.planogram_number} Bay ${baySnapshot.bayNumber} modular visual`;
+
+					snapshotImage.className =
+						'modular-activity-snapshot-image';
+
+
+					/* =================================================
+					   CLICK TO ENLARGE
+					================================================= */
+
+					snapshotImage.addEventListener(
 						'click',
 						() => {
 
-							overlay.remove();
+							const enlarged =
+								document.createElement(
+									'img'
+								);
+
+							enlarged.src =
+								baySnapshot.snapshot;
+
+							enlarged.alt =
+								snapshotImage.alt;
+
+							enlarged.className =
+								'modular-activity-snapshot-large';
+
+
+							const overlay =
+								document.createElement(
+									'div'
+								);
+
+							overlay.className =
+								'modular-activity-snapshot-overlay';
+
+
+							overlay.appendChild(
+								enlarged
+							);
+
+
+							overlay.addEventListener(
+								'click',
+								() => {
+
+									overlay.remove();
+
+								}
+							);
+
+
+							document.body.appendChild(
+								overlay
+							);
 
 						}
 					);
 
 
-					document.body.appendChild(
-						overlay
+					snapshotWrapper.append(
+						bayLabel,
+						snapshotImage
+					);
+
+
+					modularSnapshot.appendChild(
+						snapshotWrapper
 					);
 
 				}
 			);
 
 
-			modularSnapshot.replaceChildren(
-				snapshotImage
-			);
 			/* =================================================
-   START BAR
-================================================= */
+			   START BAR
+			================================================= */
 
-const startBar =
-	document.createElement(
-		'button'
-	);
+			const startBar =
+				document.createElement(
+					'button'
+				);
 
-startBar.type =
-	'button';
+			startBar.type =
+				'button';
 
-startBar.className =
-	'modular-activity-start';
-
-
-const startIcon =
-	document.createElement(
-		'i'
-	);
-
-startIcon.setAttribute(
-		'data-lucide',
-		'circle-play'
-	);
+			startBar.className =
+				'modular-activity-start';
 
 
-const startText =
-	document.createElement(
-		'span'
-	);
+			const startIcon =
+				document.createElement(
+					'i'
+				);
 
-startText.textContent =
-	'START';
-
-
-startBar.append(
-	startIcon,
-	startText
-);
-
-
-/* =================================================
-   OPEN MODULAR ACTIVITY PAGE
-================================================= */
-
-startBar.addEventListener(
-	'click',
-	() => {
-
-		const searchUPC =
-			modularSearch
-				?.value
-				.trim() || '';
-
-
-		const params =
-			new URLSearchParams();
-
-
-		/*
-			Pass the selected modular activity data.
-		*/
-
-		params.set(
-			'planogram',
-			activity.planogram_number
-		);
-
-		params.set(
-			'modularName',
-			activity.modular_name || ''
-		);
-
-		params.set(
-			'departmentNumber',
-			activity.department_number || ''
-		);
-
-		params.set(
-			'dueDate',
-			activity.due_date || ''
-		);
-
-
-		/*
-			Pass the UPC search if one was entered.
-		*/
-
-		if (searchUPC) {
-
-			params.set(
-				'upc',
-				searchUPC
+			startIcon.setAttribute(
+				'data-lucide',
+				'circle-play'
 			);
 
-		}
+
+			const startText =
+				document.createElement(
+					'span'
+				);
+
+			startText.textContent =
+				'START';
 
 
-		window.location.href =
-			`modular-activity.html?${params.toString()}`;
-
-	}
-);
-
-
-modularSnapshot.appendChild(
-	startBar
-);
+			startBar.append(
+				startIcon,
+				startText
+			);
 
 
-/* CREATE PLAY ICON */
+			/* =================================================
+			   OPEN MODULAR ACTIVITY PAGE
+			================================================= */
 
-lucide.createIcons();
+			startBar.addEventListener(
+				'click',
+				() => {
+
+					/* =================================================
+					   SAVE ONLY THE SELECTED MODULAR SNAPSHOTS
+					================================================= */
+
+					sessionStorage.setItem(
+						`modular-snapshot-${activity.planogram_number}`,
+						JSON.stringify(
+							snapshots
+						)
+					);
+
+
+					/* =================================================
+					   BUILD ACTIVITY PAGE URL
+					================================================= */
+
+					const searchUPC =
+						modularSearch
+							?.value
+							.trim() || '';
+
+
+					const params =
+						new URLSearchParams();
+
+
+					params.set(
+						'planogram',
+						activity.planogram_number
+					);
+
+					params.set(
+						'modularName',
+						activity.modular_name || ''
+					);
+
+					params.set(
+						'departmentNumber',
+						activity.department_number || ''
+					);
+
+					params.set(
+						'dueDate',
+						activity.due_date || ''
+					);
+
+
+					if (
+						searchUPC
+					) {
+
+						params.set(
+							'upc',
+							searchUPC
+						);
+
+					}
+
+
+					window.location.href =
+						`modular-activity.html?${params.toString()}`;
+
+				}
+			);
+
+
+			modularSnapshot.appendChild(
+				startBar
+			);
+
+
+			/* CREATE PLAY ICON */
+
+			lucide.createIcons();
+
 		}
 	)
 	.catch(
@@ -2596,7 +2944,15 @@ lucide.createIcons();
 		}
 
 	};
-if (modularSearch) {
+
+
+/* =========================================================
+   MODULAR SEARCH
+========================================================= */
+
+if (
+	modularSearch
+) {
 
 	let searchTimeout = null;
 
@@ -2608,6 +2964,14 @@ if (modularSearch) {
 			clearTimeout(
 				searchTimeout
 			);
+
+
+			/*
+				Save the UPC immediately so it survives
+				navigation away from the Tasks page.
+			*/
+
+			saveTaskPageState();
 
 
 			searchTimeout =
@@ -2624,47 +2988,63 @@ if (modularSearch) {
 	);
 
 }
+
+
+/* =========================================================
+   UPDATE DUE DATE LABEL
+========================================================= */
+
 const updateDueDateLabel =
-() => {
+	() => {
 
-	if (
-		!dueDateMenu ||
-		!dueDateDropdownLabel
-	) {
-		return;
-	}
+		if (
+			!dueDateMenu ||
+			!dueDateDropdownLabel
+		) {
 
+			return;
 
-	const selectedDates =
-		[
-			...dueDateMenu.querySelectorAll(
-				'input[type="checkbox"]:checked'
-			)
-		];
+		}
 
 
-	if (!selectedDates.length) {
+		const selectedDates =
+			[
+				...dueDateMenu.querySelectorAll(
+					'input[type="checkbox"]:checked'
+				)
+			];
+
+
+		if (
+			!selectedDates.length
+		) {
+
+			dueDateDropdownLabel.textContent =
+				'All due dates';
+
+			return;
+
+		}
+
+
+		if (
+			selectedDates.length === 1
+		) {
+
+			dueDateDropdownLabel.textContent =
+				selectedDates[0].value;
+
+			return;
+
+		}
+
 
 		dueDateDropdownLabel.textContent =
-			'All due dates';
+			`${selectedDates.length} due dates`;
 
-		return;
-	}
-
-
-	if (selectedDates.length === 1) {
-
-		dueDateDropdownLabel.textContent =
-			selectedDates[0].value;
-
-		return;
-	}
+	};
 
 
-	dueDateDropdownLabel.textContent =
-		`${selectedDates.length} due dates`;
-
-};
 /* =========================================================
    DUE DATE DROPDOWN
 ========================================================= */
@@ -2683,6 +3063,7 @@ dueDateDropdown.addEventListener(
 		taskTypeMenu.hidden =
 			true;
 
+
 		departmentDropdown.classList.remove(
 			'is-open'
 		);
@@ -2695,6 +3076,7 @@ dueDateDropdown.addEventListener(
 		dueDateMenu.hidden =
 			isOpen;
 
+
 		dueDateDropdown.classList.toggle(
 			'is-open',
 			!isOpen
@@ -2702,6 +3084,8 @@ dueDateDropdown.addEventListener(
 
 	}
 );
+
+
 /* =========================================================
    MODULAR ACTIVITY FILTER MODE
 ========================================================= */
@@ -2717,11 +3101,11 @@ const updateModularActivityMode = () => {
 	const selectedTaskTypes =
 		[...taskTypeCheckboxes]
 			.filter(
-				(checkbox) =>
+				checkbox =>
 					checkbox.checked
 			)
 			.map(
-				(checkbox) =>
+				checkbox =>
 					checkbox.value
 			);
 
@@ -2736,7 +3120,9 @@ const updateModularActivityMode = () => {
 	   DUE DATE FILTER
 	===================================================== */
 
-	if (dueDateFilter) {
+	if (
+		dueDateFilter
+	) {
 
 		dueDateFilter.hidden =
 			!modularActivityOnly;
@@ -2758,39 +3144,39 @@ const updateModularActivityMode = () => {
 
 
 	/* =====================================================
-	   NORMAL TASK AREA
+	   MODULAR ACTIVITY MODE
 	===================================================== */
 
-	if (modularActivityOnly) {
+	if (
+		modularActivityOnly
+	) {
 
-	taskCards.replaceChildren();
+		/* Hide normal tasks */
 
-	taskCards.style.display =
-		'none';
+		taskCards.replaceChildren();
 
-	taskEmpty.style.display =
-		'none';
+		taskCards.style.display =
+			'none';
 
-
-	/* ================================================
-	   SHOW MODULAR ACTIVITY
-	================================================ */
-
-	if (modularActivityCentre) {
-
-		modularActivityCentre.hidden =
-			false;
-
-	}
+		taskEmpty.style.display =
+			'none';
 
 
-	/* ================================================
-	   LOAD MODULAR ACTIVITY
-	================================================ */
+		/* Show modular activity */
 
-	getModularActivityDates();
+		if (
+			modularActivityCentre
+		) {
 
-} else {
+			modularActivityCentre.hidden =
+				false;
+
+		}
+
+
+	} else {
+
+		/* Show normal tasks */
 
 		taskCards.style.display =
 			'';
@@ -2799,20 +3185,27 @@ const updateModularActivityMode = () => {
 			'';
 
 
-		/* ================================================
-		   HIDE MODULAR ACTIVITY
-		================================================ */
+		/* Hide modular activity */
 
-		if (modularActivityCentre) {
+		if (
+			modularActivityCentre
+		) {
 
 			modularActivityCentre.hidden =
 				true;
 
 		}
 
+
+		/* Restore normal tasks */
+
+		renderRandomTasks();
+
 	}
 
 };
+
+
 /* =========================================================
    SAVE FILTER STATE
 ========================================================= */
@@ -2828,22 +3221,22 @@ const saveFilterState =
 			departments:
 				[...departmentCheckboxes]
 					.filter(
-						(checkbox) =>
+						checkbox =>
 							checkbox.checked
 					)
 					.map(
-						(checkbox) =>
+						checkbox =>
 							checkbox.value
 					),
 
 			taskTypes:
 				[...taskTypeCheckboxes]
 					.filter(
-						(checkbox) =>
+						checkbox =>
 							checkbox.checked
 					)
 					.map(
-						(checkbox) =>
+						checkbox =>
 							checkbox.value
 					)
 
@@ -2868,24 +3261,26 @@ const updateFilterLabels =
 		const selectedDepartments =
 			[...departmentCheckboxes]
 				.filter(
-					(checkbox) =>
+					checkbox =>
 						checkbox.checked
 				)
 				.map(
-					(checkbox) =>
+					checkbox =>
 						checkbox.value
 				);
+
 
 		const selectedTaskTypes =
 			[...taskTypeCheckboxes]
 				.filter(
-					(checkbox) =>
+					checkbox =>
 						checkbox.checked
 				)
 				.map(
-					(checkbox) =>
+					checkbox =>
 						checkbox.value
 				);
+
 
 		/* Department */
 
@@ -2896,6 +3291,7 @@ const updateFilterLabels =
 					? 'All departments'
 					: selectedDepartments.join(', ');
 
+
 		/* Task type */
 
 		taskTypeDropdown
@@ -2905,9 +3301,14 @@ const updateFilterLabels =
 					? 'All task types'
 					: selectedTaskTypes.join(', ');
 
+
 		updateFilterCount();
+
 		updateModularActivityMode();
+
 	};
+
+
 /* =========================================================
    LOAD FILTER STATE
 ========================================================= */
@@ -2938,48 +3339,45 @@ const loadFilterState =
 
 		/* Use defaults if nothing is saved */
 
-		if (!state) {
+		if (
+			!state
+		) {
 
 			state = {
+
 				...defaultFilterState,
 
 				departments:
-					[...defaultFilterState.departments],
+					[
+						...defaultFilterState.departments
+					],
 
 				taskTypes:
-					[...defaultFilterState.taskTypes]
+					[
+						...defaultFilterState.taskTypes
+					]
 
 			};
 
 		}
+
+
 		/* =====================================================
-		RETURNING FROM MODULAR ACTIVITY
+		   TASK STATUS
 		===================================================== */
-
-		if (
-			returnedFromModularActivity
-		) {
-
-			state.taskTypes =
-				[
-					'Modular Activity'
-				];
-
-		}
-
-
-		/* Task status */
 
 		const statusOption =
 			[...taskStatusSelect.options]
 				.find(
-					(option) =>
+					option =>
 						option.textContent ===
 						state.taskStatus
 				);
 
 
-		if (statusOption) {
+		if (
+			statusOption
+		) {
 
 			taskStatusSelect.value =
 				statusOption.value;
@@ -2987,10 +3385,12 @@ const loadFilterState =
 		}
 
 
-		/* Departments */
+		/* =====================================================
+		   DEPARTMENTS
+		===================================================== */
 
 		departmentCheckboxes.forEach(
-			(checkbox) => {
+			checkbox => {
 
 				checkbox.checked =
 					state.departments.includes(
@@ -3001,10 +3401,12 @@ const loadFilterState =
 		);
 
 
-		/* Task types */
+		/* =====================================================
+		   TASK TYPES
+		===================================================== */
 
 		taskTypeCheckboxes.forEach(
-			(checkbox) => {
+			checkbox => {
 
 				checkbox.checked =
 					state.taskTypes.includes(
@@ -3014,8 +3416,9 @@ const loadFilterState =
 			}
 		);
 
-		updateModularActivityMode();
+
 		updateFilterLabels();
+
 		saveFilterState();
 
 	};
@@ -3068,13 +3471,22 @@ departmentDropdown.addEventListener(
 		taskTypeMenu.hidden =
 			true;
 
+		dueDateMenu.hidden =
+			true;
+
+
 		taskTypeDropdown.classList.remove(
+			'is-open'
+		);
+
+		dueDateDropdown.classList.remove(
 			'is-open'
 		);
 
 
 		departmentMenu.hidden =
 			isOpen;
+
 
 		departmentDropdown.classList.toggle(
 			'is-open',
@@ -3100,13 +3512,22 @@ taskTypeDropdown.addEventListener(
 		departmentMenu.hidden =
 			true;
 
+		dueDateMenu.hidden =
+			true;
+
+
 		departmentDropdown.classList.remove(
+			'is-open'
+		);
+
+		dueDateDropdown.classList.remove(
 			'is-open'
 		);
 
 
 		taskTypeMenu.hidden =
 			isOpen;
+
 
 		taskTypeDropdown.classList.toggle(
 			'is-open',
@@ -3132,6 +3553,8 @@ departmentCheckboxes.forEach(
 
 				saveFilterState();
 
+				saveTaskPageState();
+
 			}
 		);
 
@@ -3154,6 +3577,44 @@ taskTypeCheckboxes.forEach(
 
 				saveFilterState();
 
+				saveTaskPageState();
+
+
+				/*
+					If Modular Activity is now selected,
+					load its dates and activities.
+				*/
+
+				const selectedTaskTypes =
+					[...taskTypeCheckboxes]
+						.filter(
+							checkbox =>
+								checkbox.checked
+						)
+						.map(
+							checkbox =>
+								checkbox.value
+						);
+
+
+				const modularActivityOnly =
+					selectedTaskTypes.length === 1 &&
+					selectedTaskTypes[0] ===
+						'Modular Activity';
+
+
+				if (
+					modularActivityOnly
+				) {
+
+					getModularActivityDates()
+						.then(
+							() =>
+								getModularActivity()
+						);
+
+				}
+
 			}
 		);
 
@@ -3173,8 +3634,11 @@ taskStatusSelect.addEventListener(
 
 		saveFilterState();
 
+		saveTaskPageState();
+
 	}
 );
+
 
 /* =========================================================
    RESET FILTERS
@@ -3189,12 +3653,15 @@ resetFilters.addEventListener(
 		const openTasksOption =
 			[...taskStatusSelect.options]
 				.find(
-					(option) =>
+					option =>
 						option.textContent ===
 						'Open tasks'
 				);
 
-		if (openTasksOption) {
+
+		if (
+			openTasksOption
+		) {
 
 			taskStatusSelect.value =
 				openTasksOption.value;
@@ -3205,7 +3672,7 @@ resetFilters.addEventListener(
 		/* Department = default: nothing selected */
 
 		departmentCheckboxes.forEach(
-			(checkbox) => {
+			checkbox => {
 
 				checkbox.checked =
 					false;
@@ -3217,7 +3684,7 @@ resetFilters.addEventListener(
 		/* Task type = default selections */
 
 		taskTypeCheckboxes.forEach(
-			(checkbox) => {
+			checkbox => {
 
 				checkbox.checked =
 					defaultFilterState.taskTypes.includes(
@@ -3228,13 +3695,26 @@ resetFilters.addEventListener(
 		);
 
 
+		/* Clear modular UPC */
+
+		if (
+			modularSearch
+		) {
+
+			modularSearch.value =
+				'';
+
+		}
+
+
 		/* Update labels and count */
 
 		updateFilterLabels();
 
 		saveFilterState();
 
-		updateModularActivityMode();
+		saveTaskPageState();
+
 
 		/* Close dropdowns */
 
@@ -3244,6 +3724,10 @@ resetFilters.addEventListener(
 		taskTypeMenu.hidden =
 			true;
 
+		dueDateMenu.hidden =
+			true;
+
+
 		departmentDropdown.classList.remove(
 			'is-open'
 		);
@@ -3252,11 +3736,13 @@ resetFilters.addEventListener(
 			'is-open'
 		);
 
+		dueDateDropdown.classList.remove(
+			'is-open'
+		);
+
 	}
 );
-/* =========================================================
-   APPLY FILTERS
-========================================================= */
+
 
 /* =========================================================
    APPLY FILTERS
@@ -3268,17 +3754,19 @@ applyFilters.addEventListener(
 
 		saveFilterState();
 
+		saveTaskPageState();
+
 		updateFilterCount();
 
 
 		const selectedTaskTypes =
 			[...taskTypeCheckboxes]
 				.filter(
-					(checkbox) =>
+					checkbox =>
 						checkbox.checked
 				)
 				.map(
-					(checkbox) =>
+					checkbox =>
 						checkbox.value
 				);
 
@@ -3293,7 +3781,11 @@ applyFilters.addEventListener(
 		   LOAD FULL MODULAR ACTIVITY
 		===================================================== */
 
-		if (modularActivityOnly) {
+		if (
+			modularActivityOnly
+		) {
+
+			await getModularActivityDates();
 
 			await getModularActivity();
 
@@ -3306,6 +3798,8 @@ applyFilters.addEventListener(
 
 	}
 );
+
+
 /* =========================================================
    INITIALISE FILTER STATE
 ========================================================= */
@@ -3314,15 +3808,92 @@ loadFilterState();
 
 
 /* =========================================================
-   RETURN FROM MODULAR ACTIVITY
+   RESTORE TASK PAGE SESSION STATE
 ========================================================= */
 
-const initialiseReturnedModularActivity =
+const restoredTaskPageState =
+	restoreTaskPageState();
+
+
+/* =========================================================
+   UPDATE FILTER UI AFTER SESSION RESTORE
+========================================================= */
+
+updateFilterLabels();
+
+
+/* =========================================================
+   INITIALISE TASK PAGE
+========================================================= */
+
+const initialiseTaskPage =
 	async () => {
 
+		const selectedTaskTypes =
+			[...taskTypeCheckboxes]
+				.filter(
+					checkbox =>
+						checkbox.checked
+				)
+				.map(
+					checkbox =>
+						checkbox.value
+				);
+
+
+		const modularActivityOnly =
+			selectedTaskTypes.length === 1 &&
+			selectedTaskTypes[0] ===
+				'Modular Activity';
+
+
+		/* =====================================================
+		   MODULAR ACTIVITY
+		===================================================== */
+
 		if (
-			!returnedFromModularActivity
+			modularActivityOnly
 		) {
+
+			/*
+				Make sure the modular activity
+				section is visible.
+			*/
+
+			taskCards.replaceChildren();
+
+			taskCards.style.display =
+				'none';
+
+			taskEmpty.style.display =
+				'none';
+
+
+			if (
+				modularActivityCentre
+			) {
+
+				modularActivityCentre.hidden =
+					false;
+
+			}
+
+
+			/*
+				Load dates first because the
+				date filter is generated dynamically.
+			*/
+
+			await getModularActivityDates();
+
+
+			/*
+				Then load the modular activity
+				using the restored UPC.
+			*/
+
+			await getModularActivity();
+
 
 			return;
 
@@ -3330,38 +3901,27 @@ const initialiseReturnedModularActivity =
 
 
 		/* =====================================================
-		   RESTORE UPC SEARCH
+		   NORMAL TASKS
 		===================================================== */
 
 		if (
-			modularSearch
+			modularActivityCentre
 		) {
 
-			modularSearch.value =
-				returnedModularUPC;
+			modularActivityCentre.hidden =
+				true;
 
 		}
 
 
-		/* =====================================================
-		   MAKE SURE MODULAR ACTIVITY MODE IS ACTIVE
-		===================================================== */
+		taskCards.style.display =
+			'';
 
-		updateModularActivityMode();
-
-
-		/* =====================================================
-		   LOAD AVAILABLE DUE DATES
-		===================================================== */
-
-		await getModularActivityDates();
+		taskEmpty.style.display =
+			'';
 
 
-		/* =====================================================
-		   RUN MODULAR ACTIVITY SEARCH
-		===================================================== */
-
-		await getModularActivity();
+		await renderRandomTasks();
 
 	};
 
@@ -3370,14 +3930,4 @@ const initialiseReturnedModularActivity =
    INITIAL TASK LOAD
 ========================================================= */
 
-if (
-	returnedFromModularActivity
-) {
-
-	initialiseReturnedModularActivity();
-
-} else {
-
-	renderRandomTasks();
-
-}
+initialiseTaskPage();
