@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
+
+	<title>Modular Activity</title>
+
+	<link
+		rel="stylesheet"
+		href="index.css"
+	>
+
+	<script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+
+
+<body>
+
+	<main class="device-shell">
+
+		<section
+			class="scanner-app"
+			aria-label="Asda modular activity"
+		>
+
+
+			<!-- =====================================================
+			     TOP BAR
+			====================================================== -->
+
+			<div class="app-titlebar">
+
+				<button
+					class="icon-button modular-activity-back"
+					type="button"
+					id="modular-activity-back"
+					aria-label="Back to modular activity"
+				>
+
+					<i
+						data-lucide="arrow-left"
+						aria-hidden="true"
+					></i>
+
+				</button>
+
+
+				<div class="tasks-title modular-activity-title">
+
+					<h1 id="modular-activity-name">
+						MODULAR
+					</h1>
+
+
+					<div class="modular-activity-subtitle">
+						MODULAR ACTIVITY
+					</div>
+
+				</div>
+
+
+				<div class="app-titlebar-spacer"></div>
+
+			</div>
+
+
+			<!-- =====================================================
+			     MODULAR ACTIVITY CONTENT
+			====================================================== -->
+
+			<div class="task-list">
+
+				<!-- Content will be added here -->
+
+			</div>
+
+
+		</section>
+
+	</main>
+
+
+	<!-- =========================================================
+	     BARCODE / IMAGE DEPENDENCIES
+	========================================================= -->
+
+	<script src="https://unpkg.com/@zxing/browser@0.2.1"></script>
+
+	<script src="barcode-scanner.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+	<!-- =========================================================
+	     MODULAR ACTIVITY JAVASCRIPT
+	========================================================= -->
+
+	<script src="modular-activity.js"></script>
+
+
+</body>
+
+</html>

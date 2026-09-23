@@ -25,7 +25,26 @@ const MODULAR_BAY_API =
 
 lucide.createIcons();
 
+/* =========================================================
+   RETURN FROM MODULAR ACTIVITY
+========================================================= */
 
+const pageParams =
+	new URLSearchParams(
+		window.location.search
+	);
+
+
+const returnedFromModularActivity =
+	pageParams.get(
+		'modularActivity'
+	) === 'true';
+
+
+const returnedModularUPC =
+	pageParams.get(
+		'upc'
+	) || '';
 
 /* =========================================================
    ELEMENTS
@@ -2453,6 +2472,70 @@ startBar.append(
 );
 
 
+/* =================================================
+   OPEN MODULAR ACTIVITY PAGE
+================================================= */
+
+startBar.addEventListener(
+	'click',
+	() => {
+
+		const searchUPC =
+			modularSearch
+				?.value
+				.trim() || '';
+
+
+		const params =
+			new URLSearchParams();
+
+
+		/*
+			Pass the selected modular activity data.
+		*/
+
+		params.set(
+			'planogram',
+			activity.planogram_number
+		);
+
+		params.set(
+			'modularName',
+			activity.modular_name || ''
+		);
+
+		params.set(
+			'departmentNumber',
+			activity.department_number || ''
+		);
+
+		params.set(
+			'dueDate',
+			activity.due_date || ''
+		);
+
+
+		/*
+			Pass the UPC search if one was entered.
+		*/
+
+		if (searchUPC) {
+
+			params.set(
+				'upc',
+				searchUPC
+			);
+
+		}
+
+
+		window.location.href =
+			`modular-activity.html?${params.toString()}`;
+
+	}
+);
+
+
 modularSnapshot.appendChild(
 	startBar
 );
@@ -2869,6 +2952,20 @@ const loadFilterState =
 			};
 
 		}
+		/* =====================================================
+		RETURNING FROM MODULAR ACTIVITY
+		===================================================== */
+
+		if (
+			returnedFromModularActivity
+		) {
+
+			state.taskTypes =
+				[
+					'Modular Activity'
+				];
+
+		}
 
 
 		/* Task status */
@@ -3214,9 +3311,73 @@ applyFilters.addEventListener(
 ========================================================= */
 
 loadFilterState();
-updateModularActivityMode();
+
+
+/* =========================================================
+   RETURN FROM MODULAR ACTIVITY
+========================================================= */
+
+const initialiseReturnedModularActivity =
+	async () => {
+
+		if (
+			!returnedFromModularActivity
+		) {
+
+			return;
+
+		}
+
+
+		/* =====================================================
+		   RESTORE UPC SEARCH
+		===================================================== */
+
+		if (
+			modularSearch
+		) {
+
+			modularSearch.value =
+				returnedModularUPC;
+
+		}
+
+
+		/* =====================================================
+		   MAKE SURE MODULAR ACTIVITY MODE IS ACTIVE
+		===================================================== */
+
+		updateModularActivityMode();
+
+
+		/* =====================================================
+		   LOAD AVAILABLE DUE DATES
+		===================================================== */
+
+		await getModularActivityDates();
+
+
+		/* =====================================================
+		   RUN MODULAR ACTIVITY SEARCH
+		===================================================== */
+
+		await getModularActivity();
+
+	};
+
+
 /* =========================================================
    INITIAL TASK LOAD
 ========================================================= */
 
-renderRandomTasks();
+if (
+	returnedFromModularActivity
+) {
+
+	initialiseReturnedModularActivity();
+
+} else {
+
+	renderRandomTasks();
+
+}

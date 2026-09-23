@@ -3534,3 +3534,51 @@ background-repeat: no-repeat;
 	flex: 0 0 auto;
 	flex-shrink: 0;
 }
+/* =============================================================================================
+   									MODULAR ACTIVITY PAGE
+================================================================================================*/
+/* =========================================================
+   MODULAR ACTIVITY PAGE HEADER
+========================================================= */
+
+.modular-activity-title {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 2px;
+}
+
+.modular-activity-title h1 {
+	margin: 0;
+
+	font-size: 15px;
+	font-weight: 700;
+	line-height: 1.1;
+
+	white-space: nowrap;
+}
+
+.modular-activity-subtitle {
+	font-size: 9px;
+	font-weight: 700;
+	line-height: 1;
+
+	letter-spacing: 0.3px;
+}
+
+.modular-activity-back {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.modular-activity-back svg {
+	width: 20px;
+	height: 20px;
+}
+
+.app-titlebar-spacer {
+	width: 32px;
+	height: 32px;
+}
