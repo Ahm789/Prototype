@@ -117,13 +117,24 @@ const startBarcodeScanner =
 				'active'
 			);
 
+
+			/*
+				Use ZXing's multi-format reader.
+			*/
+
 			barcodeReader =
 				new ZXingBrowser.BrowserMultiFormatReader();
+
+
+			/*
+				Ask for the available cameras.
+			*/
 
 			const devices =
 				await ZXingBrowser
 					.BrowserCodeReader
 					.listVideoInputDevices();
+
 
 			if (
 				!devices ||
@@ -136,6 +147,11 @@ const startBarcodeScanner =
 
 			}
 
+
+			/*
+				Prefer the rear/environment camera.
+			*/
+
 			let selectedDevice =
 				devices.find(
 					device =>
@@ -143,6 +159,11 @@ const startBarcodeScanner =
 							device.label
 						)
 				);
+
+
+			/*
+				Fallback to the last camera.
+			*/
 
 			if (!selectedDevice) {
 
@@ -152,6 +173,11 @@ const startBarcodeScanner =
 					];
 
 			}
+
+
+			/*
+				Start continuous scanning.
+			*/
 
 			barcodeControls =
 				await barcodeReader.decodeFromVideoDevice(
@@ -168,12 +194,14 @@ const startBarcodeScanner =
 							return;
 						}
 
+
 						if (
 							result
 						) {
 
 							const barcode =
 								result.getText();
+
 
 							if (
 								barcode
@@ -221,6 +249,7 @@ const stopBarcodeScanner =
 		barcodeScanLocked =
 			true;
 
+
 		if (
 			barcodeControls
 		) {
@@ -242,6 +271,7 @@ const stopBarcodeScanner =
 				null;
 
 		}
+
 
 		if (
 			barcodeReader
@@ -265,6 +295,7 @@ const stopBarcodeScanner =
 
 		}
 
+
 		if (
 			cameraStream
 		) {
@@ -282,6 +313,7 @@ const stopBarcodeScanner =
 
 		}
 
+
 		if (
 			cameraVideo
 		) {
@@ -292,6 +324,7 @@ const stopBarcodeScanner =
 				null;
 
 		}
+
 
 		if (
 			cameraOverlay
