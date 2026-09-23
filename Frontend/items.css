@@ -430,3 +430,133 @@ button { border: 0; cursor: pointer; }
 	}
 
 }
+/* =========================================================
+   MOBILE ITEMS LAYOUT
+========================================================= */
+
+@media (max-width: 600px) {
+
+	.items-app {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.items-layout {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		max-width: 100%;
+		padding: 12px;
+		gap: 12px;
+	}
+
+	/* Prevent any child section from overflowing */
+
+	.items-layout > *,
+	.item-form-column,
+	.item-form,
+	.saved-items,
+	.locations-panel {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+	}
+
+	/* =====================================================
+	   ORDER
+	===================================================== */
+
+	/* Items list */
+	.saved-items {
+		order: 1;
+	}
+
+	/* Create / update item */
+	.item-form-column {
+		order: 2;
+	}
+
+	/* Modular / locations section */
+	.locations-panel {
+		order: 3;
+	}
+
+	/* =====================================================
+	   ITEM FORM
+	===================================================== */
+
+	.form-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.form-grid label.wide {
+		grid-column: auto;
+	}
+
+	/* =====================================================
+	   ITEM ROWS
+	===================================================== */
+
+	.item-row {
+		grid-template-columns: 58px minmax(0, 1fr);
+		width: 100%;
+		max-width: 100%;
+	}
+
+	.item-row > strong {
+		grid-column: 2;
+	}
+
+	.item-actions {
+		grid-column: 2;
+		width: 100%;
+	}
+
+	/* =====================================================
+	   LOCATIONS
+	===================================================== */
+
+	.location-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.location-grid label.wide {
+		grid-column: auto;
+	}
+
+	.location-row {
+		grid-template-columns: minmax(0, 1fr);
+		width: 100%;
+	}
+
+	.location-row-actions {
+		width: 100%;
+	}
+
+	.location-row-actions button {
+		flex: 1;
+	}
+
+	/* =====================================================
+	   HEADERS
+	===================================================== */
+
+	.items-header {
+		padding: 16px;
+		gap: 12px;
+	}
+
+	.items-header h1 {
+		font-size: 20px;
+	}
+
+	.back-link {
+		font-size: 34px;
+	}
+
+	.database-status {
+		font-size: 10px;
+		padding: 6px 8px;
+	}
+
+}
