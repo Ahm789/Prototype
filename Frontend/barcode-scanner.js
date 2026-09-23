@@ -2,9 +2,9 @@
    SHARED BARCODE SCANNER
 ========================================================= */
 
-let barcodeCameraStream = null;
-let barcodeCameraVideo = null;
-let barcodeCameraOverlay = null;
+let cameraStream = null;
+let cameraVideo = null;
+let cameraOverlay = null;
 let barcodeReader = null;
 let barcodeControls = null;
 let barcodeScanLocked = false;
@@ -14,20 +14,19 @@ let barcodeScanLocked = false;
    CREATE CAMERA UI
 ========================================================= */
 
-const createBarcodeScannerUI = () => {
+const createCameraScanner = () => {
 
-	if (barcodeCameraOverlay) {
+	if (cameraOverlay) {
 		return;
 	}
 
-
-	barcodeCameraOverlay =
+	cameraOverlay =
 		document.createElement('div');
 
-	barcodeCameraOverlay.className =
+	cameraOverlay.className =
 		'barcode-camera-overlay';
 
-	barcodeCameraOverlay.innerHTML = `
+	cameraOverlay.innerHTML = `
 		<div class="barcode-camera-container">
 
 			<div class="barcode-camera-header">
@@ -75,32 +74,26 @@ const createBarcodeScannerUI = () => {
 		</div>
 	`;
 
-
 	document.body.appendChild(
-		barcodeCameraOverlay
+		cameraOverlay
 	);
 
-
-	barcodeCameraVideo =
-		barcodeCameraOverlay.querySelector(
+	cameraVideo =
+		cameraOverlay.querySelector(
 			'.barcode-camera-video'
 		);
 
-
 	const closeButton =
-		barcodeCameraOverlay.querySelector(
+		cameraOverlay.querySelector(
 			'.barcode-camera-close'
 		);
-
 
 	closeButton.addEventListener(
 		'click',
 		stopBarcodeScanner
 	);
 
-
 	lucide.createIcons();
-
 };
 
 
@@ -113,29 +106,24 @@ const startBarcodeScanner =
 		onBarcodeDetected
 	) => {
 
-		createBarcodeScannerUI();
-
+		createCameraScanner();
 
 		barcodeScanLocked =
 			false;
 
-
 		try {
 
-			barcodeCameraOverlay.classList.add(
+			cameraOverlay.classList.add(
 				'active'
 			);
 
-
 			barcodeReader =
 				new ZXingBrowser.BrowserMultiFormatReader();
-
 
 			const devices =
 				await ZXingBrowser
 					.BrowserCodeReader
 					.listVideoInputDevices();
-
 
 			if (
 				!devices ||
@@ -148,7 +136,6 @@ const startBarcodeScanner =
 
 			}
 
-
 			let selectedDevice =
 				devices.find(
 					device =>
@@ -156,7 +143,6 @@ const startBarcodeScanner =
 							device.label
 						)
 				);
-
 
 			if (!selectedDevice) {
 
@@ -167,11 +153,10 @@ const startBarcodeScanner =
 
 			}
 
-
 			barcodeControls =
 				await barcodeReader.decodeFromVideoDevice(
 					selectedDevice.deviceId,
-					barcodeCameraVideo,
+					cameraVideo,
 					async (
 						result,
 						error
@@ -183,18 +168,19 @@ const startBarcodeScanner =
 							return;
 						}
 
-
-						if (result) {
+						if (
+							result
+						) {
 
 							const barcode =
 								result.getText();
 
-
-							if (barcode) {
+							if (
+								barcode
+							) {
 
 								barcodeScanLocked =
 									true;
-
 
 								await onBarcodeDetected(
 									barcode
@@ -207,7 +193,6 @@ const startBarcodeScanner =
 					}
 				);
 
-
 		} catch (error) {
 
 			console.error(
@@ -215,9 +200,7 @@ const startBarcodeScanner =
 				error
 			);
 
-
 			stopBarcodeScanner();
-
 
 			alert(
 				'Unable to access the camera. Please check your camera permission.'
@@ -238,7 +221,6 @@ const stopBarcodeScanner =
 		barcodeScanLocked =
 			true;
 
-
 		if (
 			barcodeControls
 		) {
@@ -256,12 +238,10 @@ const stopBarcodeScanner =
 
 			}
 
-
 			barcodeControls =
 				null;
 
 		}
-
 
 		if (
 			barcodeReader
@@ -280,18 +260,16 @@ const stopBarcodeScanner =
 
 			}
 
-
 			barcodeReader =
 				null;
 
 		}
 
-
 		if (
-			barcodeCameraStream
+			cameraStream
 		) {
 
-			barcodeCameraStream
+			cameraStream
 				.getTracks()
 				.forEach(
 					track => {
@@ -299,30 +277,27 @@ const stopBarcodeScanner =
 					}
 				);
 
-
-			barcodeCameraStream =
+			cameraStream =
 				null;
 
 		}
 
-
 		if (
-			barcodeCameraVideo
+			cameraVideo
 		) {
 
-			barcodeCameraVideo.pause();
+			cameraVideo.pause();
 
-			barcodeCameraVideo.srcObject =
+			cameraVideo.srcObject =
 				null;
 
 		}
 
-
 		if (
-			barcodeCameraOverlay
+			cameraOverlay
 		) {
 
-			barcodeCameraOverlay.classList.remove(
+			cameraOverlay.classList.remove(
 				'active'
 			);
 
