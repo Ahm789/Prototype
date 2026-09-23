@@ -1766,15 +1766,35 @@ if (
 					barcode
 				) => {
 
+					/*
+						Stop the camera immediately.
+					*/
+
+					stopBarcodeScanner();
+
+
+					/*
+						Clean the scanned barcode.
+					*/
+
 					const cleanBarcode =
 						String(barcode)
 							.trim()
 							.replace(/\D/g, '');
 
 
+					/*
+						Put the barcode into the
+						modular search field.
+					*/
+
 					modularSearch.value =
 						cleanBarcode;
 
+
+					/*
+						Trigger the existing search.
+					*/
 
 					modularSearch.dispatchEvent(
 						new Event(
