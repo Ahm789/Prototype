@@ -66,7 +66,6 @@ const bayImage =
 
 const stockTimeline =
 	document.querySelector('#stock-timeline');
-
 const detailCaseSize =
 	document.querySelector('#detail-case-size');
 
@@ -93,7 +92,6 @@ const detailMaxShelf =
 
 const detailHffs =
 	document.querySelector('#detail-hffs');
-
 const modularAisle =
 	document.querySelector('#modular-aisle');
 
@@ -105,13 +103,11 @@ const modularMod =
 
 const modularShelf =
 	document.querySelector('#modular-shelf');
-
 const modularVisual =
 	document.querySelector('#modular-visual');
-
 const salesYesterdayUnits =
 	document.querySelector('#sales-yesterday-units');
-
+	
 const sales7Units =
 	document.querySelector('#sales-7-units');
 
@@ -135,11 +131,8 @@ const sales7Lost =
 
 const sales28Lost =
 	document.querySelector('#sales-28-lost');
-
 const productSearch =
 	document.querySelector('.product-search');
-
-
 /* =========================================================
    API REQUEST
 ========================================================= */
@@ -148,7 +141,6 @@ const apiRequest = async (
 	url,
 	options = {}
 ) => {
-
 	const response =
 		await fetch(
 			url,
@@ -156,18 +148,13 @@ const apiRequest = async (
 		);
 
 	if (!response.ok) {
-
 		throw new Error(
 			`Request failed: ${response.status}`
 		);
-
 	}
 
 	return response.json();
-
 };
-
-
 const getModularProducts =
 	async (
 		modularId
@@ -185,9 +172,7 @@ const getModularProducts =
 ========================================================= */
 
 const getStoreTime = async () => {
-
 	try {
-
 		const data =
 			await apiRequest(
 				TASK_CLOCK_API
@@ -218,16 +203,13 @@ const getStoreTime = async () => {
 		return totalSeconds;
 
 	} catch (error) {
-
 		console.error(
 			'Unable to load store time:',
 			error
 		);
 
 		return null;
-
 	}
-
 };
 
 
@@ -250,19 +232,15 @@ let currentProduct =
 ========================================================= */
 
 const getCurrentStoreHour = () => {
-
 	if (
 		currentStoreSeconds === null
 	) {
-
 		return 9;
-
 	}
 
 	return Math.floor(
 		currentStoreSeconds / 3600
 	);
-
 };
 
 
@@ -273,7 +251,6 @@ const getCurrentStoreHour = () => {
 const seededRandom = (
 	seed
 ) => {
-
 	let value =
 		seed;
 
@@ -283,8 +260,255 @@ const seededRandom = (
 
 	return value -
 		Math.floor(value);
-
 };
+
+/* =========================================================
+   BARCODE CAMERA SCANNER
+========================================================= */
+
+let cameraStream = null;
+let cameraVideo = null;
+let cameraOverlay = null;
+let barcodeReader = null;
+let barcodeControls = null;
+let barcodeScanLocked = false;
+
+
+/* =========================================================
+   CREATE CAMERA UI
+========================================================= */
+
+const createCameraScanner = () => {
+
+	if (cameraOverlay) {
+		return;
+	}
+
+	cameraOverlay =
+		document.createElement('div');
+
+	cameraOverlay.className =
+		'barcode-camera-overlay';
+
+	cameraOverlay.innerHTML = `
+		<div class="barcode-camera-container">
+
+			<div class="barcode-camera-header">
+
+				<strong>
+					Scan Barcode
+				</strong>
+
+				<button
+					type="button"
+					class="barcode-camera-close"
+					aria-label="Close camera"
+				>
+					<i data-lucide="x"></i>
+				</button>
+
+			</div>
+
+
+			<div class="barcode-camera-view">
+
+				<video
+					class="barcode-camera-video"
+					autoplay
+					playsinline
+					muted
+				></video>
+
+
+				<div class="barcode-scan-frame">
+
+					<div class="barcode-scan-line"></div>
+
+				</div>
+
+			</div>
+
+
+			<div class="barcode-camera-status">
+
+				Point the camera at a barcode
+
+			</div>
+
+		</div>
+	`;
+
+	document.body.appendChild(
+		cameraOverlay
+	);
+
+	cameraVideo =
+		cameraOverlay.querySelector(
+			'.barcode-camera-video'
+		);
+
+	const closeButton =
+		cameraOverlay.querySelector(
+			'.barcode-camera-close'
+		);
+
+	closeButton.addEventListener(
+		'click',
+		stopBarcodeScanner
+	);
+
+	lucide.createIcons();
+};
+
+
+/* =========================================================
+   START BARCODE SCANNER
+========================================================= */
+
+const startBarcodeScanner =
+	async () => {
+
+		createCameraScanner();
+
+		barcodeScanLocked =
+			false;
+
+		try {
+
+			cameraOverlay.classList.add(
+				'active'
+			);
+
+
+			/*
+				Use ZXing's multi-format reader.
+
+				This allows us to scan normal retail
+				barcodes such as EAN and UPC.
+			*/
+
+			barcodeReader =
+				new ZXingBrowser.BrowserMultiFormatReader();
+
+
+			/*
+				Ask for the available cameras.
+			*/
+
+			const devices =
+				await ZXingBrowser
+					.BrowserCodeReader
+					.listVideoInputDevices();
+
+
+			if (
+				!devices ||
+				devices.length === 0
+			) {
+
+				throw new Error(
+					'No camera found.'
+				);
+
+			}
+
+
+			/*
+				Prefer the rear/environment camera.
+
+				On iPhone this normally gives us
+				the rear camera rather than selfie camera.
+			*/
+
+			let selectedDevice =
+				devices.find(
+					device =>
+						/environment|back|rear/i.test(
+							device.label
+						)
+				);
+
+
+			/*
+				If Safari hasn't exposed camera labels
+				yet, just use the last camera.
+
+				This is common before permission has
+				been granted.
+			*/
+
+			if (!selectedDevice) {
+
+				selectedDevice =
+					devices[
+						devices.length - 1
+					];
+
+			}
+
+
+			/*
+				Start continuous scanning.
+			*/
+
+			barcodeControls =
+				await barcodeReader.decodeFromVideoDevice(
+					selectedDevice.deviceId,
+					cameraVideo,
+					async (
+						result,
+						error
+					) => {
+
+						if (
+							barcodeScanLocked
+						) {
+							return;
+						}
+
+
+						if (
+							result
+						) {
+
+							const barcode =
+								result.getText();
+
+
+							if (
+								barcode
+							) {
+
+								barcodeScanLocked =
+									true;
+
+								await handleBarcodeDetected(
+									barcode
+								);
+
+							}
+
+						}
+
+					}
+				);
+
+		} catch (error) {
+
+			console.error(
+				'Unable to start barcode scanner:',
+				error
+			);
+
+			stopBarcodeScanner();
+
+			alert(
+				'Unable to access the camera. Please check your camera permission.'
+			);
+
+		}
+
+	};
 
 
 /* =========================================================
@@ -297,7 +521,7 @@ const handleBarcodeDetected =
 	) => {
 
 		/*
-			Stop the shared camera immediately.
+			Stop the camera immediately.
 		*/
 
 		stopBarcodeScanner();
@@ -305,6 +529,10 @@ const handleBarcodeDetected =
 
 		/*
 			Normalise the scanned barcode.
+
+			Remove anything except numbers so that
+			spaces or scanner formatting cannot cause
+			the lookup to fail.
 		*/
 
 		const cleanBarcode =
@@ -336,6 +564,9 @@ const handleBarcodeDetected =
 
 			/*
 				Look up the exact UPC directly.
+
+				This avoids relying on the product search
+				endpoint to match the barcode.
 			*/
 
 			const fullProduct =
@@ -388,6 +619,118 @@ const handleBarcodeDetected =
 
 	};
 
+/* =========================================================
+   STOP BARCODE SCANNER
+========================================================= */
+
+const stopBarcodeScanner =
+	() => {
+
+		barcodeScanLocked =
+			true;
+
+
+		/*
+			Stop ZXing.
+		*/
+
+		if (
+			barcodeControls
+		) {
+
+			try {
+
+				barcodeControls.stop();
+
+			} catch (error) {
+
+				console.error(
+					'Unable to stop barcode scanner:',
+					error
+				);
+
+			}
+
+			barcodeControls =
+				null;
+
+		}
+
+
+		/*
+			Reset ZXing reader.
+		*/
+
+		if (
+			barcodeReader
+		) {
+
+			try {
+
+				barcodeReader.reset();
+
+			} catch (error) {
+
+				console.error(
+					'Unable to reset barcode reader:',
+					error
+				);
+
+			}
+
+			barcodeReader =
+				null;
+
+		}
+
+
+		/*
+			Stop camera tracks as an extra
+			safety measure.
+		*/
+
+		if (
+			cameraStream
+		) {
+
+			cameraStream
+				.getTracks()
+				.forEach(
+					track => {
+						track.stop();
+					}
+				);
+
+			cameraStream =
+				null;
+
+		}
+
+
+		if (
+			cameraVideo
+		) {
+
+			cameraVideo.pause();
+
+			cameraVideo.srcObject =
+				null;
+
+		}
+
+
+		if (
+			cameraOverlay
+		) {
+
+			cameraOverlay.classList.remove(
+				'active'
+			);
+
+		}
+
+	};
+
 
 /* =========================================================
    CAMERA BUTTON
@@ -403,23 +746,18 @@ if (
 
 			event.preventDefault();
 
-			startBarcodeScanner(
-				handleBarcodeDetected
-			);
+			startBarcodeScanner();
 
 		}
 	);
 
 }
-
-
 /* =========================================================
    TIMELINE TIME FORMAT
 ========================================================= */
 
 const formatTimelineHour =
 	(hour) => {
-
 		const period =
 			hour >= 12
 				? 'PM'
@@ -431,13 +769,10 @@ const formatTimelineHour =
 		if (
 			displayHour === 0
 		) {
-
 			displayHour = 12;
-
 		}
 
 		return `${displayHour} ${period}`;
-
 	};
 
 
@@ -450,7 +785,6 @@ const getStockStatus =
 		product,
 		hour
 	) => {
-
 		const onHand =
 			Number(
 				product.onHand ?? 0
@@ -469,11 +803,9 @@ const getStockStatus =
 			i < upcString.length;
 			i++
 		) {
-
 			upcSeed +=
 				upcString.charCodeAt(i) *
 				(i + 1);
-
 		}
 
 		const random =
@@ -486,9 +818,7 @@ const getStockStatus =
 			hour === getCurrentStoreHour() &&
 			onHand <= 0
 		) {
-
 			return 'oos';
-
 		}
 
 		if (
@@ -496,29 +826,22 @@ const getStockStatus =
 			onHand > 0 &&
 			onHand <= 3
 		) {
-
 			return 'low';
-
 		}
 
 		if (
 			random < 0.10
 		) {
-
 			return 'oos';
-
 		}
 
 		if (
 			random < 0.28
 		) {
-
 			return 'low';
-
 		}
 
 		return 'available';
-
 	};
 
 
@@ -530,7 +853,6 @@ const renderStockTimeline =
 	async (
 		product
 	) => {
-
 		if (!stockTimeline) {
 			return;
 		}
@@ -541,9 +863,7 @@ const renderStockTimeline =
 		if (
 			currentStoreSeconds === null
 		) {
-
 			return;
-
 		}
 
 		const currentHour =
@@ -565,12 +885,10 @@ const renderStockTimeline =
 		if (
 			endHour < startHour
 		) {
-
 			currentTimelineHour =
 				currentHour;
 
 			return;
-
 		}
 
 		for (
@@ -578,7 +896,6 @@ const renderStockTimeline =
 			hour <= endHour;
 			hour++
 		) {
-
 			const point =
 				document.createElement(
 					'div'
@@ -601,14 +918,12 @@ const renderStockTimeline =
 			if (
 				status === 'available'
 			) {
-
 				circle.className =
 					'timeline-circle timeline-green';
 
 			} else if (
 				status === 'low'
 			) {
-
 				circle.className =
 					'timeline-circle timeline-yellow';
 
@@ -625,7 +940,6 @@ const renderStockTimeline =
 				);
 
 			} else {
-
 				circle.className =
 					'timeline-circle timeline-red';
 
@@ -640,7 +954,6 @@ const renderStockTimeline =
 				circle.appendChild(
 					label
 				);
-
 			}
 
 			const time =
@@ -671,7 +984,6 @@ const renderStockTimeline =
 			if (
 				hour < endHour
 			) {
-
 				const line =
 					document.createElement(
 						'div'
@@ -683,14 +995,11 @@ const renderStockTimeline =
 				stockTimeline.appendChild(
 					line
 				);
-
 			}
-
 		}
 
 		currentTimelineHour =
 			currentHour;
-
 	};
 
 
@@ -700,13 +1009,10 @@ const renderStockTimeline =
 
 const syncTimelineClock =
 	async () => {
-
 		if (
 			!currentProduct
 		) {
-
 			return;
-
 		}
 
 		const newStoreSeconds =
@@ -715,9 +1021,7 @@ const syncTimelineClock =
 		if (
 			newStoreSeconds === null
 		) {
-
 			return;
-
 		}
 
 		const newHour =
@@ -732,15 +1036,11 @@ const syncTimelineClock =
 			currentTimelineHour === null ||
 			newHour !== currentTimelineHour
 		) {
-
 			await renderStockTimeline(
 				currentProduct
 			);
-
 		}
-
 	};
-
 
 setInterval(
 	syncTimelineClock,
@@ -754,14 +1054,11 @@ setInterval(
 
 const getLocationId =
 	(location) => {
-
 		return location.id ??
 			location.modularId ??
 			location.locationId ??
 			'';
-
 	};
-
 
 const renderModularVisual =
 	async (
@@ -793,7 +1090,6 @@ const renderModularVisual =
 				`;
 
 				return;
-
 			}
 
 
@@ -857,9 +1153,7 @@ const renderModularVisual =
 									numberA
 								)
 							) {
-
 								return 1;
-
 							}
 
 							if (
@@ -867,9 +1161,7 @@ const renderModularVisual =
 									numberB
 								)
 							) {
-
 								return -1;
-
 							}
 
 							return (
@@ -922,173 +1214,181 @@ const renderModularVisual =
 					*/
 
 					requestAnimationFrame(
-						async () => {
+	async () => {
 
-							const shelfWidth =
-								productsContainer.clientWidth;
+		const shelfWidth =
+			productsContainer.clientWidth;
 
-							const shelfHeight =
-								90;
+		const shelfHeight =
+			90;
 
-							const gap =
-								8;
+		const gap =
+			8;
 
-							const validProducts =
-								shelfProducts.filter(
-									product =>
-										product.image &&
-										product.image.url
-								);
+		const validProducts =
+			shelfProducts.filter(
+				product =>
+					product.image &&
+					product.image.url
+			);
 
-							if (!validProducts.length) {
-								return;
+		if (!validProducts.length) {
+			return;
+		}
+
+
+		/*
+			Load all product images first
+			so we know their real widths.
+		*/
+
+		const loadedProducts =
+			await Promise.all(
+				validProducts.map(
+					product =>
+						new Promise(
+							resolve => {
+
+								const image =
+									new Image();
+
+								image.onload =
+									() => {
+
+										if (
+											image.naturalWidth &&
+											image.naturalHeight
+										) {
+
+											resolve({
+												product,
+												width:
+													(
+														image.naturalWidth /
+														image.naturalHeight
+													) *
+													shelfHeight
+											});
+
+										} else {
+
+											resolve(null);
+
+										}
+
+									};
+
+								image.onerror =
+									() => resolve(null);
+
+								image.src =
+									product.image.url;
+
 							}
+						)
+				)
+			);
 
 
-							/*
-								Load all product images first.
-							*/
+		const usableProducts =
+			loadedProducts.filter(
+				Boolean
+			);
 
-							const loadedProducts =
-								await Promise.all(
-									validProducts.map(
-										product =>
-											new Promise(
-												resolve => {
-
-													const image =
-														new Image();
-
-													image.onload =
-														() => {
-
-															if (
-																image.naturalWidth &&
-																image.naturalHeight
-															) {
-
-																resolve({
-																	product,
-																	width:
-																		(
-																			image.naturalWidth /
-																			image.naturalHeight
-																		) *
-																		shelfHeight
-																});
-
-															} else {
-
-																resolve(null);
-
-															}
-
-														};
-
-													image.onerror =
-														() =>
-															resolve(null);
-
-													image.src =
-														product.image.url;
-
-												}
-											)
-									)
-								);
+		if (!usableProducts.length) {
+			return;
+		}
 
 
-							const usableProducts =
-								loadedProducts.filter(
-									Boolean
-								);
+		/*
+			Divide the shelf between the
+			different products.
 
-							if (!usableProducts.length) {
-								return;
-							}
+			Example:
 
+			400px shelf
+			2 products
 
-							/*
-								Divide the shelf between
-								the different products.
-							*/
+			≈ 196px each after the gap.
+		*/
 
-							const productWidth =
-								(
-									shelfWidth -
-									(
-										(usableProducts.length - 1) *
-										gap
-									)
-								) /
-								usableProducts.length;
+		const productWidth =
+			(
+				shelfWidth -
+				(
+					(usableProducts.length - 1) *
+					gap
+				)
+			) /
+			usableProducts.length;
 
 
-							/*
-								Create facings for each product.
-							*/
+		/*
+			Create facings for each product
+			using its allocated section.
+		*/
 
-							usableProducts.forEach(
-								({
-									product,
-									width
-								}) => {
+		usableProducts.forEach(
+			({
+				product,
+				width
+			}) => {
 
-									const maxFacings =
-										Math.max(
-											1,
-											Math.floor(
-												(
-													productWidth +
-													gap
-												) /
-												(
-													width +
-													gap
-												)
-											)
-										);
-
-
-									for (
-										let i = 0;
-										i < maxFacings;
-										i++
-									) {
-
-										const facing =
-											document.createElement(
-												'img'
-											);
-
-										facing.src =
-											product.image.url;
-
-										facing.alt =
-											product.image.alt ||
-											product.description ||
-											'Product';
-
-										facing.className =
-											'modular-product-image';
-
-										facing.style.height =
-											`${shelfHeight}px`;
-
-										facing.style.width =
-											`${width}px`;
-
-										productsContainer.appendChild(
-											facing
-										);
-
-									}
-
-								}
-							);
-
-						}
+				const maxFacings =
+					Math.max(
+						1,
+						Math.floor(
+							(
+								productWidth +
+								gap
+							) /
+							(
+								width +
+								gap
+							)
+						)
 					);
+
+
+				for (
+					let i = 0;
+					i < maxFacings;
+					i++
+				) {
+
+					const facing =
+						document.createElement(
+							'img'
+						);
+
+					facing.src =
+						product.image.url;
+
+					facing.alt =
+						product.image.alt ||
+						product.description ||
+						'Product';
+
+					facing.className =
+						'modular-product-image';
+
+					facing.style.height =
+						`${shelfHeight}px`;
+
+					facing.style.width =
+						`${width}px`;
+
+					productsContainer.appendChild(
+						facing
+					);
+
+				}
+
+			}
+		);
+
+	}
+);
 
 				}
 			);
@@ -1107,10 +1407,7 @@ const renderModularVisual =
 			`;
 
 		}
-
 	};
-
-
 /* =========================================================
    SHOW PRODUCT DETAIL
 ========================================================= */
@@ -1126,7 +1423,6 @@ const showProductDetail =
 		input.value =
 			'';
 
-
 		/* HIDE SEARCH UI */
 
 		productSearch.hidden =
@@ -1141,12 +1437,10 @@ const showProductDetail =
 		productEmpty.hidden =
 			true;
 
-
 		/* SHOW PRODUCT DETAILS */
 
 		productDetailView.hidden =
 			false;
-
 
 		/* =====================================================
 		   PRODUCT IMAGE
@@ -1196,9 +1490,7 @@ const showProductDetail =
 		detailOnHand.textContent =
 			product.onHand ??
 			0;
-
-
-		/* =====================================================
+				/* =====================================================
 		   PRODUCT DETAILS
 		===================================================== */
 
@@ -1279,8 +1571,6 @@ const showProductDetail =
 			);
 
 		}
-
-
 		/* =====================================================
 		   LOCATIONS
 		===================================================== */
@@ -1302,7 +1592,6 @@ const showProductDetail =
 				location,
 				index
 			) => {
-
 				const card =
 					document.createElement(
 						'div'
@@ -1335,7 +1624,6 @@ const showProductDetail =
 				locationSub.textContent =
 					`SHELF ${location.shelf ?? '-'}`;
 
-
 				card.appendChild(
 					locationValue
 				);
@@ -1347,12 +1635,11 @@ const showProductDetail =
 				locationModules.appendChild(
 					card
 				);
-
 			}
 		);
 
 
-		/* =====================================================
+				/* =====================================================
 		   PRIMARY LOCATION DETAILS
 		===================================================== */
 
@@ -1366,10 +1653,8 @@ const showProductDetail =
 		if (
 			primaryLocation
 		) {
-
 			bayLocText.textContent =
-				primaryLocation.modularId ??
-				'-';
+				primaryLocation.modularId ?? '-';
 
 			bayShelfNum.textContent =
 				primaryLocation.shelf ??
@@ -1381,13 +1666,8 @@ const showProductDetail =
 			================================================= */
 
 			modularAisle.textContent =
-				String(
-					primaryLocation.aisle ?? '-'
-				)
-					.replace(
-						/^Aisle\s*/i,
-						''
-					);
+				String(primaryLocation.aisle ?? '-')
+					.replace(/^Aisle\s*/i, '');
 
 			modularSide.textContent =
 				`Side ${primaryLocation.aisleSide ?? '-'}`;
@@ -1397,18 +1677,17 @@ const showProductDetail =
 
 			modularShelf.textContent =
 				`Shelf ${primaryLocation.shelf ?? '-'}`;
-
 			await renderModularVisual(
 				primaryLocation.modularId
 			);
 
 		} else {
-
 			bayLocText.textContent =
 				'-';
 
 			bayShelfNum.textContent =
 				'-';
+
 
 			modularAisle.textContent =
 				'Aisle -';
@@ -1421,7 +1700,6 @@ const showProductDetail =
 
 			modularShelf.textContent =
 				'Shelf -';
-
 		}
 
 
@@ -1442,21 +1720,16 @@ const showProductDetail =
 		await renderStockTimeline(
 			product
 		);
-
 		await loadSalesData(
-			product.upc
-		);
-
+	product.upc
+);
 	};
-
 
 /* =========================================================
    LOAD SALES DATA
 ========================================================= */
 
-const loadSalesData = async (
-	upc
-) => {
+const loadSalesData = async (upc) => {
 
 	try {
 
@@ -1530,15 +1803,12 @@ const loadSalesData = async (
 	}
 
 };
-
-
 /* =========================================================
    SEARCH PRODUCTS
 ========================================================= */
 
 const searchProducts =
 	async () => {
-
 		const query =
 			input.value.trim();
 
@@ -1553,7 +1823,6 @@ const searchProducts =
 		if (
 			query.length < minimumLength
 		) {
-
 			productResults.hidden =
 				true;
 
@@ -1567,11 +1836,9 @@ const searchProducts =
 				false;
 
 			return;
-
 		}
 
 		try {
-
 			const results =
 				await apiRequest(
 					`${API_BASE}/search?q=` +
@@ -1586,7 +1853,6 @@ const searchProducts =
 				!Array.isArray(results) ||
 				results.length === 0
 			) {
-
 				productResults.hidden =
 					false;
 
@@ -1600,7 +1866,6 @@ const searchProducts =
 					'No products found.';
 
 				return;
-
 			}
 
 			productEmpty.hidden =
@@ -1661,15 +1926,11 @@ const searchProducts =
 					image.addEventListener(
 						'error',
 						() => {
-
 							image.removeAttribute(
 								'src'
 							);
-
 						},
-						{
-							once: true
-						}
+						{ once: true }
 					);
 
 
@@ -1726,9 +1987,7 @@ const searchProducts =
 					result.addEventListener(
 						'click',
 						async () => {
-
 							try {
-
 								const fullProduct =
 									await apiRequest(
 										`${API_BASE}/${encodeURIComponent(
@@ -1741,14 +2000,11 @@ const searchProducts =
 								);
 
 							} catch (error) {
-
 								console.error(
 									'Unable to load product:',
 									error
 								);
-
 							}
-
 						}
 					);
 
@@ -1756,12 +2012,10 @@ const searchProducts =
 					productResults.appendChild(
 						result
 					);
-
 				}
 			);
 
 		} catch (error) {
-
 			console.error(
 				'Product search failed:',
 				error
@@ -1778,9 +2032,7 @@ const searchProducts =
 
 			productEmpty.textContent =
 				'Unable to search products.';
-
 		}
-
 	};
 
 
@@ -1788,23 +2040,19 @@ const searchProducts =
    SEARCH EVENTS
 ========================================================= */
 
+
 input.addEventListener(
 	'input',
 	searchProducts
 );
-
 input.addEventListener(
 	'keydown',
 	event => {
-
 		if (
 			event.key === 'Enter'
 		) {
-
 			searchProducts();
-
 		}
-
 	}
 );
 
@@ -1826,7 +2074,6 @@ productBackButton.addEventListener(
 		if (
 			!productDetailView.hidden
 		) {
-
 			event.preventDefault();
 
 			currentProduct =
@@ -1853,7 +2100,6 @@ productBackButton.addEventListener(
 			input.focus();
 
 			return;
-
 		}
 
 		/*
@@ -1863,10 +2109,8 @@ productBackButton.addEventListener(
 		*/
 
 		// Normal navigation to index.html.
-
 	}
 );
-
 
 /* =========================================================
    TAB SWITCHING
@@ -1923,119 +2167,78 @@ tabButtons.forEach(
 	}
 );
 
+const timestampDayButton = document.getElementById('timestamp-day-button');
+const timestampDay = document.getElementById('timestamp-day');
+const timestampOptions = document.getElementById('timestamp-options');
+const timestampOptionsButtons = document.querySelectorAll('.timestamp-option');
 
-const timestampDayButton =
-	document.getElementById(
-		'timestamp-day-button'
-	);
+if (timestampDayButton && timestampOptions) {
 
-const timestampDay =
-	document.getElementById(
-		'timestamp-day'
-	);
+	timestampDayButton.addEventListener('click', (event) => {
 
-const timestampOptions =
-	document.getElementById(
-		'timestamp-options'
-	);
+		event.stopPropagation();
 
-const timestampOptionsButtons =
-	document.querySelectorAll(
-		'.timestamp-option'
-	);
+		const isOpen =
+			timestampDayButton.getAttribute('aria-expanded') === 'true';
+
+		timestampDayButton.setAttribute(
+			'aria-expanded',
+			String(!isOpen)
+		);
+
+		timestampOptions.hidden = isOpen;
+
+	});
 
 
-if (
-	timestampDayButton &&
-	timestampOptions
-) {
+	timestampOptionsButtons.forEach((option) => {
 
-	timestampDayButton.addEventListener(
-		'click',
-		(event) => {
+		option.addEventListener('click', (event) => {
 
 			event.stopPropagation();
 
-			const isOpen =
-				timestampDayButton.getAttribute(
-					'aria-expanded'
-				) === 'true';
+			const selectedDay = option.dataset.day;
 
-			timestampDayButton.setAttribute(
-				'aria-expanded',
-				String(!isOpen)
-			);
+			timestampDay.textContent = selectedDay;
 
-			timestampOptions.hidden =
-				isOpen;
+			timestampOptionsButtons.forEach((button) => {
 
-		}
-	);
+				const isSelected =
+					button.dataset.day === selectedDay;
 
+				button.classList.toggle(
+					'active',
+					isSelected
+				);
 
-	timestampOptionsButtons.forEach(
-		(option) => {
+				button.setAttribute(
+					'aria-selected',
+					String(isSelected)
+				);
 
-			option.addEventListener(
-				'click',
-				(event) => {
-
-					event.stopPropagation();
-
-					const selectedDay =
-						option.dataset.day;
-
-					timestampDay.textContent =
-						selectedDay;
-
-					timestampOptionsButtons.forEach(
-						(button) => {
-
-							const isSelected =
-								button.dataset.day ===
-								selectedDay;
-
-							button.classList.toggle(
-								'active',
-								isSelected
-							);
-
-							button.setAttribute(
-								'aria-selected',
-								String(isSelected)
-							);
-
-						}
-					);
-
-					timestampDayButton.setAttribute(
-						'aria-expanded',
-						'false'
-					);
-
-					timestampOptions.hidden =
-						true;
-
-				}
-			);
-
-		}
-	);
-
-
-	document.addEventListener(
-		'click',
-		() => {
+			});
 
 			timestampDayButton.setAttribute(
 				'aria-expanded',
 				'false'
 			);
 
-			timestampOptions.hidden =
-				true;
+			timestampOptions.hidden = true;
 
-		}
-	);
+		});
+
+	});
+
+
+	document.addEventListener('click', () => {
+
+		timestampDayButton.setAttribute(
+			'aria-expanded',
+			'false'
+		);
+
+		timestampOptions.hidden = true;
+
+	});
 
 }
