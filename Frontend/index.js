@@ -79,6 +79,10 @@ const modularActivityCards =
 	document.querySelector(
 		'#modular-activity-cards'
 	);
+const modularSearch =
+	document.querySelector(
+		'#modular-search-upc'
+	);
 /* =========================================================
    DEPARTMENT NAMES
 ========================================================= */
@@ -1864,12 +1868,41 @@ const getModularActivity =
 				);
 
 
+			const searchUPC =
+				modularSearch
+					?.value
+					.trim() || '';
+
+
+			const queryParams =
+				new URLSearchParams();
+
+
+			if (selectedDates.length) {
+
+				queryParams.set(
+					'dueDates',
+					selectedDates.join(',')
+				);
+
+			}
+
+
+			if (searchUPC) {
+
+				queryParams.set(
+					'upc',
+					searchUPC
+				);
+
+			}
+
+
 			const query =
-				selectedDates.length
-					? `?dueDates=${encodeURIComponent(
-						selectedDates.join(',')
-					)}`
+				queryParams.toString()
+					? `?${queryParams.toString()}`
 					: '';
+
 
 
 			const data =
@@ -2069,7 +2102,6 @@ today.setHours(
 	0
 );
 
-
 const differenceMs =
 	dueDate.getTime() -
 	today.getTime();
@@ -2165,7 +2197,6 @@ const modularSnapshot =
 	document.createElement(
 		'div'
 	);
-
 modularSnapshot.className =
 	'modular-activity-snapshot';
 
@@ -2415,6 +2446,34 @@ lucide.createIcons();
 		}
 
 	};
+if (modularSearch) {
+
+	let searchTimeout = null;
+
+
+	modularSearch.addEventListener(
+		'input',
+		() => {
+
+			clearTimeout(
+				searchTimeout
+			);
+
+
+			searchTimeout =
+				setTimeout(
+					() => {
+
+						getModularActivity();
+
+					},
+					250
+				);
+
+		}
+	);
+
+}
 const updateDueDateLabel =
 () => {
 

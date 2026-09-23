@@ -306,6 +306,10 @@ router.get(
    GET MODULAR ACTIVITY
 ========================================================= */
 
+/* =========================================================
+   GET MODULAR ACTIVITY
+========================================================= */
+
 router.get(
 	'/modular-activity',
 	async (req, res) => {
@@ -313,7 +317,8 @@ router.get(
 		try {
 
 			const {
-				dueDates
+				dueDates,
+				upc
 			} = req.query;
 
 
@@ -359,13 +364,44 @@ router.get(
 
 
 					query += `
-						AND ma.due_date::date = ANY($1::date[])
+						AND ma.due_date::date =
+							ANY($${values.length}::date[])
 					`;
 
 				}
 
 			}
 
+
+			/* =====================================================
+			   FILTER BY UPC
+			===================================================== */
+
+			if (upc) {
+
+				values.push(
+					String(upc).trim()
+				);
+
+
+				query += `
+					AND EXISTS (
+						SELECT 1
+
+						FROM modular_items mi
+
+						WHERE
+							mi.modular_bay_id = mb.id
+							AND mi.upc = $${values.length}
+					)
+				`;
+
+			}
+
+
+			/* =====================================================
+			   ORDER
+			===================================================== */
 
 			query += `
 				ORDER BY
