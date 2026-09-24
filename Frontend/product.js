@@ -308,18 +308,103 @@ if (
 						cleanBarcode;
 
 
-					/*
-						Trigger the existing search.
-					*/
+					try {
 
-					input.dispatchEvent(
-						new Event(
-							'input',
-							{
-								bubbles: true
-							}
-						)
-					);
+						/*
+							Search for the scanned
+							product.
+						*/
+
+						const results =
+							await apiRequest(
+								`${API_BASE}/search?q=` +
+								encodeURIComponent(
+									cleanBarcode
+								)
+							);
+
+
+						/*
+							No product found.
+						*/
+
+						if (
+							!Array.isArray(results) ||
+							results.length === 0
+						) {
+
+							productSearchSection.hidden =
+								false;
+
+							productResults.hidden =
+								true;
+
+							productDetailView.hidden =
+								true;
+
+							productEmpty.hidden =
+								false;
+
+							productEmpty.textContent =
+								'No product found for this barcode.';
+
+							input.focus();
+
+							return;
+
+						}
+
+
+						/*
+							Load the full product.
+						*/
+
+						const product =
+							results[0];
+
+
+						const fullProduct =
+							await apiRequest(
+								`${API_BASE}/${encodeURIComponent(
+									product.upc
+								)}`
+							);
+
+
+						/*
+							Go straight to the
+							product detail page.
+						*/
+
+						await showProductDetail(
+							fullProduct
+						);
+
+					} catch (error) {
+
+						console.error(
+							'Unable to load scanned product:',
+							error
+						);
+
+						productSearchSection.hidden =
+							false;
+
+						productResults.hidden =
+							true;
+
+						productDetailView.hidden =
+							true;
+
+						productEmpty.hidden =
+							false;
+
+						productEmpty.textContent =
+							'Unable to find this product.';
+
+						input.focus();
+
+					}
 
 				}
 			);
