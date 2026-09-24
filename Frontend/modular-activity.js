@@ -1928,7 +1928,7 @@ const enableModularBayImageZoom =
 		);
 
 	};
-/* =========================================================
+	/* =========================================================
    MOD TAG CAMERA BUTTON
 ========================================================= */
 
@@ -1962,11 +1962,6 @@ if (
                     );
 
 
-                    /*
-                        Stop the camera immediately
-                        after a valid scan.
-                    */
-
                     stopBarcodeScanner();
 
 
@@ -1982,24 +1977,7 @@ if (
                         modularSearchInput.value =
                             modularTag;
 
-
                         modularSearchInput.focus();
-
-
-                        /*
-                            Trigger the normal input
-                            event in case the search
-                            field listens for it.
-                        */
-
-                        modularSearchInput.dispatchEvent(
-                            new Event(
-                                'input',
-                                {
-                                    bubbles: true
-                                }
-                            )
-                        );
 
                     }
 

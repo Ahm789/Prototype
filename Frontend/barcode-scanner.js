@@ -337,7 +337,7 @@ const stopBarcodeScanner =
 		}
 
 	};
-	/* =========================================================
+/* =========================================================
    START MOD TAG SCANNER
 ========================================================= */
 
@@ -416,8 +416,7 @@ const startModularTagScanner =
 
 
             /*
-                Start QR scanning with a
-                higher-resolution camera stream.
+                Start continuous QR scanning.
             */
 
             barcodeControls =
@@ -448,111 +447,40 @@ const startModularTagScanner =
                                     .trim();
 
 
-                            /*
-                                Only accept a valid
-                                Mod tag.
-
-                                Example:
-
-                                FF-15-R-13
-                            */
-
-                            const modularTagPattern =
-                                /^[A-Z0-9]+-[A-Z0-9]+-[LR]-[0-9]+$/i;
-
-
                             if (
-                                !modularTagPattern.test(
-                                    value
-                                )
-                            ) {
-
-                                return;
-
-                            }
-
-
-                            barcodeScanLocked =
-                                true;
-
-
-                            await onModularTagDetected(
                                 value
-                            );
-
-                        }
-
-                    }
-                );
-
-
-            /*
-                Request better camera
-                resolution where supported.
-            */
-
-            if (
-                cameraVideo &&
-                cameraVideo.srcObject
-            ) {
-
-                const tracks =
-                    cameraVideo.srcObject
-                        .getVideoTracks();
-
-
-                tracks.forEach(
-                    track => {
-
-                        try {
-
-                            track.applyConstraints(
-                                {
-                                    width: {
-                                        ideal: 1920
-                                    },
-
-                                    height: {
-                                        ideal: 1080
-                                    },
-
-                                    focusMode:
-                                        'continuous'
-                                }
-                            );
-
-                        }
-                        catch (
-                            error
-                        ) {
-
-                            /*
-                                Some browsers do not
-                                support focusMode.
-                            */
-
-                            try {
-
-                                track.applyConstraints(
-                                    {
-                                        width: {
-                                            ideal: 1920
-                                        },
-
-                                        height: {
-                                            ideal: 1080
-                                        }
-                                    }
-                                );
-
-                            }
-                            catch (
-                                constraintError
                             ) {
 
-                                console.warn(
-                                    'Unable to improve camera constraints:',
-                                    constraintError
+                                /*
+                                    Only accept a valid
+                                    Mod tag format.
+
+                                    Example:
+
+                                    FF-15-R-13
+                                */
+
+                                const modularTagPattern =
+                                    /^[A-Z0-9]+-[A-Z0-9]+-[LR]-[0-9]+$/i;
+
+
+                                if (
+                                    !modularTagPattern.test(
+                                        value
+                                    )
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                barcodeScanLocked =
+                                    true;
+
+
+                                await onModularTagDetected(
+                                    value
                                 );
 
                             }
@@ -561,8 +489,6 @@ const startModularTagScanner =
 
                     }
                 );
-
-            }
 
         }
         catch (
