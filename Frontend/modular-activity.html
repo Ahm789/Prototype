@@ -116,6 +116,7 @@
                             <input
                                 type="checkbox"
                                 id="scan-mode-toggle"
+                                checked
                             >
 
                             <span class="scan-mode-slider"></span>
@@ -211,6 +212,22 @@
 
                     <div class="modular-activity-step-line"></div>
 
+                    <div class="modular-activity-preview-title">
+
+                        Modular Preview (<span id="modular-preview-bay-count">0</span> bays)
+
+                    </div>
+                    
+                </div>
+
+                <!-- =====================================================
+                    REMAINING MOD TAGS
+                ====================================================== -->
+
+                <div class="modular-activity-remaining">
+
+                    Remaining Mod Tags (<span id="modular-remaining-count">0</span>)
+
                 </div>
 			</div>
             <!-- =====================================================
@@ -243,7 +260,7 @@
                     id="modular-activity-next"
                     disabled
                 >
-                    Next (../...)
+                    Next (<span id="modular-activity-current">0</span>/<span id="modular-activity-total">0</span>)
                 </button>
 
             </div>

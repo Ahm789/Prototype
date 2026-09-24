@@ -3876,6 +3876,7 @@ background-repeat: no-repeat;
 	background: white;
 
 	border-bottom: 1px solid #d6e9e9;
+	border-radius: 6px;
 }
 
 
@@ -4035,19 +4036,23 @@ background-repeat: no-repeat;
 
 .modular-activity-step {
 
-	display: flex;
+    display: flex;
 
-	flex-direction: column;
+    flex-direction: column;
 
-	width: 100%;
+    width: 100%;
 
-	box-sizing: border-box;
+    box-sizing: border-box;
 
-	margin-top: 10px;
+    margin-top: 10px;
 
-	padding: 10px 12px 0;
+    padding: 10px 12px 0;
 
-	background: white;
+    background: white;
+
+    border: 2px solid #0A928C;
+
+    border-radius: 6px;
 
 }
 
@@ -4136,56 +4141,6 @@ background-repeat: no-repeat;
 	gap: 10px;
 
 }
-
-
-/* =========================================================
-   CAMERA BUTTON
-========================================================= */
-
-.modular-search-camera {
-
-	display: flex;
-
-	align-items: center;
-
-	justify-content: center;
-
-	flex: 0 0 44px;
-
-	width: 44px;
-
-	height: 40px;
-
-	padding: 0;
-
-	box-sizing: border-box;
-
-	color: #0A928C;
-
-	background: white;
-
-	border: 2px solid #0A928C;
-
-	border-radius: 4px;
-
-	cursor: pointer;
-
-}
-
-
-.modular-search-camera svg {
-
-	width: 19px;
-
-	height: 19px;
-
-	stroke: #0A928C;
-
-	stroke-width: 2.3;
-
-}
-
-
 /* =========================================================
    OR
 ========================================================= */
@@ -4297,7 +4252,7 @@ background-repeat: no-repeat;
 
 	color: #555;
 
-	font-size: 10px;
+	font-size: 12px;
 
 	font-weight: 600;
 
@@ -4322,7 +4277,23 @@ background-repeat: no-repeat;
 
 }
 
+/* =========================================================
+   MODULAR PREVIEW TITLE
+========================================================= */
 
+.modular-activity-preview-title {
+
+	margin-top: 9px;
+
+	color: #555;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
 /* =========================================================
    MODULAR ACTIVITY BAY SNAPSHOTS
 ========================================================= */
@@ -4340,6 +4311,7 @@ background-repeat: no-repeat;
 	box-sizing: border-box;
 
 	margin: 10px 0 0;
+	margin-bottom: 15px;
 
 	padding: 0;
 
@@ -4467,5 +4439,57 @@ background-repeat: no-repeat;
 	object-fit: fill;
 
 	object-position: center center;
+
+}
+.modular-activity-snapshot-loading {
+
+	grid-column: 1 / -1;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	padding: 14px 12px;
+
+	color: #666;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1;
+
+	text-align: center;
+
+}
+/* =========================================================
+   REMAINING MOD TAGS
+========================================================= */
+
+.modular-activity-remaining {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-top: 10px;
+
+    padding: 0 2px;
+
+    color: white;
+
+    background: transparent;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
 
 }

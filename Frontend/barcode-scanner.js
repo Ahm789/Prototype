@@ -337,3 +337,177 @@ const stopBarcodeScanner =
 		}
 
 	};
+	/* =========================================================
+   START MOD TAG SCANNER
+========================================================= */
+
+const startModularTagScanner =
+    async (
+        onModularTagDetected
+    ) => {
+
+        createCameraScanner();
+
+        barcodeScanLocked =
+            false;
+
+        try {
+
+            cameraOverlay.classList.add(
+                'active'
+            );
+
+
+            /*
+                Use ZXing's QR-code reader.
+            */
+
+            barcodeReader =
+                new ZXingBrowser.BrowserQRCodeReader();
+
+
+            /*
+                Ask for the available cameras.
+            */
+
+            const devices =
+                await ZXingBrowser
+                    .BrowserCodeReader
+                    .listVideoInputDevices();
+
+
+            if (
+                !devices ||
+                devices.length === 0
+            ) {
+
+                throw new Error(
+                    'No camera found.'
+                );
+
+            }
+
+
+            /*
+                Prefer the rear/environment camera.
+            */
+
+            let selectedDevice =
+                devices.find(
+                    device =>
+                        /environment|back|rear/i.test(
+                            device.label
+                        )
+                );
+
+
+            /*
+                Fallback to the last camera.
+            */
+
+            if (!selectedDevice) {
+
+                selectedDevice =
+                    devices[
+                        devices.length - 1
+                    ];
+
+            }
+
+
+            /*
+                Start continuous QR scanning.
+            */
+
+            barcodeControls =
+                await barcodeReader.decodeFromVideoDevice(
+                    selectedDevice.deviceId,
+                    cameraVideo,
+                    async (
+                        result,
+                        error
+                    ) => {
+
+                        if (
+                            barcodeScanLocked
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        if (
+                            result
+                        ) {
+
+                            const value =
+                                result
+                                    .getText()
+                                    .trim();
+
+
+                            if (
+                                value
+                            ) {
+
+                                /*
+                                    Only accept a valid
+                                    Mod tag format.
+
+                                    Example:
+
+                                    FF-15-R-13
+                                */
+
+                                const modularTagPattern =
+                                    /^[A-Z0-9]+-[A-Z0-9]+-[LR]-[0-9]+$/i;
+
+
+                                if (
+                                    !modularTagPattern.test(
+                                        value
+                                    )
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                barcodeScanLocked =
+                                    true;
+
+
+                                await onModularTagDetected(
+                                    value
+                                );
+
+                            }
+
+                        }
+
+                    }
+                );
+
+        }
+        catch (
+            error
+        ) {
+
+            console.error(
+                'Unable to start Mod tag scanner:',
+                error
+            );
+
+
+            stopBarcodeScanner();
+
+
+            alert(
+                'Unable to access the camera. Please check your camera permission.'
+            );
+
+        }
+
+    };

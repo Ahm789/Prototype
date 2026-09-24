@@ -1604,6 +1604,10 @@ const createModularBaySnapshot =
    LOAD MODULAR ACTIVITY BAYS
 ========================================================= */
 
+/* =========================================================
+   LOAD MODULAR ACTIVITY BAYS
+========================================================= */
+
 const loadModularActivityBays =
 	async () => {
 
@@ -1620,12 +1624,63 @@ const loadModularActivityBays =
 		}
 
 
+		/* =================================================
+		   FIND STEP 1
+		================================================= */
+
+		const step =
+			document.querySelector(
+				'.modular-activity-step'
+			);
+
+
+		if (
+			!step
+		) {
+
+			console.error(
+				'Modular activity Step 1 was not found.'
+			);
+
+			return;
+
+		}
+
+
+		/* =================================================
+		   CREATE LOADING STATE
+		================================================= */
+
+		const loading =
+			document.createElement(
+				'div'
+			);
+
+		loading.className =
+			'modular-activity-snapshot-loading';
+
+		loading.textContent =
+			'Loading modular bays...';
+
+
+		step.appendChild(
+			loading
+		);
+
+
 		try {
 
 			const snapshots =
 				await createModularBaySnapshot(
 					planogramNumber
 				);
+
+
+			/* =================================================
+			   REMOVE LOADING STATE
+			================================================= */
+
+			loading.remove();
 
 
 			if (
@@ -1635,29 +1690,6 @@ const loadModularActivityBays =
 
 				console.warn(
 					'No modular bay snapshots found.'
-				);
-
-				return;
-
-			}
-
-
-			/* =================================================
-			   FIND STEP 1
-			================================================= */
-
-			const step =
-				document.querySelector(
-					'.modular-activity-step'
-				);
-
-
-			if (
-				!step
-			) {
-
-				console.error(
-					'Modular activity Step 1 was not found.'
 				);
 
 				return;
@@ -1677,7 +1709,34 @@ const loadModularActivityBays =
 			snapshotContainer.className =
 				'modular-activity-snapshots';
 
+			const previewBayCount =
+				document.querySelector(
+					'#modular-preview-bay-count'
+				);
+			const modularActivityTotal =
+				document.querySelector(
+					'#modular-activity-total'
+				);
 
+
+			if (
+				modularActivityTotal
+			) {
+
+				modularActivityTotal.textContent =
+					snapshots.length;
+
+			}
+
+
+			if (
+				previewBayCount
+			) {
+
+				previewBayCount.textContent =
+					snapshots.length;
+
+			}
 			/* =================================================
 			   CREATE BAY SNAPSHOTS
 			================================================= */
@@ -1753,14 +1812,21 @@ const loadModularActivityBays =
 
 
 			/* =================================================
-			   PLACE BAYS DIRECTLY UNDER STEP 1
+			   PLACE BAYS INSIDE STEP 1
 			================================================= */
 
 			step.appendChild(
-                snapshotContainer
-            );
+				snapshotContainer
+			);
 
-            enableModularBayImageZoom();
+
+			/* =================================================
+			   ENABLE BAY IMAGE ZOOM
+			================================================= */
+
+			enableModularBayImageZoom();
+
+
 			/* =================================================
 			   REFRESH LUCIDE ICONS
 			================================================= */
@@ -1776,6 +1842,10 @@ const loadModularActivityBays =
 				'Failed to load modular activity bays:',
 				error
 			);
+
+
+			loading.textContent =
+				'Failed to load modular bays.';
 
 		}
 
@@ -1858,6 +1928,66 @@ const enableModularBayImageZoom =
 		);
 
 	};
+/* =========================================================
+   MOD TAG CAMERA BUTTON
+========================================================= */
+
+const modularSearchCamera =
+    document.querySelector(
+        '#modular-search-camera'
+    );
+
+const modularSearchInput =
+    document.querySelector(
+        '#modular-search-upc'
+    );
+
+
+if (
+    modularSearchCamera
+) {
+
+    modularSearchCamera.addEventListener(
+        'click',
+        () => {
+
+            startModularTagScanner(
+                async (
+                    modularTag
+                ) => {
+
+                    console.log(
+                        'Mod tag scanned:',
+                        modularTag
+                    );
+
+
+                    stopBarcodeScanner();
+
+
+                    /*
+                        Put the scanned Mod tag
+                        into the search field.
+                    */
+
+                    if (
+                        modularSearchInput
+                    ) {
+
+                        modularSearchInput.value =
+                            modularTag;
+
+                        modularSearchInput.focus();
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+}
 /* =========================================================
    INITIALISE
 ========================================================= */
