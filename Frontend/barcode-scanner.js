@@ -416,7 +416,8 @@ const startModularTagScanner =
 
 
             /*
-                Start continuous QR scanning.
+                Start QR scanning with a
+                higher-resolution camera stream.
             */
 
             barcodeControls =
@@ -447,40 +448,111 @@ const startModularTagScanner =
                                     .trim();
 
 
+                            /*
+                                Only accept a valid
+                                Mod tag.
+
+                                Example:
+
+                                FF-15-R-13
+                            */
+
+                            const modularTagPattern =
+                                /^[A-Z0-9]+-[A-Z0-9]+-[LR]-[0-9]+$/i;
+
+
                             if (
-                                value
+                                !modularTagPattern.test(
+                                    value
+                                )
                             ) {
 
-                                /*
-                                    Only accept a valid
-                                    Mod tag format.
+                                return;
 
-                                    Example:
-
-                                    FF-15-R-13
-                                */
-
-                                const modularTagPattern =
-                                    /^[A-Z0-9]+-[A-Z0-9]+-[LR]-[0-9]+$/i;
+                            }
 
 
-                                if (
-                                    !modularTagPattern.test(
-                                        value
-                                    )
-                                ) {
+                            barcodeScanLocked =
+                                true;
 
-                                    return;
 
+                            await onModularTagDetected(
+                                value
+                            );
+
+                        }
+
+                    }
+                );
+
+
+            /*
+                Request better camera
+                resolution where supported.
+            */
+
+            if (
+                cameraVideo &&
+                cameraVideo.srcObject
+            ) {
+
+                const tracks =
+                    cameraVideo.srcObject
+                        .getVideoTracks();
+
+
+                tracks.forEach(
+                    track => {
+
+                        try {
+
+                            track.applyConstraints(
+                                {
+                                    width: {
+                                        ideal: 1920
+                                    },
+
+                                    height: {
+                                        ideal: 1080
+                                    },
+
+                                    focusMode:
+                                        'continuous'
                                 }
+                            );
 
+                        }
+                        catch (
+                            error
+                        ) {
 
-                                barcodeScanLocked =
-                                    true;
+                            /*
+                                Some browsers do not
+                                support focusMode.
+                            */
 
+                            try {
 
-                                await onModularTagDetected(
-                                    value
+                                track.applyConstraints(
+                                    {
+                                        width: {
+                                            ideal: 1920
+                                        },
+
+                                        height: {
+                                            ideal: 1080
+                                        }
+                                    }
+                                );
+
+                            }
+                            catch (
+                                constraintError
+                            ) {
+
+                                console.warn(
+                                    'Unable to improve camera constraints:',
+                                    constraintError
                                 );
 
                             }
@@ -489,6 +561,8 @@ const startModularTagScanner =
 
                     }
                 );
+
+            }
 
         }
         catch (

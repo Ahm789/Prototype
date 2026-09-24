@@ -4493,3 +4493,14 @@ background-repeat: no-repeat;
     line-height: 1.2;
 
 }
+.barcode-camera-video {
+
+    display: block;
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
