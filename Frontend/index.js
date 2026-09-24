@@ -209,15 +209,386 @@ const createModularBaySnapshot =
 				planogramNumber
 			);
 
-
 		if (
 			!Array.isArray(products) ||
 			products.length === 0
 		) {
-
 			return null;
-
 		}
+
+
+		/* =====================================================
+		   SHARED BAY DIMENSIONS
+		===================================================== */
+
+		const shelfHeight =
+			90;
+
+		const gap =
+			8;
+
+		const bayWidth =
+			800;
+
+		const minimumBayHeight =
+			300;
+
+		const cropPadding =
+			0;
+
+
+		/* =====================================================
+		   CROP PRODUCT IMAGE TO VISIBLE CONTENT
+		===================================================== */
+
+		const cropProductImage =
+			imageUrl =>
+				new Promise(
+					resolve => {
+
+						const image =
+							new Image();
+
+						image.crossOrigin =
+							'anonymous';
+
+						image.onload =
+							() => {
+
+								try {
+
+									const naturalWidth =
+										image.naturalWidth;
+
+									const naturalHeight =
+										image.naturalHeight;
+
+
+									if (
+										!naturalWidth ||
+										!naturalHeight
+									) {
+
+										resolve(
+											null
+										);
+
+										return;
+
+									}
+
+
+									/* =================================
+									   CREATE SOURCE CANVAS
+									================================= */
+
+									const sourceCanvas =
+										document.createElement(
+											'canvas'
+										);
+
+									sourceCanvas.width =
+										naturalWidth;
+
+									sourceCanvas.height =
+										naturalHeight;
+
+
+									const sourceContext =
+										sourceCanvas.getContext(
+											'2d',
+											{
+												willReadFrequently:
+													true
+											}
+										);
+
+
+									sourceContext.drawImage(
+										image,
+										0,
+										0,
+										naturalWidth,
+										naturalHeight
+									);
+
+
+									const imageData =
+										sourceContext.getImageData(
+											0,
+											0,
+											naturalWidth,
+											naturalHeight
+										);
+
+
+									const pixels =
+										imageData.data;
+
+
+									/* =================================
+									   FIND NON-WHITE CONTENT
+									================================= */
+
+									let left =
+										naturalWidth;
+
+									let right =
+										-1;
+
+									let top =
+										naturalHeight;
+
+									let bottom =
+										-1;
+
+
+									for (
+										let y = 0;
+										y < naturalHeight;
+										y++
+									) {
+
+										for (
+											let x = 0;
+											x < naturalWidth;
+											x++
+										) {
+
+											const index =
+												(
+													(
+														y *
+														naturalWidth
+													) +
+													x
+												) *
+												4;
+
+
+											const red =
+												pixels[
+													index
+												];
+
+											const green =
+												pixels[
+													index + 1
+												];
+
+											const blue =
+												pixels[
+													index + 2
+												];
+
+											const alpha =
+												pixels[
+													index + 3
+												];
+
+
+											/*
+											   Treat transparent
+											   and near-white pixels
+											   as background.
+											*/
+
+											const isTransparent =
+												alpha <
+												20;
+
+											const isWhite =
+												red >= 245 &&
+												green >= 245 &&
+												blue >= 245;
+
+
+											if (
+												!isTransparent &&
+												!isWhite
+											) {
+
+												left =
+													Math.min(
+														left,
+														x
+													);
+
+												right =
+													Math.max(
+														right,
+														x
+													);
+
+												top =
+													Math.min(
+														top,
+														y
+													);
+
+												bottom =
+													Math.max(
+														bottom,
+														y
+													);
+
+											}
+
+										}
+
+									}
+
+
+									/* =================================
+									   FALLBACK TO FULL IMAGE
+									================================= */
+
+									if (
+										right < left ||
+										bottom < top
+									) {
+
+										resolve({
+											url:
+												imageUrl,
+
+											width:
+												naturalWidth,
+
+											height:
+												naturalHeight
+										});
+
+										return;
+
+									}
+
+
+									/* =================================
+									   APPLY CROP PADDING
+									================================= */
+
+									left =
+										Math.max(
+											0,
+											left -
+											cropPadding
+										);
+
+									top =
+										Math.max(
+											0,
+											top -
+											cropPadding
+										);
+
+									right =
+										Math.min(
+											naturalWidth - 1,
+											right +
+											cropPadding
+										);
+
+									bottom =
+										Math.min(
+											naturalHeight - 1,
+											bottom +
+											cropPadding
+										);
+
+
+									const croppedWidth =
+										right -
+										left +
+										1;
+
+									const croppedHeight =
+										bottom -
+										top +
+										1;
+
+
+									/* =================================
+									   CREATE CROPPED CANVAS
+									================================= */
+
+									const croppedCanvas =
+										document.createElement(
+											'canvas'
+										);
+
+									croppedCanvas.width =
+										croppedWidth;
+
+									croppedCanvas.height =
+										croppedHeight;
+
+
+									const croppedContext =
+										croppedCanvas.getContext(
+											'2d'
+										);
+
+
+									croppedContext.drawImage(
+										image,
+
+										left,
+										top,
+										croppedWidth,
+										croppedHeight,
+
+										0,
+										0,
+										croppedWidth,
+										croppedHeight
+									);
+
+
+									resolve({
+										url:
+											croppedCanvas.toDataURL(
+												'image/png'
+											),
+
+										width:
+											croppedWidth,
+
+										height:
+											croppedHeight
+									});
+
+								}
+								catch (
+									error
+								) {
+
+									console.error(
+										'Failed to crop product image:',
+										error
+									);
+
+									resolve(
+										null
+									);
+
+								}
+
+							};
+
+
+						image.onerror =
+							() =>
+								resolve(
+									null
+								);
+
+
+						image.src =
+							imageUrl;
+
+					}
+				);
 
 
 		/* =====================================================
@@ -227,7 +598,6 @@ const createModularBaySnapshot =
 		const bays =
 			new Map();
 
-
 		products.forEach(
 			product => {
 
@@ -235,7 +605,6 @@ const createModularBaySnapshot =
 					String(
 						product.bayNumber ?? ''
 					).trim();
-
 
 				if (!bays.has(bayNumber)) {
 
@@ -246,7 +615,6 @@ const createModularBaySnapshot =
 
 				}
 
-
 				bays
 					.get(bayNumber)
 					.push(product);
@@ -256,10 +624,67 @@ const createModularBaySnapshot =
 
 
 		/* =====================================================
+		   CALCULATE SHARED BAY HEIGHT
+		===================================================== */
+
+		const maxShelfCount =
+			Math.max(
+				...[
+					...bays.values()
+				].map(
+					bayProducts =>
+						new Set(
+							bayProducts.map(
+								product =>
+									String(
+										product.shelf ?? ''
+									).trim()
+							)
+						).size
+				)
+			);
+
+
+		const calculatedBayHeight =
+			(
+				maxShelfCount *
+				shelfHeight
+			) +
+			(
+				Math.max(
+					0,
+					maxShelfCount - 1
+				) *
+				gap
+			);
+
+
+		const bayHeight =
+			Math.max(
+				minimumBayHeight,
+				calculatedBayHeight
+			);
+
+
+		/* =====================================================
 		   GENERATE ONE SNAPSHOT PER BAY
 		===================================================== */
 
 		const snapshots = [];
+
+
+		/*
+		   Store the cropped canvas information first.
+
+		   This lets us find the widest snapshot before
+		   creating the final images.
+
+		   The widest snapshot naturally produces the
+		   smallest displayed height when all images use
+		   width: 100%.
+		*/
+
+		const pendingSnapshots = [];
 
 
 		for (
@@ -271,7 +696,7 @@ const createModularBaySnapshot =
 		) {
 
 			/* =================================================
-			   TEMPORARY MODULAR VISUAL
+			   CREATE TEMPORARY MODULAR VISUAL
 			================================================= */
 
 			const modularVisual =
@@ -282,17 +707,20 @@ const createModularBaySnapshot =
 			modularVisual.className =
 				'modular-visual';
 
-
-			/*
-				Use a fixed width so the generated snapshot
-				has a predictable layout.
-			*/
-
 			modularVisual.style.width =
-				'fit-content';
+				`${bayWidth}px`;
+
+			modularVisual.style.height =
+				`${bayHeight}px`;
+
+			modularVisual.style.minHeight =
+				`${bayHeight}px`;
 
 			modularVisual.style.maxWidth =
 				'none';
+
+			modularVisual.style.boxSizing =
+				'border-box';
 
 			modularVisual.style.background =
 				'#ffffff';
@@ -309,6 +737,8 @@ const createModularBaySnapshot =
 			modularVisual.style.visibility =
 				'visible';
 
+			modularVisual.style.overflow =
+				'hidden';
 
 			document.body.appendChild(
 				modularVisual
@@ -322,7 +752,6 @@ const createModularBaySnapshot =
 			const shelves =
 				new Map();
 
-
 			bayProducts.forEach(
 				product => {
 
@@ -330,7 +759,6 @@ const createModularBaySnapshot =
 						String(
 							product.shelf ?? ''
 						).trim();
-
 
 					if (!shelves.has(shelf)) {
 
@@ -340,7 +768,6 @@ const createModularBaySnapshot =
 						);
 
 					}
-
 
 					shelves
 						.get(shelf)
@@ -352,7 +779,7 @@ const createModularBaySnapshot =
 
 			/* =================================================
 			   SORT SHELVES
-			================================================= */
+			===================================================== */
 
 			const sortedShelves =
 				[...shelves.entries()]
@@ -377,28 +804,21 @@ const createModularBaySnapshot =
 									10
 								);
 
-
 							if (
 								Number.isNaN(
 									numberA
 								)
 							) {
-
 								return 1;
-
 							}
-
 
 							if (
 								Number.isNaN(
 									numberB
 								)
 							) {
-
 								return -1;
-
 							}
-
 
 							return (
 								numberA -
@@ -410,18 +830,14 @@ const createModularBaySnapshot =
 
 
 			/* =================================================
-			   CREATE SHELVES
-			================================================= */
+			   CREATE SHELF ROWS
+			===================================================== */
 
 			sortedShelves.forEach(
 				([
 					shelf,
 					shelfProducts
 				]) => {
-
-					/*
-						shelf_order controls left → right.
-					*/
 
 					shelfProducts.sort(
 						(a, b) =>
@@ -442,6 +858,33 @@ const createModularBaySnapshot =
 					shelfRow.className =
 						'modular-shelf';
 
+					shelfRow.style.width =
+						`${bayWidth}px`;
+
+					shelfRow.style.height =
+						`${shelfHeight}px`;
+
+					shelfRow.style.minHeight =
+						`${shelfHeight}px`;
+
+					shelfRow.style.flex =
+						`0 0 ${shelfHeight}px`;
+
+					shelfRow.style.boxSizing =
+						'border-box';
+
+					shelfRow.style.display =
+						'flex';
+
+					shelfRow.style.alignItems =
+						'center';
+
+					shelfRow.style.justifyContent =
+						'center';
+
+					shelfRow.style.overflow =
+						'hidden';
+
 
 					const productsContainer =
 						document.createElement(
@@ -451,11 +894,37 @@ const createModularBaySnapshot =
 					productsContainer.className =
 						'modular-shelf-products';
 
+					productsContainer.style.display =
+						'flex';
+
+					productsContainer.style.alignItems =
+						'center';
+
+					productsContainer.style.justifyContent =
+						'center';
+
+					productsContainer.style.width =
+						'100%';
+
+					productsContainer.style.height =
+						`${shelfHeight}px`;
+
+					productsContainer.style.minHeight =
+						`${shelfHeight}px`;
+
+					productsContainer.style.gap =
+						`${gap}px`;
+
+					productsContainer.style.boxSizing =
+						'border-box';
+
+					productsContainer.style.overflow =
+						'hidden';
+
 
 					shelfRow.appendChild(
 						productsContainer
 					);
-
 
 					modularVisual.appendChild(
 						shelfRow
@@ -466,8 +935,8 @@ const createModularBaySnapshot =
 
 
 			/* =================================================
-			   WAIT FOR LAYOUT
-			================================================= */
+			   WAIT FOR SHELF LAYOUT
+			===================================================== */
 
 			await new Promise(
 				resolve =>
@@ -477,16 +946,9 @@ const createModularBaySnapshot =
 			);
 
 
-			const shelfHeight =
-				90;
-
-			const gap =
-				8;
-
-
 			/* =================================================
 			   RENDER EACH SHELF
-			================================================= */
+			===================================================== */
 
 			const shelfRows =
 				[
@@ -507,7 +969,6 @@ const createModularBaySnapshot =
 						shelfIndex
 					];
 
-
 				const productsContainer =
 					shelfRow.querySelector(
 						'.modular-shelf-products'
@@ -523,12 +984,8 @@ const createModularBaySnapshot =
 					];
 
 
-				const shelfWidth =
-					productsContainer.clientWidth;
-
-
 				/* =============================================
-				   LOAD PRODUCT IMAGES
+				   LOAD + CROP PRODUCT IMAGES
 				============================================= */
 
 				const loadedProducts =
@@ -540,58 +997,47 @@ const createModularBaySnapshot =
 									product.image.url
 							)
 							.map(
-								product =>
-									new Promise(
-										resolve => {
+								async product => {
 
-											const image =
-												new Image();
-
-
-											image.onload =
-												() => {
-
-													if (
-														image.naturalWidth &&
-														image.naturalHeight
-													) {
-
-														resolve({
-
-															product,
-
-															width:
-																(
-																	image.naturalWidth /
-																	image.naturalHeight
-																) *
-																shelfHeight
-
-														});
-
-													} else {
-
-														resolve(
-															null
-														);
-
-													}
-
-												};
+									const croppedImage =
+										await cropProductImage(
+											product.image.url
+										);
 
 
-											image.onerror =
-												() =>
-													resolve(
-														null
-													);
+									if (
+										!croppedImage
+									) {
+										return null;
+									}
 
 
-											image.src =
-												product.image.url;
+									/*
+									   Scale the cropped
+									   content to the full
+									   shelf height while
+									   preserving its
+									   aspect ratio.
+									*/
 
-										}
-									)
+									const width =
+										(
+											croppedImage.width /
+											croppedImage.height
+										) *
+										shelfHeight;
+
+
+									return {
+										product,
+
+										url:
+											croppedImage.url,
+
+										width
+									};
+
+								}
 							)
 					);
 
@@ -605,58 +1051,163 @@ const createModularBaySnapshot =
 				if (
 					!usableProducts.length
 				) {
-
 					continue;
+				}
+
+
+				/* =============================================
+				   CALCULATE NATURAL SHELF WIDTH
+				============================================= */
+
+				const totalNaturalProductWidth =
+					usableProducts.reduce(
+						(total, { width, product }) => {
+
+							const facings =
+								Math.max(
+									1,
+									Number(
+										product.facings ?? 1
+									)
+								);
+
+							return (
+								total +
+								(
+									width *
+									facings
+								)
+							);
+
+						},
+						0
+					);
+
+
+				const totalProductGaps =
+					usableProducts.reduce(
+						(total, { product }) => {
+
+							const facings =
+								Math.max(
+									1,
+									Number(
+										product.facings ?? 1
+									)
+								);
+
+							return (
+								total +
+								Math.max(
+									0,
+									facings - 1
+								)
+							);
+
+						},
+						0
+					) *
+					gap;
+
+
+				const groupGaps =
+					Math.max(
+						0,
+						usableProducts.length - 1
+					) *
+					gap;
+
+
+				const naturalShelfWidth =
+					totalNaturalProductWidth +
+					totalProductGaps +
+					groupGaps;
+
+
+				/* =============================================
+				   DETERMINE DISPLAY SCALE
+				============================================= */
+
+				const shelfScale =
+					naturalShelfWidth > bayWidth
+						? bayWidth / naturalShelfWidth
+						: 1;
+
+
+				productsContainer.style.width =
+					`${naturalShelfWidth}px`;
+
+				productsContainer.style.flex =
+					'0 0 auto';
+
+				productsContainer.style.justifyContent =
+					'flex-start';
+
+
+				if (
+					shelfScale < 1
+				) {
+
+					productsContainer.style.transformOrigin =
+						'center center';
+
+					productsContainer.style.transform =
+						`scaleX(${shelfScale})`;
 
 				}
 
 
 				/* =============================================
-				   DIVIDE SHELF BETWEEN PRODUCTS
-				============================================= */
-
-				const productWidth =
-					(
-						shelfWidth -
-						(
-							(
-								usableProducts.length - 1
-							) *
-							gap
-						)
-					) /
-					usableProducts.length;
-
-
-				/* =============================================
-				   CREATE FACINGS
+				   CREATE PRODUCT GROUPS + FACINGS
 				============================================= */
 
 				usableProducts.forEach(
 					({
 						product,
+						url,
 						width
 					}) => {
 
-						const maxFacings =
+						const productGroup =
+							document.createElement(
+								'div'
+							);
+
+						productGroup.className =
+							'modular-product-group';
+
+						productGroup.style.display =
+							'flex';
+
+						productGroup.style.flexDirection =
+							'row';
+
+						productGroup.style.alignItems =
+							'center';
+
+						productGroup.style.gap =
+							`${gap}px`;
+
+						productGroup.style.flex =
+							'0 0 auto';
+
+
+						const facings =
 							Math.max(
 								1,
-								Math.floor(
-									(
-										productWidth +
-										gap
-									) /
-									(
-										width +
-										gap
-									)
+								Number(
+									product.facings ?? 1
 								)
 							);
 
 
+						/* =====================================
+						   CREATE ONE IMAGE PER FACING
+						===================================== */
+
 						for (
 							let i = 0;
-							i < maxFacings;
+							i < facings;
 							i++
 						) {
 
@@ -665,34 +1216,57 @@ const createModularBaySnapshot =
 									'img'
 								);
 
-
 							facing.src =
-								product.image.url;
-
+								url;
 
 							facing.alt =
 								product.image.alt ||
 								product.description ||
 								'Product';
 
-
 							facing.className =
 								'modular-product-image';
 
 
+							/* =================================
+							   CROPPED CONTENT FILLS HEIGHT
+							================================= */
+
+							facing.style.display =
+								'block';
+
 							facing.style.height =
 								`${shelfHeight}px`;
-
 
 							facing.style.width =
 								`${width}px`;
 
+							facing.style.minWidth =
+								`${width}px`;
 
-							productsContainer.appendChild(
+							facing.style.maxWidth =
+								`${width}px`;
+
+							facing.style.flex =
+								`0 0 ${width}px`;
+
+							facing.style.objectFit =
+								'fill';
+
+							facing.style.objectPosition =
+								'center center';
+
+
+							productGroup.appendChild(
 								facing
 							);
 
 						}
+
+
+						productsContainer.appendChild(
+							productGroup
+						);
 
 					}
 				);
@@ -702,7 +1276,7 @@ const createModularBaySnapshot =
 
 			/* =================================================
 			   WAIT FOR ALL IMAGES
-			================================================= */
+			===================================================== */
 
 			const images =
 				[
@@ -719,11 +1293,8 @@ const createModularBaySnapshot =
 						if (
 							image.complete
 						) {
-
 							return Promise.resolve();
-
 						}
-
 
 						return new Promise(
 							resolve => {
@@ -742,6 +1313,10 @@ const createModularBaySnapshot =
 			);
 
 
+			/* =================================================
+			   FINAL LAYOUT PASS
+			===================================================== */
+
 			await new Promise(
 				resolve =>
 					requestAnimationFrame(
@@ -754,8 +1329,100 @@ const createModularBaySnapshot =
 
 
 			/* =================================================
-			   CREATE SNAPSHOT
-			================================================= */
+			   FIND ACTUAL HORIZONTAL CONTENT BOUNDS
+			===================================================== */
+
+			const renderedImages =
+				[
+					...modularVisual.querySelectorAll(
+						'img'
+					)
+				];
+
+
+			let contentLeft =
+				bayWidth;
+
+			let contentRight =
+				0;
+
+
+			renderedImages.forEach(
+				image => {
+
+					const rect =
+						image.getBoundingClientRect();
+
+					const visualRect =
+						modularVisual.getBoundingClientRect();
+
+					const left =
+						rect.left -
+						visualRect.left;
+
+					const right =
+						rect.right -
+						visualRect.left;
+
+					contentLeft =
+						Math.min(
+							contentLeft,
+							left
+						);
+
+					contentRight =
+						Math.max(
+							contentRight,
+							right
+						);
+
+				}
+			);
+
+
+			if (
+				contentRight <= contentLeft
+			) {
+
+				contentLeft =
+					0;
+
+				contentRight =
+					bayWidth;
+
+			}
+
+
+			contentLeft =
+				Math.max(
+					0,
+					Math.floor(
+						contentLeft -
+						cropPadding
+					)
+				);
+
+			contentRight =
+				Math.min(
+					bayWidth,
+					Math.ceil(
+						contentRight +
+						cropPadding
+					)
+				);
+
+
+			const croppedWidth =
+				Math.max(
+					1,
+					contentRight -
+					contentLeft
+				);
+
+
+			/* =================================================
+			   CREATE FULL CANVAS
+			===================================================== */
 
 			const canvas =
 				await html2canvas(
@@ -768,33 +1435,70 @@ const createModularBaySnapshot =
 							2,
 
 						useCORS:
-							true
+							true,
+
+						width:
+							bayWidth,
+
+						height:
+							bayHeight
 					}
 				);
 
 
-			const snapshot =
-				canvas.toDataURL(
-					'image/png'
+			/* =================================================
+			   CROP HORIZONTAL WHITE SPACE
+			===================================================== */
+
+			const cropCanvas =
+				document.createElement(
+					'canvas'
+				);
+
+			cropCanvas.width =
+				croppedWidth * 2;
+
+			cropCanvas.height =
+				bayHeight * 2;
+
+
+			const cropContext =
+				cropCanvas.getContext(
+					'2d'
 				);
 
 
-			/* =================================================
-			   STORE BAY SNAPSHOT
-			================================================= */
+			cropContext.drawImage(
+				canvas,
+				contentLeft * 2,
+				0,
+				croppedWidth * 2,
+				bayHeight * 2,
+				0,
+				0,
+				croppedWidth * 2,
+				bayHeight * 2
+			);
 
-			snapshots.push({
 
+			/*
+			   Store the cropped canvas rather than
+			   immediately creating the final snapshot.
+
+			   We need to know the widest bay first so
+			   every snapshot can use the same aspect ratio.
+			*/
+
+			pendingSnapshots.push({
 				bayNumber,
-
-				snapshot
-
+				cropCanvas,
+				croppedWidth
 			});
 
 
 			/* =================================================
 			   REMOVE TEMPORARY VISUAL
-			================================================= */
+			===================================================== */
 
 			modularVisual.remove();
 
@@ -802,8 +1506,107 @@ const createModularBaySnapshot =
 
 
 		/* =====================================================
-		   RETURN ALL BAY SNAPSHOTS
+		   FIND WIDEST SNAPSHOT
 		===================================================== */
+
+		const widestSnapshotWidth =
+			Math.max(
+				...pendingSnapshots.map(
+					snapshot =>
+						snapshot.croppedWidth
+				)
+			);
+
+
+		/* =====================================================
+		   NORMALISE SNAPSHOT WIDTHS
+		===================================================== */
+
+		pendingSnapshots.forEach(
+			({
+				bayNumber,
+				cropCanvas,
+				croppedWidth
+			}) => {
+
+				/*
+				   Every snapshot keeps the same height.
+
+				   The widest snapshot therefore determines
+				   the smallest displayed height.
+
+				   Narrower snapshots receive white space
+				   on the left and right so they share the
+				   exact same aspect ratio.
+				*/
+
+				const normalisedCanvas =
+					document.createElement(
+						'canvas'
+					);
+
+				normalisedCanvas.width =
+					widestSnapshotWidth * 2;
+
+				normalisedCanvas.height =
+					bayHeight * 2;
+
+
+				const normalisedContext =
+					normalisedCanvas.getContext(
+						'2d'
+					);
+
+
+				/* =============================================
+				   WHITE BACKGROUND
+				============================================= */
+
+				normalisedContext.fillStyle =
+					'#ffffff';
+
+				normalisedContext.fillRect(
+					0,
+					0,
+					normalisedCanvas.width,
+					normalisedCanvas.height
+				);
+
+
+				/* =============================================
+				   CENTRE ORIGINAL SNAPSHOT
+				============================================= */
+
+				const horizontalOffset =
+					(
+						widestSnapshotWidth -
+						croppedWidth
+					) *
+					2 /
+					2;
+
+
+				normalisedContext.drawImage(
+					cropCanvas,
+					horizontalOffset,
+					0
+				);
+
+
+				const snapshot =
+					normalisedCanvas.toDataURL(
+						'image/png'
+					);
+
+
+				snapshots.push({
+					bayNumber,
+					snapshot
+				});
+
+			}
+		);
+
 
 		return snapshots;
 

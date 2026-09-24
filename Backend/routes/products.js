@@ -462,6 +462,8 @@ router.get(
 
 			mi.shelf,
 
+			mi.facings,
+
 			mi.shelf_order,
 
 			mi.max_shelf,
@@ -544,6 +546,8 @@ router.get(
 
 			shelf:
 				row.shelf,
+			facings:
+				row.facings,
 
 			shelfOrder:
 				row.shelf_order,

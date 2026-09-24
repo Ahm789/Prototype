@@ -1266,8 +1266,35 @@ background-repeat: no-repeat;
 
 	width: 100%;
 	height: auto;
+	min-height: 100px;
 
 	cursor: pointer;
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT GROUP
+========================================================= */
+
+.modular-product-group {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	flex: 0 0 auto;
+	gap: 8px;
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT IMAGE
+========================================================= */
+
+.modular-product-image {
+	display: block;
+	flex: 0 0 auto;
+	height: 90px;
+	object-fit: fill;
+	object-position: center center;
 }
 /* =========================================
    MODULAR ACTIVITY START BAR
@@ -4003,57 +4030,442 @@ background-repeat: no-repeat;
 	transform: translateX(15px);
 }
 /* =========================================================
-   MODULAR ACTIVITY PRODUCT VISUAL
+   MODULAR ACTIVITY STEP 1
 ========================================================= */
 
-.modular-activity-product-visual {
+.modular-activity-step {
+
+	display: flex;
+
+	flex-direction: column;
 
 	width: 100%;
 
-	padding: 12px;
+	box-sizing: border-box;
+
+	margin-top: 10px;
+
+	padding: 10px 12px 0;
+
+	background: white;
+
+}
+
+
+/* =========================================================
+   STEP HEADER
+========================================================= */
+
+.modular-activity-step-header {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	gap: 7px;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin-bottom: 10px;
+
+}
+
+
+.modular-activity-step-number {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	height: 22px;
+
+	padding: 0 9px;
+
+	box-sizing: border-box;
+
+	color: white;
+
+	background: #5FB3AE;
+
+	border: 2px solid #5FB3AE;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+.modular-activity-step-title {
+
+	color: #1a1a1a;
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   STEP ACTIONS
+========================================================= */
+
+.modular-activity-step-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	gap: 10px;
+
+}
+
+
+/* =========================================================
+   CAMERA BUTTON
+========================================================= */
+
+.modular-search-camera {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	flex: 0 0 44px;
+
+	width: 44px;
+
+	height: 40px;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	color: #0A928C;
+
+	background: white;
+
+	border: 2px solid #0A928C;
+
+	border-radius: 4px;
+
+	cursor: pointer;
+
+}
+
+
+.modular-search-camera svg {
+
+	width: 19px;
+
+	height: 19px;
+
+	stroke: #0A928C;
+
+	stroke-width: 2.3;
+
+}
+
+
+/* =========================================================
+   OR
+========================================================= */
+
+.modular-activity-or {
+
+	flex: 0 0 auto;
+
+	color: #777;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   SEARCH MOD TAG
+========================================================= */
+
+.modular-search-mod-tag {
+
+	display: flex;
+
+	align-items: center;
+
+	flex: 1;
+
+	min-width: 0;
+
+	height: 40px;
+
+	padding: 0 9px;
+
+	box-sizing: border-box;
+
+	color: #0A928C;
+
+	background: white;
+
+	border: 2px solid #0A928C;
+
+	border-radius: 4px;
+
+	cursor: pointer;
+
+	text-align: left;
+
+}
+
+
+.modular-search-mod-tag svg {
+
+	width: 17px;
+
+	height: 17px;
+
+	flex: 0 0 17px;
+
+	stroke: #0A928C;
+
+	stroke-width: 2.3;
+
+}
+
+
+.modular-search-mod-tag span {
+
+	flex: 1;
+
+	min-width: 0;
+
+	margin-left: 7px;
+
+	overflow: hidden;
+
+	color: #0A928C;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	white-space: nowrap;
+
+	text-overflow: ellipsis;
+
+}
+
+
+.modular-search-mod-tag svg:last-child {
+
+	margin-left: 7px;
+
+}
+
+
+/* =========================================================
+   REMINDER
+========================================================= */
+
+.modular-activity-step-reminder {
+
+	margin-top: 9px;
+
+	color: #555;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   COLOURED LINE
+========================================================= */
+
+.modular-activity-step-line {
+
+	width: 100%;
+
+	height: 3px;
+
+	margin-top: 9px;
+
+	background: #0A928C;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY BAY SNAPSHOTS
+========================================================= */
+
+.modular-activity-snapshots {
+
+	display: grid;
+
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+
+	gap: 8px;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin: 10px 0 0;
+
+	padding: 0;
+
+	background: white;
+
+}
+
+
+/* =========================================================
+   BAY
+========================================================= */
+
+.modular-activity-bay {
+
+	display: flex;
+
+	flex-direction: column;
+
+	min-width: 0;
+
+	width: 100%;
+
+	margin: 0;
 
 	box-sizing: border-box;
 
 	background: white;
 
-	overflow-x: auto;
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
 }
 
 
 /* =========================================================
-   LOADING
+   BAY LABEL
 ========================================================= */
 
-.modular-activity-product-loading {
+.modular-activity-bay-label {
 
-	display: flex;
+	width: 100%;
 
-	align-items: center;
-	justify-content: center;
+	padding: 5px 6px;
 
-	min-height: 120px;
+	box-sizing: border-box;
 
 	color: #0A928C;
 
-	font-size: 12px;
+	background: white;
+
+	font-size: 10px;
+
 	font-weight: 700;
 
+	line-height: 1;
+
 	text-align: center;
+
+	border-bottom: 1px solid #d6e9e9;
+
 }
 
 
 /* =========================================================
-   PRODUCT SNAPSHOT
+   BAY IMAGE
 ========================================================= */
 
-.modular-activity-product-image {
+.modular-activity-bay-image {
 
 	display: block;
 
 	width: 100%;
+
 	height: auto;
 
-	max-width: none;
+	min-height: 100px;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
 
 	background: white;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT GROUP
+========================================================= */
+
+.modular-product-group {
+
+	display: flex;
+
+	flex-direction: row;
+
+	align-items: stretch;
+
+	flex: 0 0 auto;
+
+	gap: 8px;
+
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT IMAGE
+========================================================= */
+
+.modular-product-image {
+
+	display: block;
+
+	flex: 0 0 auto;
+
+	height: 90px;
+
+	object-fit: fill;
+
+	object-position: center center;
+
 }
