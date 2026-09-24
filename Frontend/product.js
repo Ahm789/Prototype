@@ -263,490 +263,6 @@ const seededRandom = (
 };
 
 /* =========================================================
-   BARCODE CAMERA SCANNER
-========================================================= */
-
-let cameraStream = null;
-let cameraVideo = null;
-let cameraOverlay = null;
-let barcodeReader = null;
-let barcodeControls = null;
-let barcodeScanLocked = false;
-
-
-/* =========================================================
-   CREATE CAMERA UI
-========================================================= */
-
-const createCameraScanner = () => {
-
-	if (cameraOverlay) {
-		return;
-	}
-
-	cameraOverlay =
-		document.createElement('div');
-
-	cameraOverlay.className =
-		'barcode-camera-overlay';
-
-	cameraOverlay.innerHTML = `
-		<div class="barcode-camera-container">
-
-			<div class="barcode-camera-header">
-
-				<strong>
-					Scan Barcode
-				</strong>
-
-				<button
-					type="button"
-					class="barcode-camera-close"
-					aria-label="Close camera"
-				>
-					<i data-lucide="x"></i>
-				</button>
-
-			</div>
-
-
-			<div class="barcode-camera-view">
-
-				<video
-					class="barcode-camera-video"
-					autoplay
-					playsinline
-					muted
-				></video>
-
-
-				<div class="barcode-scan-frame">
-
-					<div class="barcode-scan-line"></div>
-
-				</div>
-
-			</div>
-
-
-			<div class="barcode-camera-status">
-
-				Point the camera at a barcode
-
-			</div>
-
-		</div>
-	`;
-
-	document.body.appendChild(
-		cameraOverlay
-	);
-
-	cameraVideo =
-		cameraOverlay.querySelector(
-			'.barcode-camera-video'
-		);
-
-	const closeButton =
-		cameraOverlay.querySelector(
-			'.barcode-camera-close'
-		);
-
-	closeButton.addEventListener(
-		'click',
-		stopBarcodeScanner
-	);
-
-	lucide.createIcons();
-};
-
-
-/* =========================================================
-   START BARCODE SCANNER
-========================================================= */
-
-const startBarcodeScanner =
-	async () => {
-
-		createCameraScanner();
-
-		barcodeScanLocked =
-			false;
-
-		try {
-
-			cameraOverlay.classList.add(
-				'active'
-			);
-
-
-			/*
-				Use ZXing's multi-format reader.
-
-				This allows us to scan normal retail
-				barcodes such as EAN and UPC.
-			*/
-
-			barcodeReader =
-				new ZXingBrowser.BrowserMultiFormatReader();
-
-
-			/*
-				Ask for the available cameras.
-			*/
-
-			const devices =
-				await ZXingBrowser
-					.BrowserCodeReader
-					.listVideoInputDevices();
-
-
-			if (
-				!devices ||
-				devices.length === 0
-			) {
-
-				throw new Error(
-					'No camera found.'
-				);
-
-			}
-
-
-			/*
-				Prefer the rear/environment camera.
-
-				On iPhone this normally gives us
-				the rear camera rather than selfie camera.
-			*/
-
-			let selectedDevice =
-				devices.find(
-					device =>
-						/environment|back|rear/i.test(
-							device.label
-						)
-				);
-
-
-			/*
-				If Safari hasn't exposed camera labels
-				yet, just use the last camera.
-
-				This is common before permission has
-				been granted.
-			*/
-
-			if (!selectedDevice) {
-
-				selectedDevice =
-					devices[
-						devices.length - 1
-					];
-
-			}
-
-
-			/*
-				Start continuous scanning.
-			*/
-
-			barcodeControls =
-				await barcodeReader.decodeFromVideoDevice(
-					selectedDevice.deviceId,
-					cameraVideo,
-					async (
-						result,
-						error
-					) => {
-
-						if (
-							barcodeScanLocked
-						) {
-							return;
-						}
-
-
-						if (
-							result
-						) {
-
-							const barcode =
-								result.getText();
-
-
-							if (
-								barcode
-							) {
-
-								barcodeScanLocked =
-									true;
-
-								await handleBarcodeDetected(
-									barcode
-								);
-
-							}
-
-						}
-
-					}
-				);
-
-		} catch (error) {
-
-			console.error(
-				'Unable to start barcode scanner:',
-				error
-			);
-
-			stopBarcodeScanner();
-
-			alert(
-				'Unable to access the camera. Please check your camera permission.'
-			);
-
-		}
-
-	};
-
-
-/* =========================================================
-   BARCODE FOUND
-========================================================= */
-
-const handleBarcodeDetected =
-	async (
-		barcode
-	) => {
-
-		/*
-			Stop the camera immediately.
-
-			The user does NOT need to press
-			the close button after scanning.
-		*/
-
-		stopBarcodeScanner();
-
-
-		/*
-			Put the barcode into the search box.
-		*/
-
-		input.value =
-			barcode;
-
-
-		try {
-
-			const results =
-				await apiRequest(
-					`${API_BASE}/search?q=` +
-					encodeURIComponent(
-						barcode
-					)
-				);
-
-
-			/*
-				No product found.
-			*/
-
-			if (
-				!Array.isArray(results) ||
-				results.length === 0
-			) {
-
-				productSearchSection.hidden =
-					false;
-
-				productResults.hidden =
-					true;
-
-				productDetailView.hidden =
-					true;
-
-				productEmpty.hidden =
-					false;
-
-				productEmpty.textContent =
-					'No product found for this barcode.';
-
-				input.focus();
-
-				return;
-			}
-
-
-			/*
-				Load the full product.
-			*/
-
-			const product =
-				results[0];
-
-
-			const fullProduct =
-				await apiRequest(
-					`${API_BASE}/${encodeURIComponent(
-						product.upc
-					)}`
-				);
-
-
-			/*
-				Go straight to the product
-				detail page.
-			*/
-
-			await showProductDetail(
-				fullProduct
-			);
-
-		} catch (error) {
-
-			console.error(
-				'Unable to load scanned product:',
-				error
-			);
-
-			productSearchSection.hidden =
-				false;
-
-			productResults.hidden =
-				true;
-
-			productDetailView.hidden =
-				true;
-
-			productEmpty.hidden =
-				false;
-
-			productEmpty.textContent =
-				'Unable to find this product.';
-
-			input.focus();
-
-		}
-
-	};
-
-
-/* =========================================================
-   STOP BARCODE SCANNER
-========================================================= */
-
-const stopBarcodeScanner =
-	() => {
-
-		barcodeScanLocked =
-			true;
-
-
-		/*
-			Stop ZXing.
-		*/
-
-		if (
-			barcodeControls
-		) {
-
-			try {
-
-				barcodeControls.stop();
-
-			} catch (error) {
-
-				console.error(
-					'Unable to stop barcode scanner:',
-					error
-				);
-
-			}
-
-			barcodeControls =
-				null;
-
-		}
-
-
-		/*
-			Reset ZXing reader.
-		*/
-
-		if (
-			barcodeReader
-		) {
-
-			try {
-
-				barcodeReader.reset();
-
-			} catch (error) {
-
-				console.error(
-					'Unable to reset barcode reader:',
-					error
-				);
-
-			}
-
-			barcodeReader =
-				null;
-
-		}
-
-
-		/*
-			Stop camera tracks as an extra
-			safety measure.
-		*/
-
-		if (
-			cameraStream
-		) {
-
-			cameraStream
-				.getTracks()
-				.forEach(
-					track => {
-						track.stop();
-					}
-				);
-
-			cameraStream =
-				null;
-
-		}
-
-
-		if (
-			cameraVideo
-		) {
-
-			cameraVideo.pause();
-
-			cameraVideo.srcObject =
-				null;
-
-		}
-
-
-		if (
-			cameraOverlay
-		) {
-
-			cameraOverlay.classList.remove(
-				'active'
-			);
-
-		}
-
-	};
-
-
-/* =========================================================
    CAMERA BUTTON
 ========================================================= */
 
@@ -760,7 +276,53 @@ if (
 
 			event.preventDefault();
 
-			startBarcodeScanner();
+
+			startBarcodeScanner(
+				async (
+					barcode
+				) => {
+
+					/*
+						Stop the camera immediately.
+					*/
+
+					stopBarcodeScanner();
+
+
+					/*
+						Clean the scanned barcode.
+					*/
+
+					const cleanBarcode =
+						String(barcode)
+							.trim()
+							.replace(/\D/g, '');
+
+
+					/*
+						Put the barcode into the
+						product search field.
+					*/
+
+					input.value =
+						cleanBarcode;
+
+
+					/*
+						Trigger the existing search.
+					*/
+
+					input.dispatchEvent(
+						new Event(
+							'input',
+							{
+								bubbles: true
+							}
+						)
+					);
+
+				}
+			);
 
 		}
 	);
