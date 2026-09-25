@@ -318,6 +318,81 @@
 
 }
 /* =========================================================
+   BAYS HEADING
+========================================================= */
+
+#modular-bays-panel .form-heading {
+
+	display: flex;
+
+	align-items: flex-start;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	margin-bottom: 16px;
+
+}
+
+
+#modular-bays-panel .form-heading > div {
+
+	min-width: 0;
+
+}
+
+
+#modular-bays-panel .eyebrow {
+
+	display: block;
+
+	margin: 0 0 4px;
+
+	color: #294b51;
+
+	font-size: 11px;
+
+	font-weight: 800;
+
+	letter-spacing: 1.2px;
+
+}
+
+
+#modular-bays-panel h2 {
+
+	margin: 0;
+
+	color: var(--ink);
+
+	font-size: 21px;
+
+	line-height: 1.2;
+
+}
+
+
+#modular-bay-count {
+
+	flex-shrink: 0;
+
+	padding: 5px 8px;
+
+	color: #365b63;
+
+	background: #dceeee;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+}
+/* =========================================================
    BAYS PANEL
 ========================================================= */
 
@@ -394,116 +469,7 @@
 }
 
 /* =========================================================
-   MODULAR BAYS
-========================================================= */
-
-#modular-bays-panel {
-
-	margin-top: 16px;
-
-	padding: 18px;
-
-	background: var(--paper);
-
-	border-radius: 7px;
-
-}
-
-#modular-bays-panel[hidden] {
-
-	display: none;
-
-}
-
-
-/* =========================================================
-   BAYS HEADER
-========================================================= */
-
-#modular-bays-panel .form-heading {
-
-	display: flex;
-
-	align-items: flex-start;
-
-	justify-content: space-between;
-
-	gap: 12px;
-
-	margin-bottom: 18px;
-
-}
-
-#modular-bays-panel .form-heading > div {
-
-	min-width: 0;
-
-}
-
-#modular-bays-panel .eyebrow {
-
-	display: block;
-
-	margin: 0 0 4px;
-
-	color: #527178;
-
-	font-size: 11px;
-
-	font-weight: 700;
-
-	letter-spacing: 1.2px;
-
-}
-
-#modular-bays-panel .form-heading h2 {
-
-	margin: 0;
-
-	color: var(--ink);
-
-	font-size: 21px;
-
-	line-height: 1.2;
-
-}
-
-#modular-bay-count {
-
-	flex-shrink: 0;
-
-	padding: 5px 8px;
-
-	color: #527178;
-
-	background: #dceeee;
-
-	border-radius: 4px;
-
-	font-size: 11px;
-
-	font-weight: 700;
-
-	white-space: nowrap;
-
-}
-
-
-/* =========================================================
-   BAY LIST
-========================================================= */
-
-.modular-bay-list {
-
-	display: grid;
-
-	gap: 9px;
-
-}
-
-
-/* =========================================================
-   BAY ROW
+   MODULAR BAY ROW
 ========================================================= */
 
 .modular-bay-row {
@@ -512,63 +478,43 @@
 
 	grid-template-columns:
 		minmax(0, 1fr)
+		auto
 		auto;
-
-	gap: 12px;
 
 	align-items: center;
 
-	padding: 12px;
+	gap: 12px;
 
-	background: white;
+	padding: 9px 10px;
 
-	border: 1px solid #c6dfe0;
+	background: var(--paper);
+
+	border: 1px solid var(--line);
 
 	border-radius: 5px;
 
 	cursor: pointer;
 
 	transition:
-		border-color .15s ease,
-		box-shadow .15s ease,
-		background .15s ease;
-
-}
-
-.modular-bay-row:hover {
-
-	border-color: var(--aqua);
-
-	box-shadow: 0 2px 7px #123e5622;
-
-}
-
-.modular-bay-row:focus {
-
-	outline: none;
-
-	border-color: var(--aqua);
-
-	box-shadow: 0 0 0 2px #16c5bf22;
+		border-color 0.15s ease,
+		box-shadow 0.15s ease,
+		background 0.15s ease;
 
 }
 
 
 /* =========================================================
-   SELECTED BAY
+   BAY ROW HOVER
 ========================================================= */
 
-.modular-bay-row.editing {
+.modular-bay-row:hover {
 
-	border-color: #f4be4d;
+	border-color: #b9d8d5;
 
-	box-shadow:
-		0 0 0 2px #f4be4d55,
-		0 0 12px #f4be4d88;
-
-	background: #fffdf5;
+	background: #fbfefe;
 
 }
+
 
 /* =========================================================
    BAY DETAILS
@@ -576,31 +522,13 @@
 
 .modular-bay-details {
 
+	display: flex;
+
+	align-items: center;
+
 	min-width: 0;
 
-	max-height: 100px;
-
-}
-
-.modular-bay-details p {
-
-	margin: 2px 0;
-
-	color: #5a777c;
-
-	font-size: 11px;
-
-	line-height: 1.2;
-
-}
-
-.modular-bay-details strong {
-
-	color: #365b63;
-
-	font-size: 11px;
-
-	font-weight: 700;
+	gap: 10px;
 
 }
 
@@ -613,9 +541,9 @@
 
 	display: inline-block;
 
-	margin: 0 0 7px;
+	flex-shrink: 0;
 
-	padding: 5px 8px;
+	padding: 4px 7px;
 
 	color: #1f907d;
 
@@ -625,11 +553,110 @@
 
 	border-radius: 3px;
 
-	font-size: 13px;
+	font-size: 12px;
 
 	font-weight: 700;
 
 	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   BAY MODULAR ID
+========================================================= */
+
+.modular-bay-modular-id {
+
+	min-width: 0;
+
+	overflow: hidden;
+
+	color: #5a777c;
+
+	font-size: 11px;
+
+	font-weight: 600;
+
+	text-overflow: ellipsis;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   BAY STATUS
+========================================================= */
+
+.modular-bay-status {
+
+	display: inline-flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	min-width: 90px;
+
+	padding: 4px 7px;
+
+	border-radius: 3px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1.2;
+
+	text-align: center;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   BAY STATUS - DUE TO LAND
+========================================================= */
+
+.modular-bay-status.status-due-to-land {
+
+	color: #8a6414;
+
+	background: #fff4d6;
+
+	border: 1px solid #efd58c;
+
+}
+
+
+/* =========================================================
+   BAY STATUS - IN PROGRESS
+========================================================= */
+
+.modular-bay-status.status-in-progress {
+
+	color: #806020;
+
+	background: #fff0c9;
+
+	border: 1px solid #e9cc7b;
+
+}
+
+
+/* =========================================================
+   BAY STATUS - COMPLETE
+========================================================= */
+
+.modular-bay-status.status-complete {
+
+	color: #28704f;
+
+	background: #e2f4ea;
+
+	border: 1px solid #b9dfc9;
 
 }
 
@@ -644,33 +671,37 @@
 
 	align-items: center;
 
-	gap: 6px;
-
 	flex-shrink: 0;
 
 }
 
-.modular-bay-actions button {
 
-	padding: 7px 9px;
-
-	border-radius: 4px;
-
-	font-size: 11px;
-
-	font-weight: 700;
-
-	white-space: nowrap;
-
-}
+/* =========================================================
+   DELETE BAY
+========================================================= */
 
 .delete-modular-bay {
+
+	padding: 5px 8px;
 
 	color: #8a302d;
 
 	background: #f1d0ce;
 
+	border: 0;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+	cursor: pointer;
+
 }
+
 
 .delete-modular-bay:hover {
 
@@ -699,12 +730,249 @@
 
 
 /* =========================================================
-   EMPTY STATE
+   BAY FORM
+========================================================= */
+
+.modular-bay-form {
+
+	margin-top: 14px;
+
+	padding-top: 14px;
+
+	border-top: 1px solid var(--line);
+
+}
+
+
+/* =========================================================
+   BAY FORM GRID
+========================================================= */
+
+.modular-bay-grid {
+
+	display: grid;
+
+	grid-template-columns:
+		repeat(3, minmax(0, 1fr));
+
+	gap: 10px;
+
+}
+
+
+/* =========================================================
+   BAY FORM LABEL
+========================================================= */
+
+.modular-bay-form label {
+
+	display: flex;
+
+	flex-direction: column;
+
+	gap: 5px;
+
+	color: #365b63;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+}
+
+
+/* =========================================================
+   BAY FORM INPUTS
+========================================================= */
+
+.modular-bay-form input,
+.modular-bay-form select {
+
+	width: 100%;
+
+	min-height: 34px;
+
+	padding: 7px 9px;
+
+	color: #294b51;
+
+	background: #fff;
+
+	border: 1px solid var(--line);
+
+	border-radius: 4px;
+
+	font-size: 12px;
+
+	outline: none;
+
+}
+
+
+.modular-bay-form input:focus,
+.modular-bay-form select:focus {
+
+	border-color: #8ccfc5;
+
+	box-shadow:
+		0 0 0 2px #8ccfc533;
+
+}
+
+
+/* =========================================================
+   READ ONLY MODULAR ID
+========================================================= */
+
+.modular-bay-form input[readonly] {
+
+	color: #5a777c;
+
+	background: #f4f7f7;
+
+	cursor: default;
+
+}
+
+
+/* =========================================================
+   BAY FORM ACTIONS
+========================================================= */
+
+.modular-bay-form-actions {
+
+	display: flex;
+
+	justify-content: flex-end;
+
+	gap: 7px;
+
+	margin-top: 10px;
+
+}
+
+
+/* =========================================================
+   CLEAR BAY
+========================================================= */
+
+.clear-modular-bay {
+
+	padding: 7px 10px;
+
+	color: #58757a;
+
+	background: #eef2f2;
+
+	border: 1px solid var(--line);
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	cursor: pointer;
+
+}
+
+
+.clear-modular-bay:hover {
+
+	background: #e5ebeb;
+
+}
+
+
+/* =========================================================
+   ADD BAY
+========================================================= */
+
+.add-modular-bay {
+
+	padding: 7px 11px;
+
+	color: #fff;
+
+	background: #1f907d;
+
+	border: 0;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	cursor: pointer;
+
+}
+
+
+.add-modular-bay:hover {
+
+	background: #197a6b;
+
+}
+
+
+.add-modular-bay:disabled {
+
+	opacity: 0.6;
+
+	cursor: wait;
+
+}
+
+
+/* =========================================================
+   UPDATE BAY
+========================================================= */
+
+.update-modular-bay {
+
+	padding: 7px 11px;
+
+	color: #fff;
+
+	background: #d79a22;
+
+	border: 0;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	cursor: pointer;
+
+}
+
+
+.update-modular-bay:hover {
+
+	background: #bd8518;
+
+}
+
+
+.update-modular-bay:disabled {
+
+	opacity: 0.5;
+
+	cursor: not-allowed;
+
+}
+
+
+/* =========================================================
+   BAY EMPTY
 ========================================================= */
 
 .modular-bay-empty {
 
-	padding: 28px 12px;
+	padding: 18px 12px;
 
 	color: #58757a;
 
@@ -714,24 +982,24 @@
 
 	border-radius: 5px;
 
-	font-size: 12px;
+	font-size: 11px;
 
 }
 
 
 /* =========================================================
-   LOADING STATE
+   BAY LOADING
 ========================================================= */
 
 .modular-bay-loading {
 
-	padding: 28px 12px;
+	padding: 18px 12px;
 
 	color: #58757a;
 
 	text-align: center;
 
-	font-size: 12px;
+	font-size: 11px;
 
 }
 
@@ -745,21 +1013,43 @@
 	.modular-bay-row {
 
 		grid-template-columns:
-			minmax(0, 1fr);
-
-		width: 100%;
+			minmax(0, 1fr)
+			auto;
 
 	}
+
+
+	.modular-bay-status {
+
+		grid-column: 1 / 2;
+
+		grid-row: 2;
+
+		justify-self: start;
+
+	}
+
 
 	.modular-bay-actions {
 
-		width: 100%;
+		grid-column: 2;
+
+		grid-row: 1 / 3;
 
 	}
 
-	.modular-bay-actions button {
 
-		flex: 1;
+	.modular-bay-grid {
+
+		grid-template-columns:
+			1fr;
+
+	}
+
+
+	.modular-bay-form-actions {
+
+		flex-wrap: wrap;
 
 	}
 
@@ -778,6 +1068,7 @@
 
 	}
 
+
 	#modular-bays-panel .form-heading h2 {
 
 		font-size: 19px;
@@ -785,7 +1076,6 @@
 	}
 
 }
-
 
 /* =========================================================
    SAVED ACTIVITIES

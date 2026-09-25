@@ -722,10 +722,116 @@
 
 						</div>
 
+
+						<!-- =================================================
+							MODULAR BAY LIST
+						================================================= -->
+
 						<div
 							class="modular-bay-list"
 							id="modular-bay-list"
 						></div>
+
+
+						<!-- =================================================
+							MODULAR BAY FORM
+						================================================= -->
+
+						<form
+							class="modular-bay-form"
+							id="modular-bay-form"
+						>
+
+							<div class="modular-bay-grid">
+
+								<label>
+									Bay number
+
+									<input
+										type="number"
+										name="bayNumber"
+										id="modular-bay-number"
+										placeholder="Bay number"
+										min="1"
+										step="1"
+										required
+									>
+
+								</label>
+
+
+								<label>
+									Modular ID
+
+									<input
+										type="text"
+										name="modularId"
+										id="modular-bay-modular-id"
+										placeholder="Modular ID"
+										readonly
+									>
+
+								</label>
+
+
+								<label>
+									Status
+
+									<select
+										name="status"
+										id="modular-bay-status"
+										required
+									>
+
+										<option value="Due to land">
+											Due to land
+										</option>
+
+										<option value="In progress">
+											In progress
+										</option>
+
+										<option value="Complete">
+											Complete
+										</option>
+
+									</select>
+
+								</label>
+
+							</div>
+
+
+							<div class="modular-bay-form-actions">
+
+								<button
+									type="button"
+									class="clear-modular-bay"
+									id="clear-modular-bay"
+								>
+									Clear
+								</button>
+
+								<button
+									type="button"
+									class="add-modular-bay"
+									id="add-modular-bay"
+								>
+									Add bay
+								</button>
+
+								<button
+									type="submit"
+									class="update-modular-bay"
+									id="update-modular-bay"
+									disabled
+								>
+									Update bay
+								</button>
+
+							</div>
+
+						</form>
 
 					</section>
 

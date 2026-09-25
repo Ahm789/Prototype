@@ -1037,6 +1037,794 @@ router.delete(
 	}
 );
 /* =========================================================
+   ADMIN MODULAR BAYS
+========================================================= */
+
+
+/* =========================================================
+   GET ADMIN MODULAR BAYS
+========================================================= */
+
+router.get(
+	'/admin/modular-activity/bays/:planogramNumber',
+	async (req, res) => {
+
+		const planogramNumber =
+			Number(
+				req.params.planogramNumber
+			);
+
+
+		if (
+			!Number.isInteger(
+				planogramNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid planogram number.'
+			});
+
+		}
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						mb.id,
+						mb.bay_number,
+						mb.planogram_number,
+						mb.modular_id,
+						mb.status,
+
+						COUNT(mi.id) AS item_count
+
+					FROM modular_bays mb
+
+					LEFT JOIN modular_items mi
+						ON mi.modular_bay_id = mb.id
+
+					WHERE
+						mb.planogram_number = $1
+
+					GROUP BY
+						mb.id,
+						mb.bay_number,
+						mb.planogram_number,
+						mb.modular_id,
+						mb.status
+
+					ORDER BY
+						mb.bay_number,
+						mb.id
+					`,
+					[
+						planogramNumber
+					]
+				);
+
+
+			res.json(
+				result.rows.map(
+					row => ({
+
+						id:
+							row.id,
+
+						bayNumber:
+							row.bay_number,
+
+						planogramNumber:
+							row.planogram_number,
+
+						modularId:
+							row.modular_id,
+
+						status:
+							row.status,
+
+						itemCount:
+							Number(
+								row.item_count
+							)
+
+					})
+				)
+			);
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load admin modular bays:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to load modular bays.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   ADD ADMIN MODULAR BAY
+========================================================= */
+
+router.post(
+	'/admin/modular-activity/bays',
+	async (req, res) => {
+
+		const {
+			bayNumber,
+			status,
+			planogramNumber
+		} = req.body;
+
+
+		const cleanBayNumber =
+			Number(
+				bayNumber
+			);
+
+
+		const cleanPlanogramNumber =
+			Number(
+				planogramNumber
+			);
+
+
+		const cleanStatus =
+			String(
+				status ||
+				'Due to land'
+			)
+				.trim();
+
+
+		if (
+			!Number.isInteger(
+				cleanBayNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Bay number must be a whole number.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanPlanogramNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Planogram number must be a whole number.'
+			});
+
+		}
+
+
+		if (!cleanStatus) {
+
+			return res.status(400).json({
+				error:
+					'Bay status is required.'
+			});
+
+		}
+
+
+		try {
+
+			/* =================================================
+			   CHECK PLANOGRAM EXISTS
+			================================================= */
+
+			const activityResult =
+				await pool.query(
+					`
+					SELECT
+						id
+
+					FROM modular_activity
+
+					WHERE
+						planogram_number = $1
+
+					LIMIT 1
+					`,
+					[
+						cleanPlanogramNumber
+					]
+				);
+
+
+			if (
+				!activityResult.rows.length
+			) {
+
+				return res.status(404).json({
+					error:
+						'Modular activity record not found.'
+				});
+
+			}
+
+
+			/* =================================================
+			   CHECK BAY DOES NOT ALREADY EXIST
+			================================================= */
+
+			const existingResult =
+				await pool.query(
+					`
+					SELECT
+						id
+
+					FROM modular_bays
+
+					WHERE
+						planogram_number = $1
+						AND bay_number = $2
+
+					LIMIT 1
+					`,
+					[
+						cleanPlanogramNumber,
+						cleanBayNumber
+					]
+				);
+
+
+			if (
+				existingResult.rows.length
+			) {
+
+				return res.status(409).json({
+					error:
+						`Bay ${cleanBayNumber} already exists on this planogram.`
+				});
+
+			}
+
+
+			/* =================================================
+			   INSERT BAY
+			================================================= */
+
+			const result =
+				await pool.query(
+					`
+					INSERT INTO modular_bays (
+						bay_number,
+						planogram_number,
+						status,
+						last_updated
+					)
+
+					VALUES (
+						$1,
+						$2,
+						$3,
+						CURRENT_TIMESTAMP
+					)
+
+					RETURNING
+						id,
+						bay_number,
+						planogram_number,
+						modular_id,
+						status,
+						last_updated
+					`,
+					[
+						cleanBayNumber,
+						cleanPlanogramNumber,
+						cleanStatus
+					]
+				);
+
+
+			const row =
+				result.rows[0];
+
+
+			res.status(201).json({
+
+				id:
+					row.id,
+
+				bayNumber:
+					row.bay_number,
+
+				planogramNumber:
+					row.planogram_number,
+
+				modularId:
+					row.modular_id,
+
+				status:
+					row.status,
+
+				lastUpdated:
+					row.last_updated,
+
+				itemCount:
+					0
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to create modular bay:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to create modular bay.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   UPDATE ADMIN MODULAR BAY
+========================================================= */
+
+router.put(
+	'/admin/modular-activity/bays/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		const {
+			bayNumber,
+			status
+		} = req.body;
+
+
+		const cleanBayNumber =
+			Number(
+				bayNumber
+			);
+
+
+		const cleanStatus =
+			String(
+				status ||
+				''
+			)
+				.trim();
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular bay ID.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanBayNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Bay number must be a whole number.'
+			});
+
+		}
+
+
+		if (!cleanStatus) {
+
+			return res.status(400).json({
+				error:
+					'Bay status is required.'
+			});
+
+		}
+
+
+		try {
+
+			/* =================================================
+			   FIND EXISTING BAY
+			================================================= */
+
+			const existingBayResult =
+				await pool.query(
+					`
+					SELECT
+						id,
+						planogram_number
+
+					FROM modular_bays
+
+					WHERE id = $1
+					`,
+					[
+						id
+					]
+				);
+
+
+			if (
+				!existingBayResult.rows.length
+			) {
+
+				return res.status(404).json({
+					error:
+						'Modular bay not found.'
+				});
+
+			}
+
+
+			const planogramNumber =
+				existingBayResult.rows[0]
+					.planogram_number;
+
+
+			/* =================================================
+			   CHECK FOR DUPLICATE BAY NUMBER
+			================================================= */
+
+			const duplicateResult =
+				await pool.query(
+					`
+					SELECT
+						id
+
+					FROM modular_bays
+
+					WHERE
+						planogram_number = $1
+						AND bay_number = $2
+						AND id <> $3
+
+					LIMIT 1
+					`,
+					[
+						planogramNumber,
+						cleanBayNumber,
+						id
+					]
+				);
+
+
+			if (
+				duplicateResult.rows.length
+			) {
+
+				return res.status(409).json({
+					error:
+						`Bay ${cleanBayNumber} already exists on this planogram.`
+				});
+
+			}
+
+
+			/* =================================================
+			   UPDATE BAY
+			================================================= */
+
+			const result =
+				await pool.query(
+					`
+					UPDATE modular_bays
+
+					SET
+						bay_number = $1,
+						status = $2,
+						last_updated = CURRENT_TIMESTAMP
+
+					WHERE
+						id = $3
+
+					RETURNING
+						id,
+						bay_number,
+						planogram_number,
+						modular_id,
+						status,
+						last_updated
+					`,
+					[
+						cleanBayNumber,
+						cleanStatus,
+						id
+					]
+				);
+
+
+			const row =
+				result.rows[0];
+
+
+			/* =================================================
+			   GET ITEM COUNT
+			================================================= */
+
+			const countResult =
+				await pool.query(
+					`
+					SELECT
+						COUNT(*) AS item_count
+
+					FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+					`,
+					[
+						id
+					]
+				);
+
+
+			res.json({
+
+				id:
+					row.id,
+
+				bayNumber:
+					row.bay_number,
+
+				planogramNumber:
+					row.planogram_number,
+
+				modularId:
+					row.modular_id,
+
+				status:
+					row.status,
+
+				lastUpdated:
+					row.last_updated,
+
+				itemCount:
+					Number(
+						countResult.rows[0]
+							.item_count
+					)
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to update modular bay:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to update modular bay.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   DELETE ADMIN MODULAR BAY
+========================================================= */
+
+router.delete(
+	'/admin/modular-activity/bays/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular bay ID.'
+			});
+
+		}
+
+
+		const client =
+			await pool.connect();
+
+
+		try {
+
+			await client.query(
+				'BEGIN'
+			);
+
+
+			/* =================================================
+			   FIND BAY
+			================================================= */
+
+			const bayResult =
+				await client.query(
+					`
+					SELECT
+						id,
+						bay_number,
+						planogram_number,
+						status
+
+					FROM modular_bays
+
+					WHERE id = $1
+
+					FOR UPDATE
+					`,
+					[
+						id
+					]
+				);
+
+
+			if (
+				!bayResult.rows.length
+			) {
+
+				await client.query(
+					'ROLLBACK'
+				);
+
+
+				return res.status(404).json({
+					error:
+						'Modular bay not found.'
+				});
+
+			}
+
+
+			const bay =
+				bayResult.rows[0];
+
+
+			/* =================================================
+			   DELETE MODULAR ITEMS
+
+			   modular_items.modular_bay_id
+			   points to modular_bays.id
+			================================================= */
+
+			const itemDeleteResult =
+				await client.query(
+					`
+					DELETE FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+					`,
+					[
+						id
+					]
+				);
+
+
+			/* =================================================
+			   DELETE MODULAR BAY
+			================================================= */
+
+			await client.query(
+				`
+				DELETE FROM modular_bays
+
+				WHERE
+					id = $1
+				`,
+				[
+					id
+				]
+			);
+
+
+			/* =================================================
+			   COMMIT
+			================================================= */
+
+			await client.query(
+				'COMMIT'
+			);
+
+
+			res.json({
+
+				success:
+					true,
+
+				id:
+					id,
+
+				bayNumber:
+					bay.bay_number,
+
+				planogramNumber:
+					bay.planogram_number,
+
+				status:
+					bay.status,
+
+				deletedItemCount:
+					itemDeleteResult.rowCount
+
+			});
+
+
+		} catch (error) {
+
+			await client.query(
+				'ROLLBACK'
+			);
+
+
+			console.error(
+				'Unable to delete modular bay:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to delete modular bay.'
+			});
+
+
+		} finally {
+
+			client.release();
+
+		}
+
+	}
+);
+/* =========================================================
    GET MODULAR ACTIVITY DATES
 ========================================================= */
 

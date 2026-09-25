@@ -95,7 +95,7 @@
 		);
 
 
-	/* =========================================================
+		/* =========================================================
 	   MODULAR BAYS DOM
 	========================================================= */
 
@@ -123,6 +123,47 @@
 		);
 
 
+	const bayForm =
+		document.getElementById(
+			'modular-bay-form'
+		);
+
+
+	const bayNumberInput =
+		document.getElementById(
+			'modular-bay-number'
+		);
+
+
+	const bayModularIdInput =
+		document.getElementById(
+			'modular-bay-modular-id'
+		);
+
+
+	const bayStatusInput =
+		document.getElementById(
+			'modular-bay-status'
+		);
+
+
+    const addBayButton =
+        document.getElementById(
+            'add-modular-bay'
+        );
+
+
+	const updateBayButton =
+		document.getElementById(
+			'update-modular-bay'
+		);
+
+
+	const clearBayButton =
+		document.getElementById(
+			'clear-modular-bay'
+		);
+
 	/* =========================================================
 	   STATE
 	========================================================= */
@@ -130,6 +171,10 @@
 	let editingId = null;
 
 	let activities = [];
+
+	let editingBayId = null;
+
+	let selectedPlanogramNumber = null;
 
 
 	/* =========================================================
@@ -303,104 +348,472 @@
 			bayCount.textContent =
 				'0 bays';
 
+
+			editingBayId =
+				null;
+
+
+			selectedPlanogramNumber =
+				null;
+
+
+			if (
+				bayForm
+			) {
+
+				bayForm.reset();
+
+			}
+
+
+			if (
+				bayModularIdInput
+			) {
+
+				bayModularIdInput.value =
+					'';
+
+			}
+
+
+			if (
+				bayStatusInput
+			) {
+
+				bayStatusInput.value =
+					'Due to land';
+
+			}
+
+
+			if (
+				updateBayButton
+			) {
+
+				updateBayButton.disabled =
+					true;
+
+			}
+
 		};
 
 
+	/* =========================================================
+	   CLEAR BAY FORM
+	========================================================= */
+
+	const clearBayForm =
+		() => {
+
+			editingBayId =
+				null;
+
+
+			bayForm.reset();
+
+
+			bayNumberInput.value =
+				'';
+
+
+			bayModularIdInput.value =
+				'';
+
+
+			bayStatusInput.value =
+				'Due to land';
+
+
+			if (
+				updateBayButton
+			) {
+
+				updateBayButton.disabled =
+					true;
+
+			}
+
+
+			bayList
+				.querySelectorAll(
+					'.modular-bay-row.editing'
+				)
+				.forEach(
+					row => {
+
+						row.classList.remove(
+							'editing'
+						);
+
+					}
+				);
+
+		};
+
+
+	/* =========================================================
+	   START BAY EDIT
+	========================================================= */
+
+	const startBayEdit =
+		(bay) => {
+
+			editingBayId =
+				Number(
+					bay.id
+				);
+
+
+			bayNumberInput.value =
+				bay.bayNumber ??
+				'';
+
+
+			bayModularIdInput.value =
+				bay.modularId ??
+				'';
+
+
+			bayStatusInput.value =
+				bay.status ||
+				'Due to land';
+
+
+			if (
+				updateBayButton
+			) {
+
+				updateBayButton.disabled =
+					false;
+
+			}
+
+
+			bayList
+				.querySelectorAll(
+					'.modular-bay-row.editing'
+				)
+				.forEach(
+					row => {
+
+						row.classList.remove(
+							'editing'
+						);
+
+					}
+				);
+
+
+			const selectedRow =
+				bayList.querySelector(
+					`.modular-bay-row[data-id="${bay.id}"]`
+				);
+
+
+			if (
+				selectedRow
+			) {
+
+				selectedRow.classList.add(
+					'editing'
+				);
+
+			}
+
+
+			bayForm.scrollIntoView({
+				behavior: 'smooth',
+				block: 'nearest'
+			});
+
+		};
 	/* =========================================================
 	   LOAD MODULAR BAYS
 	========================================================= */
 
 	const loadBays =
-	async (
-		planogramNumber
-	) => {
+		async (
+			planogramNumber
+		) => {
 
-		if (
-			planogramNumber === null ||
-			planogramNumber === undefined ||
-			planogramNumber === ''
-		) {
+			if (
+				planogramNumber === null ||
+				planogramNumber === undefined ||
+				planogramNumber === ''
+			) {
 
-			resetBays();
+				resetBays();
 
-			return;
+				return;
 
-		}
-
-
-		baysPanel.hidden = false;
-		baysHint.hidden = true;
-
-		bayList.innerHTML =
-			`
-				<div class="modular-activity-loading">
-					Loading bays...
-				</div>
-			`;
-
-		bayCount.textContent =
-			'Loading...';
+			}
 
 
-		try {
-
-			const response =
-				await fetch(
-					`${API_ORIGIN}/api/products/modular-bay/${encodeURIComponent(planogramNumber)}`
+			selectedPlanogramNumber =
+				Number(
+					planogramNumber
 				);
 
 
-			if (!response.ok) {
+			baysPanel.hidden =
+				false;
 
-				const data =
-					await response
-						.json()
-						.catch(
-							() => ({})
+
+			baysHint.hidden =
+				true;
+
+
+			bayList.innerHTML =
+				`
+					<div class="modular-bay-loading">
+						Loading bays...
+					</div>
+				`;
+
+
+			bayCount.textContent =
+				'Loading...';
+
+
+			try {
+
+				const rows =
+					await apiRequest(
+						`${API_BASE}/bays/${encodeURIComponent(
+							planogramNumber
+						)}`
+					);
+
+
+				if (
+					!Array.isArray(rows)
+				) {
+
+					throw new Error(
+						'Invalid modular bay response.'
+					);
+
+				}
+
+
+				bayCount.textContent =
+					`${rows.length} ${
+						rows.length === 1
+							? 'bay'
+							: 'bays'
+					}`;
+
+
+				if (
+					!rows.length
+				) {
+
+					bayList.innerHTML =
+						`
+							<div class="modular-bay-empty">
+								No bays have been added to this activity yet.
+							</div>
+						`;
+
+					return;
+
+				}
+
+
+				bayList.replaceChildren();
+
+
+				rows.forEach(
+					bay => {
+
+						bayList.appendChild(
+							renderBay(
+								bay
+							)
 						);
 
-				throw new Error(
-					data.error ||
-					'Unable to load modular bays.'
+					}
 				);
+
+
+			} catch (error) {
+
+				console.error(
+					'Unable to load modular bays:',
+					error
+				);
+
+
+				bayCount.textContent =
+					'Unable to load';
+
+
+				bayList.innerHTML =
+					`
+						<div class="modular-bay-empty">
+							${escapeHtml(
+								error.message ||
+								'Unable to load modular bays.'
+							)}
+						</div>
+					`;
 
 			}
 
-
-			const rows =
-				await response.json();
+		};
 
 
-			if (!Array.isArray(rows)) {
+	/* =========================================================
+	   RENDER SINGLE BAY
+	========================================================= */
 
-				throw new Error(
-					'Invalid modular bay response.'
+	const renderBay =
+		(bay) => {
+
+			const row =
+				document.createElement(
+					'article'
 				);
 
-			}
+
+			row.className =
+				'modular-bay-row';
 
 
-			/* =================================================
-			   GROUP ITEMS BY BAY
-			================================================= */
-
-			const bays =
-				new Map();
+			row.dataset.id =
+				bay.id;
 
 
-			rows.forEach(
-				row => {
+			const details =
+				document.createElement(
+					'div'
+				);
 
-					const bayId =
-						row.bayId ??
-						row.bay_id ??
-						row.bayNumber ??
-						row.bay_number;
+
+			details.className =
+				'modular-bay-details';
+
+
+			const bayNumber =
+				document.createElement(
+					'span'
+				);
+
+
+			bayNumber.className =
+				'modular-bay-id';
+
+
+			bayNumber.textContent =
+				`Bay ${bay.bayNumber ?? '—'}`;
+
+
+			const modularId =
+				document.createElement(
+					'span'
+				);
+
+
+			modularId.className =
+				'modular-bay-modular-id';
+
+
+			modularId.textContent =
+				bay.modularId
+					? `Modular ID: ${bay.modularId}`
+					: 'No modular ID';
+
+
+			details.appendChild(
+				bayNumber
+			);
+
+
+			details.appendChild(
+				modularId
+			);
+
+
+			const status =
+				document.createElement(
+					'span'
+				);
+
+
+			status.className =
+				'modular-bay-status';
+
+
+			status.textContent =
+				bay.status ||
+				'Due to land';
+
+
+			const statusClass =
+				String(
+					bay.status ||
+					'due-to-land'
+				)
+					.toLowerCase()
+					.replace(
+						/[^a-z0-9]+/g,
+						'-'
+					)
+					.replace(
+						/^-|-$/g,
+						''
+					);
+
+
+			status.classList.add(
+				`status-${statusClass}`
+			);
+
+
+			const actions =
+				document.createElement(
+					'div'
+				);
+
+
+			actions.className =
+				'modular-bay-actions';
+
+
+			const deleteButton =
+				document.createElement(
+					'button'
+				);
+
+
+			deleteButton.type =
+				'button';
+
+
+			deleteButton.className =
+				'delete-modular-bay';
+
+
+			deleteButton.textContent =
+				'Delete';
+
+
+			deleteButton.addEventListener(
+				'click',
+				async event => {
+
+					event.stopPropagation();
+
+
+					const confirmed =
+						window.confirm(
+							`Delete Bay ${bay.bayNumber}?\n\n` +
+							'This will also delete any modular items assigned to this bay.'
+						);
 
 
 					if (
-						bayId === null ||
-						bayId === undefined
+						!confirmed
 					) {
 
 						return;
@@ -408,254 +821,374 @@
 					}
 
 
-					if (
-						!bays.has(bayId)
-					) {
+					try {
 
-						bays.set(
-							bayId,
+						await apiRequest(
+							`${API_BASE}/bays/${bay.id}`,
 							{
-								bayId: bayId,
-
-								bayNumber:
-									row.bayNumber ??
-									row.bay_number ??
-									bayId,
-
-								planogramNumber:
-									row.planogramNumber ??
-									row.planogram_number ??
-									planogramNumber,
-
-								modularId:
-									row.modularId ??
-									row.modular_id ??
-									null,
-
-								itemCount: 0
+								method:
+									'DELETE'
 							}
 						);
 
+
+						if (
+							editingBayId ===
+							Number(
+								bay.id
+							)
+						) {
+
+							clearBayForm();
+
+						}
+
+
+						await loadBays(
+							selectedPlanogramNumber
+						);
+
+
+					} catch (error) {
+
+						console.error(
+							'Unable to delete modular bay:',
+							error
+						);
+
+
+						showMessage(
+							error.message ||
+							'Unable to delete modular bay.',
+							true
+						);
+
 					}
-
-
-					bays.get(
-						bayId
-					).itemCount++;
 
 				}
 			);
 
 
-			const uniqueBays =
-				Array.from(
-					bays.values()
-				);
-
-
-			/* =================================================
-			   EMPTY
-			================================================= */
-
-			if (!uniqueBays.length) {
-
-				bayCount.textContent =
-					'0 bays';
-
-				bayList.innerHTML =
-					`
-						<div class="modular-activity-empty">
-							No bays found for this planogram.
-						</div>
-					`;
-
-				return;
-
-			}
-
-
-			/* =================================================
-			   BAY COUNT
-			================================================= */
-
-			bayCount.textContent =
-				`${uniqueBays.length} ${
-					uniqueBays.length === 1
-						? 'bay'
-						: 'bays'
-				}`;
-
-
-			/* =================================================
-			   RENDER UNIQUE BAYS
-			================================================= */
-
-			bayList.innerHTML =
-				uniqueBays
-					.map(
-						bay =>
-							renderBay(
-								bay,
-								planogramNumber
-							)
-					)
-					.join('');
-
-
-		} catch (error) {
-
-			console.error(
-				'Unable to load modular bays:',
-				error
+			actions.appendChild(
+				deleteButton
 			);
 
 
-			bayCount.textContent =
-				'Unable to load';
-
-
-			bayList.innerHTML =
-				`
-					<div class="modular-activity-empty">
-						${escapeHtml(
-							error.message ||
-							'Unable to load modular bays.'
-						)}
-					</div>
-				`;
-
-		}
-
-	};
-
-
-	/* =========================================================
-	   RENDER SINGLE BAY
-	========================================================= */
-
-	/* =========================================================
-   RENDER BAY
-========================================================= */
-
-const renderBay =
-	(
-		bay,
-		planogramNumber
-	) => {
-
-		const bayNumber =
-			bay.bayNumber ??
-			bay.bayId ??
-			'—';
-
-		const modularId =
-			bay.modularId ||
-			'No modular ID';
-
-		const finalPlanogramNumber =
-			bay.planogramNumber ??
-			planogramNumber;
-
-		const itemCount =
-			Number(
-				bay.itemCount || 0
-			);
-
-		return `
-			<article class="modular-bay-row">
-
-				<div class="modular-bay-details">
-
-					<span class="modular-bay-id">
-						Bay ${escapeHtml(
-							String(bayNumber)
-						)}
-					</span>
-
-					<p>
-						<strong>Modular ID:</strong>
-						${escapeHtml(
-							String(modularId)
-						)}
-					</p>
-
-					<p>
-						<strong>Planogram:</strong>
-						${escapeHtml(
-							String(finalPlanogramNumber)
-						)}
-					</p>
-
-					<p>
-						<strong>Items:</strong>
-						${itemCount}
-					</p>
-
-				</div>
-
-				<div class="modular-bay-actions">
-
-                    <button class="delete-modular-bay">
-                        Delete
-                    </button>
-
-                </div>
-
-			</article>
-		`;
-
-	};
-    document.addEventListener(
-	'click',
-	(event) => {
-
-		const bayRow =
-			event.target.closest(
-				'.modular-bay-row'
+			row.appendChild(
+				details
 			);
 
 
-		if (!bayRow) {
-			return;
-		}
+			row.appendChild(
+				status
+			);
 
 
-		/* Ignore Delete */
-
-		if (
-			event.target.closest(
-				'.delete-modular-bay'
-			)
-		) {
-			return;
-		}
+			row.appendChild(
+				actions
+			);
 
 
-		/* Clear existing selection */
+			row.addEventListener(
+				'click',
+				() => {
 
-		document
-			.querySelectorAll(
-				'.modular-bay-row.editing'
-			)
-			.forEach(
-				(row) => {
-
-					row.classList.remove(
-						'editing'
+					startBayEdit(
+						bay
 					);
 
 				}
 			);
 
 
-		/* Select clicked bay */
+			return row;
 
-		bayRow.classList.add(
-			'editing'
-		);
+		};
 
-	}
-);
+
+		/* =========================================================
+	   ADD BAY
+	========================================================= */
+
+	addBayButton.addEventListener(
+		'click',
+		async () => {
+
+			const bayNumber =
+				Number(
+					bayNumberInput.value
+				);
+
+
+			const status =
+				bayStatusInput.value.trim();
+
+
+			if (
+				!Number.isInteger(
+					bayNumber
+				)
+			) {
+
+				showMessage(
+					'Bay number must be a whole number.',
+					true
+				);
+
+				bayNumberInput.focus();
+
+				return;
+
+			}
+
+
+			if (
+				!status
+			) {
+
+				showMessage(
+					'Bay status is required.',
+					true
+				);
+
+				bayStatusInput.focus();
+
+				return;
+
+			}
+
+
+			if (
+				!Number.isInteger(
+					Number(
+						selectedPlanogramNumber
+					)
+				)
+			) {
+
+				showMessage(
+					'Select a modular activity before adding a bay.',
+					true
+				);
+
+				return;
+
+			}
+
+
+			try {
+
+				addBayButton.disabled =
+					true;
+
+
+				addBayButton.textContent =
+					'Adding...';
+
+
+				await apiRequest(
+					`${API_BASE}/bays`,
+					{
+						method:
+							'POST',
+
+						body:
+							JSON.stringify({
+								bayNumber,
+								status,
+								planogramNumber:
+									Number(
+										selectedPlanogramNumber
+									)
+							})
+					}
+				);
+
+
+				clearBayForm();
+
+
+				await loadBays(
+					selectedPlanogramNumber
+				);
+
+
+				showMessage(
+					'Modular bay added.'
+				);
+
+
+			} catch (error) {
+
+				console.error(
+					'Unable to add modular bay:',
+					error
+				);
+
+
+				showMessage(
+					error.message ||
+					'Unable to add modular bay.',
+					true
+				);
+
+
+			} finally {
+
+				addBayButton.disabled =
+					false;
+
+
+				addBayButton.textContent =
+					'Add bay';
+
+			}
+
+		}
+	);
+
+
+	/* =========================================================
+	   UPDATE BAY
+	========================================================= */
+
+	updateBayButton.addEventListener(
+		'click',
+		async () => {
+
+			if (
+				editingBayId === null
+			) {
+
+				return;
+
+			}
+
+
+			const bayNumber =
+				Number(
+					bayNumberInput.value
+				);
+
+
+			const status =
+				bayStatusInput.value.trim();
+
+
+			if (
+				!Number.isInteger(
+					bayNumber
+				)
+			) {
+
+				showMessage(
+					'Bay number must be a whole number.',
+					true
+				);
+
+				bayNumberInput.focus();
+
+				return;
+
+			}
+
+
+			if (
+				!status
+			) {
+
+				showMessage(
+					'Bay status is required.',
+					true
+				);
+
+				bayStatusInput.focus();
+
+				return;
+
+			}
+
+
+			try {
+
+				updateBayButton.disabled =
+					true;
+
+
+				updateBayButton.textContent =
+					'Updating...';
+
+
+				await apiRequest(
+					`${API_BASE}/bays/${editingBayId}`,
+					{
+						method:
+							'PUT',
+
+						body:
+							JSON.stringify({
+								bayNumber,
+								status
+							})
+					}
+				);
+
+
+				clearBayForm();
+
+
+				await loadBays(
+					selectedPlanogramNumber
+				);
+
+
+				showMessage(
+					'Modular bay updated.'
+				);
+
+
+			} catch (error) {
+
+				console.error(
+					'Unable to update modular bay:',
+					error
+				);
+
+
+				showMessage(
+					error.message ||
+					'Unable to update modular bay.',
+					true
+				);
+
+
+			} finally {
+
+				updateBayButton.disabled =
+					false;
+
+
+				updateBayButton.textContent =
+					'Update bay';
+
+			}
+
+		}
+	);
+
+
+	/* =========================================================
+	   CLEAR BAY
+	========================================================= */
+
+	clearBayButton.addEventListener(
+		'click',
+		() => {
+
+			clearBayForm();
+
+		}
+	);
 
 	/* =========================================================
 	   NEW ACTIVITY MODE
