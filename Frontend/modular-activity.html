@@ -16,12 +16,83 @@
 		rel="stylesheet"
 		href="index.css"
 	>
+    <link rel ="stylesheet" href = "modular-activity.css">
 
 	<script src="https://unpkg.com/lucide@latest"></script>
 
 </head>
 
+<!-- =====================================================
+     CLEAR ALL CONFIRMATION MODAL
+====================================================== -->
 
+<div
+	class="modular-clear-modal"
+	id="modular-clear-modal"
+	hidden
+>
+
+	<div
+		class="modular-clear-modal-backdrop"
+		data-clear-modal-close
+	></div>
+
+
+	<div
+		class="modular-clear-modal-dialog"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="modular-clear-modal-title"
+	>
+
+		<div class="modular-clear-modal-icon">
+
+			<i
+				data-lucide="triangle-alert"
+				aria-hidden="true"
+			></i>
+
+		</div>
+
+
+		<div class="modular-clear-modal-content">
+
+			<h2 id="modular-clear-modal-title">
+				Clear Scanned Tags?
+			</h2>
+
+
+			<p id="modular-clear-modal-message">
+                Are you sure you want to remove all scanned tags?
+            </p>
+
+		</div>
+
+
+		<div class="modular-clear-modal-actions">
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-cancel"
+				id="modular-clear-modal-cancel"
+			>
+				Cancel
+			</button>
+
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-confirm"
+				id="modular-clear-modal-confirm"
+			>
+				Clear All
+			</button>
+
+		</div>
+
+	</div>
+
+</div>
 <body>
 
 	<main class="device-shell">

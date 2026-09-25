@@ -621,7 +621,21 @@ const createModularBaySnapshot =
 
 			}
 		);
+		/* =====================================================
+		SORT BAYS NUMERICALLY
+		===================================================== */
 
+		const sortedBays =
+			[
+				...bays.entries()
+			].sort(
+				(
+					[a],
+					[b]
+				) =>
+					Number(a) -
+					Number(b)
+			);
 
 		/* =====================================================
 		   CALCULATE SHARED BAY HEIGHT
@@ -692,7 +706,7 @@ const createModularBaySnapshot =
 				bayNumber,
 				bayProducts
 			]
-			of bays
+			of sortedBays
 		) {
 
 			/* =================================================
@@ -3361,54 +3375,68 @@ const getModularActivity =
 					}
 
 
-					/* =================================================
-					   MODULAR BAY SNAPSHOT
-					================================================= */
+					/* =========================================================
+   MODULAR BAY SNAPSHOT
+========================================================= */
 
-					const modularSnapshot =
-						document.createElement(
-							'div'
-						);
+const modularSnapshot =
+	document.createElement(
+		'div'
+	);
 
-					modularSnapshot.className =
-						'modular-activity-snapshot';
-
-
-					const snapshotLoading =
-						document.createElement(
-							'div'
-						);
-
-					snapshotLoading.className =
-						'modular-activity-snapshot-loading';
-
-					snapshotLoading.textContent =
-						'Loading modular visual...';
+modularSnapshot.className =
+	'modular-activity-snapshot';
 
 
-					modularSnapshot.appendChild(
-						snapshotLoading
-					);
+const modularSnapshotScroll =
+	document.createElement(
+		'div'
+	);
+
+modularSnapshotScroll.className =
+	'modular-activity-snapshot-scroll';
 
 
-					/* =================================================
-					   COMPLETE CARD
-					================================================= */
+const snapshotLoading =
+	document.createElement(
+		'div'
+	);
 
-					card.append(
-						main,
-						planogram,
-						executionStatus,
-						modularSnapshot
-					);
+snapshotLoading.className =
+	'modular-activity-snapshot-loading';
 
-
-					modularActivityCards.appendChild(
-						card
-					);
+snapshotLoading.textContent =
+	'Loading modular visual...';
 
 
-					/* =================================================
+modularSnapshotScroll.appendChild(
+	snapshotLoading
+);
+
+
+modularSnapshot.appendChild(
+	modularSnapshotScroll
+);
+
+
+/* =================================================
+   COMPLETE CARD
+================================================= */
+
+card.append(
+	main,
+	planogram,
+	executionStatus,
+	modularSnapshot
+);
+
+
+modularActivityCards.appendChild(
+	card
+);
+
+
+/* =================================================
    GENERATE BAY SNAPSHOT
 ================================================= */
 
@@ -3423,7 +3451,7 @@ createModularBaySnapshot(
 				snapshots.length === 0
 			) {
 
-				modularSnapshot.replaceChildren();
+				modularSnapshotScroll.replaceChildren();
 
 
 				const empty =
@@ -3438,7 +3466,7 @@ createModularBaySnapshot(
 					'No modular visual available.';
 
 
-				modularSnapshot.appendChild(
+				modularSnapshotScroll.appendChild(
 					empty
 				);
 
@@ -3451,7 +3479,7 @@ createModularBaySnapshot(
 			   CREATE SNAPSHOT IMAGES
 			================================================= */
 
-			modularSnapshot.replaceChildren();
+			modularSnapshotScroll.replaceChildren();
 
 
 			snapshots.forEach(
@@ -3562,7 +3590,11 @@ createModularBaySnapshot(
 					);
 
 
-					modularSnapshot.appendChild(
+					/* =================================================
+					   ADD BAY TO HORIZONTAL SCROLL AREA
+					================================================= */
+
+					modularSnapshotScroll.appendChild(
 						snapshotWrapper
 					);
 
@@ -3686,12 +3718,18 @@ createModularBaySnapshot(
 			);
 
 
+			/* =================================================
+			   ADD START BUTTON OUTSIDE SCROLL AREA
+			================================================= */
+
 			modularSnapshot.appendChild(
 				startBar
 			);
 
 
-			/* CREATE PLAY ICON */
+			/* =================================================
+			   CREATE PLAY ICON
+			================================================= */
 
 			lucide.createIcons();
 
@@ -3706,7 +3744,7 @@ createModularBaySnapshot(
 			);
 
 
-			modularSnapshot.replaceChildren();
+			modularSnapshotScroll.replaceChildren();
 
 
 			const errorMessage =
@@ -3721,7 +3759,7 @@ createModularBaySnapshot(
 				'Unable to load modular visual.';
 
 
-			modularSnapshot.appendChild(
+			modularSnapshotScroll.appendChild(
 				errorMessage
 			);
 

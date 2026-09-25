@@ -105,6 +105,18 @@ const isStandardScanMode =
 		);
 
 	};
+const modularClearModalMessage =
+	document.querySelector(
+		'#modular-clear-modal-message'
+	);
+const modularEndTaskButton =
+	document.querySelector(
+		'#modular-activity-end'
+	);
+const modularClearModalTitle =
+	document.querySelector(
+		'#modular-clear-modal-title'
+	);
 /* =========================================================
    MODULAR SCAN MODE TITLE
 ========================================================= */
@@ -509,6 +521,24 @@ const searchModularTag =
 				}
 
 
+				/* =================================================
+				PREVENT SMART RANGE EXCEEDING AVAILABLE MODULARS
+				================================================= */
+
+				if (
+					smartTagRange.length >
+					requiredModulars.length
+				) {
+
+					showModularSearchError(
+						`This Mod Tag range contains ${smartTagRange.length} mods, but only ${requiredModulars.length} are available.`
+					);
+
+					return;
+
+				}
+
+
 				/*
 					Remove the temporary first-tag entry.
 				*/
@@ -548,13 +578,44 @@ const searchModularTag =
 				updateModularBayCompletionStates();
 
 
+				/* =============================================
+				   LOCK MOD TAG ENTRY WHEN ALL MODULARS ARE FILLED
+				============================================= */
+
+				if (
+					modularTagAssignments.length >=
+					requiredModulars.length
+				) {
+
+					if (
+						modularSearchInput
+					) {
+
+						modularSearchInput.disabled =
+							true;
+
+					}
+
+
+					if (
+						modularSearchButton
+					) {
+
+						modularSearchButton.disabled =
+							true;
+
+					}
+
+
+					console.log(
+						'All required Mod Tags have been entered.'
+					);
+
+				}
+
+
 				console.log(
 					'Smart Tag range generated:',
-					modularTagAssignments
-				);
-
-
-				console.table(
 					modularTagAssignments
 				);
 
@@ -641,11 +702,7 @@ if (
 const modularTagAssignments = [];
 
 
-let requiredModulars = [
-	10,
-	11,
-	12
-];
+let requiredModulars = [];
 const updateModularActivityCounters =
 	() => {
 
@@ -876,7 +933,7 @@ const renderModularTagAssignments =
 
 
 				assignmentIndex.textContent =
-					index;
+					index + 1;
 
 
 				const assignmentValue =
@@ -1155,41 +1212,41 @@ if (
 		'click',
 		() => {
 
-			const backParams =
-				new URLSearchParams();
+			modularClearModalAction =
+				'end';
 
-
-			/*
-				Return to the Tasks page
-				with Modular Activity selected.
-			*/
-
-			backParams.set(
-				'modularActivity',
-				'true'
-			);
-
-
-			/*
-				Restore the UPC search
-				if one was entered.
-			*/
 
 			if (
-				searchUPC
+				modularClearModalTitle
 			) {
 
-				backParams.set(
-					'upc',
-					searchUPC
-				);
+				modularClearModalTitle.textContent =
+					'Cancel Modular Activity?';
 
 			}
 
 
-			window.location.href =
-				`index.html?${backParams.toString()}`;
+			if (
+				modularClearModalMessage
+			) {
 
+				modularClearModalMessage.textContent =
+					'Are you sure you want to cancel this Modular Activity? All progress will be lost';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'End Task';
+
+			}
+
+
+			openModularClearModal();
 		}
 	);
 
@@ -1670,6 +1727,21 @@ const createModularBaySnapshot =
 
 			}
 		);
+				/* =====================================================
+		   SORT BAYS NUMERICALLY
+		===================================================== */
+
+		const sortedBays =
+			[
+				...bays.entries()
+			].sort(
+				(
+					[a],
+					[b]
+				) =>
+					Number(a) -
+					Number(b)
+			);
 
 
 		/* =====================================================
@@ -1741,7 +1813,7 @@ const createModularBaySnapshot =
 				bayNumber,
 				bayProducts
 			]
-			of bays
+			of sortedBays
 		) {
 
 			/* =================================================
@@ -2751,7 +2823,21 @@ const loadModularActivityBays =
 				return;
 
 			}
+			/* =================================================
+				SET REQUIRED MODULARS FROM BAY IMAGE ORDER
+				================================================= */
 
+				requiredModulars =
+					snapshots.map(
+						({
+							bayNumber
+						}) =>
+							Number(
+								bayNumber
+							)
+					);
+
+				updateModularActivityCounters();
 
 			/* =================================================
 			   CREATE SNAPSHOT CONTAINER
@@ -3055,6 +3141,406 @@ if (
     );
 
 }
+/* =========================================================
+   CLEAR ALL CONFIRMATION MODAL
+========================================================= */
+
+const modularClearButton =
+	document.querySelector(
+		'#modular-activity-clear'
+	);
+
+
+const modularClearModal =
+	document.querySelector(
+		'#modular-clear-modal'
+	);
+
+
+const modularClearModalCancel =
+	document.querySelector(
+		'#modular-clear-modal-cancel'
+	);
+
+
+const modularClearModalConfirm =
+	document.querySelector(
+		'#modular-clear-modal-confirm'
+	);
+
+
+const modularClearModalBackdrop =
+	document.querySelector(
+		'[data-clear-modal-close]'
+	);
+
+
+/* =========================================================
+   OPEN CLEAR MODAL
+========================================================= */
+
+const openModularClearModal =
+	() => {
+
+		if (
+			!modularClearModal
+		) {
+
+			return;
+
+		}
+
+
+		modularClearModal.hidden =
+			false;
+
+
+		lucide.createIcons();
+
+
+		if (
+			modularClearModalCancel
+		) {
+
+			modularClearModalCancel.focus();
+
+		}
+
+	};
+
+
+/* =========================================================
+   CLOSE CLEAR MODAL
+========================================================= */
+
+const closeModularClearModal =
+	() => {
+
+		if (
+			!modularClearModal
+		) {
+
+			return;
+
+		}
+
+
+		modularClearModal.hidden =
+			true;
+
+	};
+
+/* =========================================================
+   ACTUALLY CLEAR ALL TAGS
+========================================================= */
+
+const clearAllModularTags =
+	() => {
+
+		/*
+			Clear all temporary Mod Tag assignments.
+		*/
+
+		modularTagAssignments.length =
+			0;
+
+
+		/*
+			Clear the displayed assignments.
+		*/
+
+		renderModularTagAssignments();
+
+
+		/*
+			Update counters.
+		*/
+
+		updateModularActivityCounters();
+
+
+		/*
+			Remove completion/check overlays
+			from every bay.
+		*/
+
+		updateModularBayCompletionStates();
+
+
+		/*
+			Re-enable Mod Tag entry.
+		*/
+
+		if (
+			modularSearchInput
+		) {
+
+			modularSearchInput.disabled =
+				false;
+
+			modularSearchInput.value =
+				'';
+
+			modularSearchInput.focus();
+
+		}
+
+
+		if (
+			modularSearchButton
+		) {
+
+			modularSearchButton.disabled =
+				false;
+
+		}
+
+
+		/*
+			Clear any visible search error.
+		*/
+
+		if (
+			modularSearchError
+		) {
+
+			modularSearchError.hidden =
+				true;
+
+			modularSearchError.textContent =
+				'';
+
+		}
+
+
+		/*
+			Clear any pending error timeout.
+		*/
+
+		if (
+			modularSearchErrorTimeout
+		) {
+
+			clearTimeout(
+				modularSearchErrorTimeout
+			);
+
+			modularSearchErrorTimeout =
+				null;
+
+		}
+
+
+		console.log(
+			'All temporary Mod Tag assignments cleared.'
+		);
+
+	};
+
+
+/* =========================================================
+   CLEAR BUTTON
+========================================================= */
+
+if (
+	modularClearButton
+) {
+
+	modularClearButton.addEventListener(
+		'click',
+		() => {
+
+			if (
+				modularTagAssignments.length === 0
+			) {
+
+				return;
+
+			}
+
+
+			modularClearModalAction =
+				'clear';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Clear Scanned Tags?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to remove all scanned tags?';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'Clear All';
+
+			}
+
+
+			openModularClearModal();
+
+		}
+	);
+
+}
+/* =========================================================
+   END TASK BUTTON
+========================================================= */
+
+if (
+	modularEndTaskButton
+) {
+
+	modularEndTaskButton.addEventListener(
+		'click',
+		() => {
+
+			modularClearModalAction =
+				'end';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Cancel Modular Activity?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to cancel this Modular Activity? All progress will be lost';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'End Task';
+
+			}
+
+
+			openModularClearModal();
+
+		}
+	);
+
+}
+/* =========================================================
+   CANCEL
+========================================================= */
+
+if (
+	modularClearModalCancel
+) {
+
+	modularClearModalCancel.addEventListener(
+		'click',
+		closeModularClearModal
+	);
+
+}
+
+
+/* =========================================================
+   BACKDROP CLICK
+========================================================= */
+
+if (
+	modularClearModalBackdrop
+) {
+
+	modularClearModalBackdrop.addEventListener(
+		'click',
+		closeModularClearModal
+	);
+
+}
+
+
+/* =========================================================
+   CONFIRM
+========================================================= */
+
+if (
+	modularClearModalConfirm
+) {
+
+	modularClearModalConfirm.addEventListener(
+		'click',
+		() => {
+
+			if (
+				modularClearModalAction === 'clear'
+			) {
+
+				clearAllModularTags();
+
+			}
+
+
+			if (
+				modularClearModalAction === 'end'
+			) {
+
+				window.history.back();
+
+			}
+
+
+			closeModularClearModal();
+
+		}
+	);
+
+}
+
+
+/* =========================================================
+   ESCAPE KEY
+========================================================= */
+
+document.addEventListener(
+	'keydown',
+	event => {
+
+		if (
+			event.key === 'Escape' &&
+			modularClearModal &&
+			!modularClearModal.hidden
+		) {
+
+			closeModularClearModal();
+
+		}
+
+	}
+);
 /* =========================================================
    INITIALISE
 ========================================================= */

@@ -2,14 +2,29 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
 	<title>Asda Admin Panel</title>
 
-	<link rel="stylesheet" href="admin-panel.css">
-	<link rel="stylesheet" href="admin-modular-activity.css">
+	<link
+		rel="stylesheet"
+		href="admin-panel.css"
+	>
+
+	<link
+		rel="stylesheet"
+		href="admin-modular-activity.css"
+	>
+
 </head>
 
 <body>
+
+	<!-- =====================================================
+	     ADMIN PANEL
+	===================================================== -->
 
 	<main class="items-app">
 
@@ -27,12 +42,19 @@
 				‹
 			</a>
 
+
 			<div class="admin-header-title">
-				<p>ADMIN PANEL</p>
+
+				<p>
+					ADMIN PANEL
+				</p>
+
 				<h1 id="admin-panel-title">
 					Product Info
 				</h1>
+
 			</div>
+
 
 			<span
 				class="database-status"
@@ -62,6 +84,7 @@
 			>
 				Product Info
 			</button>
+
 
 			<button
 				type="button"
@@ -97,14 +120,18 @@
 						<div class="form-heading">
 
 							<div>
+
 								<span class="eyebrow">
 									ITEM RECORD
 								</span>
 
+
 								<h2 id="form-title">
 									New item
 								</h2>
+
 							</div>
+
 
 							<div class="form-heading-actions">
 
@@ -115,6 +142,7 @@
 								>
 									New item
 								</button>
+
 
 								<button
 									type="reset"
@@ -139,6 +167,7 @@
 									inputmode="numeric"
 									placeholder="Enter UPC"
 								>
+
 							</label>
 
 
@@ -150,6 +179,7 @@
 									inputmode="numeric"
 									placeholder="Optional case barcode"
 								>
+
 							</label>
 
 
@@ -161,6 +191,7 @@
 									inputmode="numeric"
 									placeholder="Optional alternative barcode"
 								>
+
 							</label>
 
 
@@ -172,6 +203,7 @@
 									required
 									placeholder="Enter item number"
 								>
+
 							</label>
 
 
@@ -183,6 +215,7 @@
 									required
 									placeholder="Enter item description"
 								>
+
 							</label>
 
 
@@ -196,6 +229,7 @@
 									step="0.01"
 									placeholder="Defaults to £1.00"
 								>
+
 							</label>
 
 
@@ -209,6 +243,7 @@
 									step="1"
 									placeholder="Defaults to 0"
 								>
+
 							</label>
 
 
@@ -222,6 +257,7 @@
 									step="1"
 									placeholder="Defaults to 0"
 								>
+
 							</label>
 
 
@@ -233,6 +269,7 @@
 									type="text"
 									placeholder="e.g. 750g or 1kg"
 								>
+
 							</label>
 
 
@@ -246,6 +283,7 @@
 									step="1"
 									placeholder="Defaults to 0"
 								>
+
 							</label>
 
 
@@ -257,6 +295,7 @@
 									<option value="Compliant">
 										Compliant
 									</option>
+
 
 									<option value="Not Compliant">
 										Not Compliant
@@ -274,6 +313,7 @@
 									name="department"
 									placeholder="Defaults to 9999"
 								>
+
 							</label>
 
 
@@ -286,13 +326,16 @@
 										In range
 									</option>
 
+
 									<option value="soon-ending">
 										Soon to be ending
 									</option>
 
+
 									<option value="ended">
 										Ended
 									</option>
+
 
 									<option value="soon-in-range">
 										Soon to be in range
@@ -311,6 +354,7 @@
 									type="url"
 									placeholder="Optional image URL"
 								>
+
 							</label>
 
 
@@ -322,6 +366,7 @@
 									type="file"
 									accept="image/*"
 								>
+
 							</label>
 
 						</div>
@@ -363,11 +408,13 @@
 									LOCATIONS
 								</span>
 
+
 								<h2>
 									Where this item lives
 								</h2>
 
 							</div>
+
 
 							<span id="location-count">
 								0 locations
@@ -396,6 +443,7 @@
 										name="locAisle"
 										placeholder="Optional"
 									>
+
 								</label>
 
 
@@ -406,6 +454,7 @@
 										name="locAisleSide"
 										placeholder="Optional"
 									>
+
 								</label>
 
 
@@ -416,6 +465,7 @@
 										name="locBay"
 										placeholder="Optional"
 									>
+
 								</label>
 
 
@@ -426,6 +476,7 @@
 										name="locShelf"
 										placeholder="Optional"
 									>
+
 								</label>
 
 
@@ -436,6 +487,7 @@
 										name="locModularId"
 										placeholder="Auto-generated as FF-aisle-side-bay"
 									>
+
 								</label>
 
 							</div>
@@ -506,11 +558,13 @@
 								DATABASE
 							</span>
 
+
 							<h2 id="saved-items-heading">
 								Saved items
 							</h2>
 
 						</div>
+
 
 						<span id="item-count">
 							0 items
@@ -532,7 +586,7 @@
 
 
 		<!-- =====================================================
-			MODULAR ACTIVITY
+		     MODULAR ACTIVITY
 		===================================================== -->
 
 		<section
@@ -545,7 +599,7 @@
 
 
 				<!-- =================================================
-					MODULAR ACTIVITY FORM
+				     MODULAR ACTIVITY FORM
 				================================================= -->
 
 				<div class="modular-activity-form-column">
@@ -562,6 +616,7 @@
 								<span class="eyebrow">
 									MODULAR ACTIVITY
 								</span>
+
 
 								<h2 id="modular-activity-form-title">
 									New activity
@@ -580,6 +635,7 @@
 									New activity
 								</button>
 
+
 								<button
 									type="reset"
 									class="clear-form"
@@ -596,7 +652,7 @@
 
 
 							<!-- =========================================
-								MODULAR NAME
+							     MODULAR NAME
 							========================================= -->
 
 							<label class="wide">
@@ -614,7 +670,7 @@
 
 
 							<!-- =========================================
-								DEPARTMENT NUMBER
+							     DEPARTMENT NUMBER
 							========================================= -->
 
 							<label>
@@ -635,7 +691,7 @@
 
 
 							<!-- =========================================
-								PLANOGRAM NUMBER
+							     PLANOGRAM NUMBER
 							========================================= -->
 
 							<label>
@@ -656,7 +712,7 @@
 
 
 							<!-- =========================================
-								DUE DATE
+							     DUE DATE
 							========================================= -->
 
 							<label>
@@ -671,7 +727,6 @@
 								>
 
 							</label>
-
 
 						</div>
 
@@ -692,9 +747,11 @@
 						></p>
 
 					</form>
-					<!-- =====================================================
-						MODULAR BAYS
-					===================================================== -->
+
+
+					<!-- =================================================
+					     MODULAR BAYS
+					================================================= -->
 
 					<section
 						class="modular-bays-panel"
@@ -710,11 +767,13 @@
 									MODULAR BAYS
 								</span>
 
+
 								<h2>
 									Bays in this activity
 								</h2>
 
 							</div>
+
 
 							<span id="modular-bay-count">
 								0 bays
@@ -724,7 +783,7 @@
 
 
 						<!-- =================================================
-							MODULAR BAY LIST
+						     MODULAR BAY LIST
 						================================================= -->
 
 						<div
@@ -734,7 +793,7 @@
 
 
 						<!-- =================================================
-							MODULAR BAY FORM
+						     MODULAR BAY FORM
 						================================================= -->
 
 						<form
@@ -787,9 +846,11 @@
 											Due to land
 										</option>
 
+
 										<option value="In progress">
 											In progress
 										</option>
+
 
 										<option value="Complete">
 											Complete
@@ -812,6 +873,16 @@
 									Clear
 								</button>
 
+
+								<button
+									type="button"
+									class="view-edit-modular"
+									id="view-edit-modular"
+								>
+									View Modular / Brief
+								</button>
+
+
 								<button
 									type="button"
 									class="add-modular-bay"
@@ -820,8 +891,9 @@
 									Add bay
 								</button>
 
+
 								<button
-									type="submit"
+									type="button"
 									class="update-modular-bay"
 									id="update-modular-bay"
 									disabled
@@ -837,7 +909,7 @@
 
 
 					<!-- =====================================================
-						NO ACTIVITY SELECTED
+					     NO ACTIVITY SELECTED
 					===================================================== -->
 
 					<p
@@ -851,7 +923,7 @@
 
 
 				<!-- =================================================
-					SAVED MODULAR ACTIVITY
+				     SAVED MODULAR ACTIVITY
 				================================================= -->
 
 				<section
@@ -867,11 +939,13 @@
 								DATABASE
 							</span>
 
+
 							<h2 id="saved-modular-activity-heading">
 								Saved modular activity
 							</h2>
 
 						</div>
+
 
 						<span id="modular-activity-count">
 							0 activities
@@ -887,7 +961,6 @@
 
 				</section>
 
-
 			</section>
 
 		</section>
@@ -896,16 +969,86 @@
 
 
 	<!-- =====================================================
+	     FULL SCREEN MODULAR VIEW
+	===================================================== -->
+
+	<section
+		class="modular-view"
+		id="modular-view"
+		hidden
+	>
+
+		<!-- =================================================
+		     MODULAR VIEW HEADER
+		================================================= -->
+
+		<header class="modular-view-header">
+
+			<button
+				type="button"
+				class="modular-view-close"
+				id="modular-view-close"
+				aria-label="Back to admin panel"
+			>
+				×
+			</button>
+
+
+			<div class="modular-view-title">
+
+				<span class="eyebrow">
+					MODULAR / BRIEF
+				</span>
+
+
+				<h1 id="modular-view-heading">
+					Modular
+				</h1>
+
+			</div>
+
+		</header>
+
+
+		<!-- =================================================
+		     MODULAR VIEW CONTENT
+		================================================= -->
+
+		<main
+			class="modular-view-content"
+			id="modular-view-content"
+		>
+
+			<!--
+				THIS WILL CONTAIN THE FULL MODULAR VIEW.
+
+				MODULAR ITEMS
+				BAY INFORMATION
+				PRODUCT IMAGES
+				SHELVES
+				FACINGS
+				BRIEF INFORMATION
+				ETC.
+			-->
+
+		</main>
+
+	</section>
+
+
+	<!-- =====================================================
 	     PRODUCT INFO JS
 	===================================================== -->
 
 	<script src="admin-panel.js"></script>
 
+
 	<!-- =====================================================
-     MODULAR ACTIVITY JS
+	     MODULAR ACTIVITY JS
 	===================================================== -->
 
 	<script src="admin-modular-activity.js"></script>
+
 
 	<!-- =====================================================
 	     ADMIN PANEL SWITCH JS
@@ -920,20 +1063,24 @@
 					'#product-info-switch'
 				);
 
+
 			const modularActivitySwitch =
 				document.querySelector(
 					'#modular-activity-switch'
 				);
+
 
 			const productInfoPanel =
 				document.querySelector(
 					'#product-info-panel'
 				);
 
+
 			const modularActivityPanel =
 				document.querySelector(
 					'#modular-activity-panel'
 				);
+
 
 			const adminPanelTitle =
 				document.querySelector(
@@ -951,6 +1098,7 @@
 					productInfoPanel.hidden =
 						!showProductInfo;
 
+
 					modularActivityPanel.hidden =
 						showProductInfo;
 
@@ -959,6 +1107,7 @@
 						'active',
 						showProductInfo
 					);
+
 
 					modularActivityPanel.classList.toggle(
 						'active',
@@ -971,6 +1120,7 @@
 						showProductInfo
 					);
 
+
 					modularActivitySwitch.classList.toggle(
 						'active',
 						!showProductInfo
@@ -981,6 +1131,7 @@
 						'aria-selected',
 						String(showProductInfo)
 					);
+
 
 					modularActivitySwitch.setAttribute(
 						'aria-selected',
@@ -999,7 +1150,11 @@
 			productInfoSwitch.addEventListener(
 				'click',
 				() => {
-					setPanel('product-info');
+
+					setPanel(
+						'product-info'
+					);
+
 				}
 			);
 
@@ -1007,16 +1162,22 @@
 			modularActivitySwitch.addEventListener(
 				'click',
 				() => {
-					setPanel('modular-activity');
+
+					setPanel(
+						'modular-activity'
+					);
+
 				}
 			);
 
 
-			setPanel('product-info');
+			setPanel(
+				'product-info'
+			);
 
 		})();
 
 	</script>
-
+	<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </body>
 </html>

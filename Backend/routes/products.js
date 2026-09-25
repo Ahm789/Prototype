@@ -1099,7 +1099,9 @@ router.get(
 						mb.status
 
 					ORDER BY
-						mb.bay_number,
+						CAST(
+							mb.bay_number AS INTEGER
+						),
 						mb.id
 					`,
 					[
@@ -1825,6 +1827,1279 @@ router.delete(
 	}
 );
 /* =========================================================
+   ADMIN MODULAR BAY ITEMS
+========================================================= */
+
+
+/* =========================================================
+   SEARCH PRODUCTS FOR MODULAR BAY
+========================================================= */
+
+router.get(
+	'/admin/modular-activity/bay-items/search',
+	async (req, res) => {
+
+		const query =
+			String(
+				req.query.q || ''
+			).trim();
+
+
+		if (!query) {
+
+			return res.json([]);
+
+		}
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						i.id,
+						i.upc,
+						i.description,
+						i.max_shelf,
+						i.image_url,
+						i.image_alt
+
+					FROM items i
+
+					WHERE
+						i.upc ILIKE $1
+						OR i.case_barcode ILIKE $1
+						OR i.alternative_barcode ILIKE $1
+						OR i.description ILIKE $1
+
+					ORDER BY
+						i.description
+
+					LIMIT 20
+					`,
+					[
+						`%${query}%`
+					]
+				);
+
+
+			res.json(
+				result.rows.map(
+					row => ({
+
+						itemId:
+							row.id,
+
+						upc:
+							row.upc,
+
+						description:
+							row.description,
+
+						maxShelf:
+							row.max_shelf,
+
+						image:
+							row.image_url
+								? {
+									url:
+										row.image_url,
+
+									alt:
+										row.image_alt ||
+										row.description
+								}
+								: null
+
+					})
+				)
+			);
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to search modular bay products:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to search products.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   ADD ITEM TO MODULAR BAY
+========================================================= */
+
+router.post(
+	'/admin/modular-activity/bays/:bayId/items',
+	async (req, res) => {
+
+		const bayId =
+			Number(
+				req.params.bayId
+			);
+
+
+		const {
+			itemId,
+			shelf,
+			maxShelf,
+			facings
+		} = req.body;
+
+
+		const cleanItemId =
+			Number(
+				itemId
+			);
+
+
+		const cleanShelf =
+			String(
+				shelf || ''
+			).trim();
+
+
+		const cleanMaxShelf =
+			Number(
+				maxShelf
+			);
+
+
+		const cleanFacings =
+			Number(
+				facings
+			);
+
+
+		if (
+			!Number.isInteger(
+				bayId
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular bay ID.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanItemId
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid item.'
+			});
+
+		}
+
+
+		if (!cleanShelf) {
+
+			return res.status(400).json({
+				error:
+					'Shelf is required.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanMaxShelf
+			) ||
+			cleanMaxShelf < 0
+		) {
+
+			return res.status(400).json({
+				error:
+					'Max shelf must be a valid whole number.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanFacings
+			) ||
+			cleanFacings < 1
+		) {
+
+			return res.status(400).json({
+				error:
+					'Facings must be at least 1.'
+			});
+
+		}
+
+
+		try {
+
+			/* =================================================
+			   CHECK BAY
+			================================================= */
+
+			const bayResult =
+				await pool.query(
+					`
+					SELECT
+						id
+
+					FROM modular_bays
+
+					WHERE id = $1
+
+					LIMIT 1
+					`,
+					[
+						bayId
+					]
+				);
+
+
+			if (
+				!bayResult.rows.length
+			) {
+
+				return res.status(404).json({
+					error:
+						'Modular bay not found.'
+				});
+
+			}
+
+
+			/* =================================================
+			   CHECK ITEM
+			================================================= */
+
+			const itemResult =
+				await pool.query(
+					`
+					SELECT
+						id,
+						upc,
+						description,
+						max_shelf,
+						image_url,
+						image_alt
+
+					FROM items
+
+					WHERE id = $1
+
+					LIMIT 1
+					`,
+					[
+						cleanItemId
+					]
+				);
+
+
+			if (
+				!itemResult.rows.length
+			) {
+
+				return res.status(404).json({
+					error:
+						'Product not found.'
+				});
+
+			}
+
+
+			const item =
+				itemResult.rows[0];
+
+
+			/* =================================================
+			   CHECK ITEM IS NOT ALREADY IN THIS BAY
+			================================================= */
+
+			const existingResult =
+				await pool.query(
+					`
+					SELECT
+						id
+
+					FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+						AND item_id = $2
+
+					LIMIT 1
+					`,
+					[
+						bayId,
+						cleanItemId
+					]
+				);
+
+
+			if (
+				existingResult.rows.length
+			) {
+
+				return res.status(409).json({
+					error:
+						'This product is already assigned to this bay.'
+				});
+
+			}
+
+
+			/* =================================================
+			   FIND NEXT SHELF ORDER
+			================================================= */
+
+			const shelfOrderResult =
+				await pool.query(
+					`
+					SELECT
+						COALESCE(
+							MAX(shelf_order),
+							0
+						) + 1 AS next_order
+
+					FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+						AND shelf = $2
+					`,
+					[
+						bayId,
+						cleanShelf
+					]
+				);
+
+
+			const shelfOrder =
+				Number(
+					shelfOrderResult.rows[0]
+						.next_order
+				);
+
+
+			/* =================================================
+			   INSERT MODULAR ITEM
+			================================================= */
+
+			const result =
+				await pool.query(
+					`
+					INSERT INTO modular_items (
+						modular_bay_id,
+						item_id,
+						upc,
+						shelf,
+						facings,
+						shelf_order,
+						max_shelf
+					)
+
+					VALUES (
+						$1,
+						$2,
+						$3,
+						$4,
+						$5,
+						$6,
+						$7
+					)
+
+					RETURNING
+						id,
+						modular_bay_id,
+						item_id,
+						upc,
+						shelf,
+						facings,
+						shelf_order,
+						max_shelf
+					`,
+					[
+						bayId,
+						cleanItemId,
+						item.upc,
+						cleanShelf,
+						cleanFacings,
+						shelfOrder,
+						cleanMaxShelf
+					]
+				);
+
+
+			const row =
+				result.rows[0];
+
+
+			res.status(201).json({
+
+				modularItemId:
+					row.id,
+
+				itemId:
+					row.item_id,
+
+				upc:
+					row.upc,
+
+				description:
+					item.description,
+
+				image:
+					item.image_url
+						? {
+							url:
+								item.image_url,
+
+							alt:
+								item.image_alt ||
+								item.description
+						}
+						: null,
+
+				shelf:
+					row.shelf,
+
+				facings:
+					row.facings,
+
+				shelfOrder:
+					row.shelf_order,
+
+				maxShelf:
+					row.max_shelf,
+
+				bayId:
+					row.modular_bay_id
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to add modular bay item:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to add item to modular bay.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   UPDATE MODULAR BAY ITEM
+========================================================= */
+
+router.put(
+	'/admin/modular-activity/bay-items/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		const {
+			shelf,
+			shelfOrder,
+			maxShelf,
+			facings
+		} = req.body;
+
+
+		const cleanShelf =
+			String(
+				shelf || ''
+			).trim();
+
+
+		const cleanShelfOrder =
+			Number(
+				shelfOrder
+			);
+
+
+		const cleanMaxShelf =
+			Number(
+				maxShelf
+			);
+
+
+		const cleanFacings =
+			Number(
+				facings
+			);
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular item ID.'
+			});
+
+		}
+
+
+		if (!cleanShelf) {
+
+			return res.status(400).json({
+				error:
+					'Shelf is required.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanShelfOrder
+			) ||
+			cleanShelfOrder < 1
+		) {
+
+			return res.status(400).json({
+				error:
+					'Shelf order must be a valid whole number of at least 1.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanMaxShelf
+			) ||
+			cleanMaxShelf < 0
+		) {
+
+			return res.status(400).json({
+				error:
+					'Max shelf must be a valid whole number.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanFacings
+			) ||
+			cleanFacings < 1
+		) {
+
+			return res.status(400).json({
+				error:
+					'Facings must be at least 1.'
+			});
+
+		}
+
+
+		const client =
+			await pool.connect();
+
+
+		try {
+
+			await client.query(
+				'BEGIN'
+			);
+
+
+			/* =================================================
+			   FIND EXISTING MODULAR ITEM
+			================================================= */
+
+			const existingResult =
+				await client.query(
+					`
+					SELECT
+						id,
+						modular_bay_id,
+						shelf,
+						shelf_order
+
+					FROM modular_items
+
+					WHERE
+						id = $1
+
+					FOR UPDATE
+					`,
+					[
+						id
+					]
+				);
+
+
+			if (
+				!existingResult.rows.length
+			) {
+
+				await client.query(
+					'ROLLBACK'
+				);
+
+
+				return res.status(404).json({
+					error:
+						'Modular item not found.'
+				});
+
+			}
+
+
+			const existing =
+				existingResult.rows[0];
+
+
+			const oldShelf =
+				existing.shelf;
+
+
+			const oldShelfOrder =
+				Number(
+					existing.shelf_order
+				);
+
+
+			const bayId =
+				existing.modular_bay_id;
+
+
+			/* =================================================
+			   COUNT ITEMS ON TARGET SHELF
+
+			   This tells us the highest valid position
+			   before inserting the item into the sequence.
+			================================================= */
+
+			const targetCountResult =
+				await client.query(
+					`
+					SELECT
+						COUNT(*) AS item_count
+
+					FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+						AND shelf = $2
+						AND id <> $3
+					`,
+					[
+						bayId,
+						cleanShelf,
+						id
+					]
+				);
+
+
+			const targetCount =
+				Number(
+					targetCountResult.rows[0]
+						.item_count
+				);
+
+
+			/* =================================================
+			   LIMIT ORDER TO THE NEXT AVAILABLE POSITION
+
+			   Example:
+
+			   Existing:
+			   1
+			   2
+			   3
+
+			   Requested:
+			   99
+
+			   Result:
+			   1
+			   2
+			   3
+			   4
+			================================================= */
+
+			const targetOrder =
+				Math.min(
+					cleanShelfOrder,
+					targetCount + 1
+				);
+
+
+			/* =================================================
+			   MOVE TO A DIFFERENT SHELF
+			================================================= */
+
+			if (
+				oldShelf !== cleanShelf
+			) {
+
+				/* =============================================
+				   CLOSE THE GAP ON THE OLD SHELF
+
+				   Example:
+
+				   Old shelf:
+				   1
+				   2  <- moving this
+				   3
+
+				   Becomes:
+
+				   1
+				   2
+				============================================= */
+
+				await client.query(
+					`
+					UPDATE modular_items
+
+					SET
+						shelf_order =
+							shelf_order - 1
+
+					WHERE
+						modular_bay_id = $1
+						AND shelf = $2
+						AND shelf_order > $3
+					`,
+					[
+						bayId,
+						oldShelf,
+						oldShelfOrder
+					]
+				);
+
+
+				/* =============================================
+				   MAKE SPACE ON NEW SHELF
+
+				   Example:
+
+				   Target:
+				   1
+				   2
+				   3
+
+				   Moving item into 2:
+
+				   1
+				   2 <- new item
+				   3
+				   4
+				============================================= */
+
+				await client.query(
+					`
+					UPDATE modular_items
+
+					SET
+						shelf_order =
+							shelf_order + 1
+
+					WHERE
+						modular_bay_id = $1
+						AND shelf = $2
+						AND shelf_order >= $3
+					`,
+					[
+						bayId,
+						cleanShelf,
+						targetOrder
+					]
+				);
+
+			}
+
+
+			/* =================================================
+			   MOVE WITHIN THE SAME SHELF
+			================================================= */
+
+			else {
+
+				if (
+					targetOrder < oldShelfOrder
+				) {
+
+					/* =========================================
+					   MOVING UP
+
+					   Example:
+
+					   1
+					   2
+					   3
+					   4
+
+					   Move 4 -> 2
+
+					   Becomes:
+
+					   1
+					   2 <- moved item
+					   3
+					   4
+					========================================= */
+
+					await client.query(
+						`
+						UPDATE modular_items
+
+						SET
+							shelf_order =
+								shelf_order + 1
+
+						WHERE
+							modular_bay_id = $1
+							AND shelf = $2
+							AND id <> $3
+							AND shelf_order >= $4
+							AND shelf_order < $5
+						`,
+						[
+							bayId,
+							cleanShelf,
+							id,
+							targetOrder,
+							oldShelfOrder
+						]
+					);
+
+				}
+
+
+				else if (
+					targetOrder > oldShelfOrder
+				) {
+
+					/* =========================================
+					   MOVING DOWN
+
+					   Example:
+
+					   1
+					   2
+					   3
+					   4
+
+					   Move 2 -> 4
+
+					   Becomes:
+
+					   1
+					   2
+					   3
+					   4 <- moved item
+					========================================= */
+
+					await client.query(
+						`
+						UPDATE modular_items
+
+						SET
+							shelf_order =
+								shelf_order - 1
+
+						WHERE
+							modular_bay_id = $1
+							AND shelf = $2
+							AND id <> $3
+							AND shelf_order > $4
+							AND shelf_order <= $5
+						`,
+						[
+							bayId,
+							cleanShelf,
+							id,
+							oldShelfOrder,
+							targetOrder
+						]
+					);
+
+				}
+
+			}
+
+
+			/* =================================================
+			   UPDATE THE ITEM ITSELF
+			================================================= */
+
+			const result =
+				await client.query(
+					`
+					UPDATE modular_items
+
+					SET
+						shelf = $1,
+						max_shelf = $2,
+						facings = $3,
+						shelf_order = $4
+
+					WHERE
+						id = $5
+
+					RETURNING
+						id,
+						modular_bay_id,
+						item_id,
+						upc,
+						shelf,
+						facings,
+						shelf_order,
+						max_shelf
+					`,
+					[
+						cleanShelf,
+						cleanMaxShelf,
+						cleanFacings,
+						targetOrder,
+						id
+					]
+				);
+
+
+			const row =
+				result.rows[0];
+
+
+			/* =================================================
+			   GET PRODUCT DETAILS
+			================================================= */
+
+			const itemResult =
+				await client.query(
+					`
+					SELECT
+						description,
+						image_url,
+						image_alt
+
+					FROM items
+
+					WHERE
+						id = $1
+					`,
+					[
+						row.item_id
+					]
+				);
+
+
+			const item =
+				itemResult.rows[0];
+
+
+			/* =================================================
+			   REBUILD SHELF ORDERS
+
+			   This guarantees that the shelf can never end up
+			   with gaps such as:
+
+			   1
+			   4
+			   5
+			   6
+
+			   Instead it is always:
+
+			   1
+			   2
+			   3
+			   4
+			================================================= */
+
+			await client.query(
+				`
+				WITH numbered AS (
+
+					SELECT
+						id,
+
+						ROW_NUMBER() OVER (
+							ORDER BY
+								shelf_order,
+								id
+						) AS new_order
+
+					FROM modular_items
+
+					WHERE
+						modular_bay_id = $1
+						AND shelf = $2
+
+				)
+
+				UPDATE modular_items mi
+
+				SET
+					shelf_order =
+						numbered.new_order
+
+				FROM numbered
+
+				WHERE
+					mi.id = numbered.id
+				`,
+				[
+					bayId,
+					cleanShelf
+				]
+			);
+
+
+			/* =================================================
+			   GET FINAL ORDER OF UPDATED ITEM
+			================================================= */
+
+			const finalResult =
+				await client.query(
+					`
+					SELECT
+						id,
+						modular_bay_id,
+						item_id,
+						upc,
+						shelf,
+						facings,
+						shelf_order,
+						max_shelf
+
+					FROM modular_items
+
+					WHERE
+						id = $1
+					`,
+					[
+						id
+					]
+				);
+
+
+			const finalRow =
+				finalResult.rows[0];
+
+
+			/* =================================================
+			   COMMIT
+			================================================= */
+
+			await client.query(
+				'COMMIT'
+			);
+
+
+			res.json({
+
+				modularItemId:
+					finalRow.id,
+
+				itemId:
+					finalRow.item_id,
+
+				upc:
+					finalRow.upc,
+
+				description:
+					item.description,
+
+				image:
+					item.image_url
+						? {
+							url:
+								item.image_url,
+
+							alt:
+								item.image_alt ||
+								item.description
+						}
+						: null,
+
+				shelf:
+					finalRow.shelf,
+
+				facings:
+					finalRow.facings,
+
+				shelfOrder:
+					finalRow.shelf_order,
+
+				maxShelf:
+					finalRow.max_shelf,
+
+				bayId:
+					finalRow.modular_bay_id
+
+			});
+
+
+		} catch (error) {
+
+			await client.query(
+				'ROLLBACK'
+			);
+
+
+			console.error(
+				'Unable to update modular bay item:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to update modular bay item.'
+			});
+
+
+		} finally {
+
+			client.release();
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   DELETE MODULAR BAY ITEM
+========================================================= */
+
+router.delete(
+	'/admin/modular-activity/bay-items/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular item ID.'
+			});
+
+		}
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					DELETE FROM modular_items
+
+					WHERE id = $1
+
+					RETURNING
+						id,
+						modular_bay_id,
+						item_id,
+						upc
+					`,
+					[
+						id
+					]
+				);
+
+
+			if (
+				!result.rows.length
+			) {
+
+				return res.status(404).json({
+					error:
+						'Modular item not found.'
+				});
+
+			}
+
+
+			const row =
+				result.rows[0];
+
+
+			res.json({
+
+				success:
+					true,
+
+				modularItemId:
+					row.id,
+
+				bayId:
+					row.modular_bay_id,
+
+				itemId:
+					row.item_id,
+
+				upc:
+					row.upc
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to delete modular bay item:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to delete modular bay item.'
+			});
+
+		}
+
+	}
+);
+/* =========================================================
    GET MODULAR ACTIVITY DATES
 ========================================================= */
 
@@ -2073,7 +3348,9 @@ router.get(
 			mb.planogram_number = $1
 
 		ORDER BY
-			mb.bay_number,
+			CAST(
+					mb.bay_number AS INTEGER
+				),
 
 			CAST(
 				NULLIF(
