@@ -4,7 +4,117 @@ const pool = require('../db/pool');
 const router = express.Router();
 
 
+/* =========================================================
+   GET MODULAR TAG
+========================================================= */
 
+router.get(
+	'/modular-tags/:modularId',
+	async (
+		req,
+		res
+	) => {
+
+		const modularId =
+			String(
+				req.params.modularId || ''
+			)
+				.trim()
+				.toUpperCase();
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						id,
+						modular_id,
+						department,
+						aisle,
+						aisle_side,
+						bay,
+						active
+
+					FROM modular_tags
+
+					WHERE
+						modular_id = $1
+						AND active = TRUE
+
+					LIMIT 1
+					`,
+					[
+						modularId
+					]
+				);
+
+
+			if (
+				!result.rows.length
+			) {
+
+				return res.status(404).json({
+					exists: false
+				});
+
+			}
+
+
+			const tag =
+				result.rows[0];
+
+
+			res.json({
+
+				exists: true,
+
+				tag: {
+
+					id:
+						tag.id,
+
+					modularId:
+						tag.modular_id,
+
+					department:
+						tag.department,
+
+					aisle:
+						tag.aisle,
+
+					aisleSide:
+						tag.aisle_side,
+
+					bay:
+						tag.bay,
+
+					active:
+						tag.active
+
+				}
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to find modular tag:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Failed to find modular tag.'
+			});
+
+		}
+
+	}
+);
 /* =========================================================
    FORMAT DATABASE ITEM
 ========================================================= */

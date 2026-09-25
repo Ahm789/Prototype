@@ -4094,7 +4094,7 @@ background-repeat: no-repeat;
 
 	box-sizing: border-box;
 
-	color: white;
+	color: #555;
 
 	background: #5FB3AE;
 
@@ -4303,6 +4303,7 @@ background-repeat: no-repeat;
 
 	stroke-width: 2.3;
 
+	margin-left: 30px;
 }
 
 
@@ -4586,5 +4587,372 @@ background-repeat: no-repeat;
     height: 100%;
 
     object-fit: cover;
+
+}
+.modular-search-error {
+	width: 100%;
+	box-sizing: border-box;
+	margin-top: 8px;
+	color: #d00000;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: center;
+}
+
+.modular-search-error[hidden] {
+	display: none;
+}
+/* =========================================================
+   MOD TAG ASSIGNMENTS
+========================================================= */
+
+.modular-tag-assignments {
+
+	display: flex;
+
+	flex-direction: column;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin-top: 8px;
+
+	gap: 7px;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT
+========================================================= */
+
+.modular-tag-assignment {
+
+	display: flex;
+
+	flex-direction: column;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT LABEL
+========================================================= */
+
+.modular-tag-assignment-label {
+
+	margin-bottom: 4px;
+
+	color: white;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT ROW
+========================================================= */
+
+.modular-tag-assignment-row {
+
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	height: 32px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* =========================================================
+   MOD TAG INDEX
+========================================================= */
+
+.modular-tag-assignment-index {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	height: 22px;
+
+	padding: 0 9px;
+
+	margin-left: 5px;
+
+	box-sizing: border-box;
+	color: #555;
+
+	background: #5FB3AE;
+
+	border: 2px solid #5FB3AE;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   MOD TAG VALUE
+========================================================= */
+
+.modular-tag-assignment-value {
+
+	display: flex;
+
+	align-items: center;
+
+	flex: 1;
+
+	min-width: 0;
+
+	height: 100%;
+
+	padding: 0 9px;
+
+	box-sizing: border-box;
+
+	color: #1a1a1a;
+
+	background: white;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   MOD TAG REMOVE BUTTON
+========================================================= */
+
+.modular-tag-assignment-remove {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 32px;
+
+	height: 100%;
+
+	flex: 0 0 32px;
+
+	margin: 0;
+
+	padding: 0;
+
+	color: #d00000;
+
+	background: white;
+
+	border: 0;
+
+	outline: none;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   MOD TAG REMOVE ICON
+========================================================= */
+
+.modular-tag-assignment-remove svg {
+
+	width: 15px;
+
+	height: 15px;
+
+	margin: 0;
+
+	color: #d00000;
+
+	stroke: #d00000;
+
+	stroke-width: 2.5;
+
+}
+/* =========================================================
+   COMPLETED MODULAR BAY IMAGE WRAPPER
+========================================================= */
+
+.modular-activity-bay-image-wrapper {
+
+	position: relative;
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	box-sizing: border-box;
+
+	overflow: hidden;
+
+	background: white;
+
+	line-height: 0;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY IMAGE
+========================================================= */
+
+.modular-activity-bay-image-wrapper
+	.modular-activity-bay-image {
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 100px;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY IMAGE EFFECT
+========================================================= */
+
+.modular-activity-bay-image-wrapper.completed
+	.modular-activity-bay-image {
+
+	filter: grayscale(1);
+
+	opacity: 0.45;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY OVERLAY
+========================================================= */
+
+.modular-activity-bay-image-overlay {
+
+	position: absolute;
+
+	top: 0;
+
+	left: 0;
+
+	width: 100%;
+
+	height: 100%;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	box-sizing: border-box;
+
+	background: rgba(255, 255, 255, 0.30);
+
+	pointer-events: none;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY CHECK
+========================================================= */
+
+.modular-activity-bay-check {
+
+	display: block;
+
+	width: fit-content;
+
+	margin: 0 auto;
+
+	color: #0A928C;
+
+	font-size: 42px;
+
+	font-weight: 400;
+
+	line-height: 1;
+
+	transform: scaleX(1.15) scaleY(0.75);
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY CHECK SVG
+========================================================= */
+
+.modular-activity-bay-check svg {
+
+	width: 28px;
+
+	height: 22px;
+
+	margin: 0;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+
+	stroke-width: 2;
+
+	stroke-linecap: round;
+
+	stroke-linejoin: round;
 
 }

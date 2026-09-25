@@ -65,9 +65,1069 @@ const searchUPC =
 		'upc'
 	) || '';
 
+const modularSearchError =
+	document.querySelector(
+		'#modular-search-error'
+	);
+
+let modularSearchErrorTimeout =
+	null;
+const modularRemainingCount =
+	document.querySelector(
+		'#modular-remaining-count'
+	);
 
 
+const modularActivityCurrent =
+	document.querySelector(
+		'#modular-activity-current'
+	);
 
+
+const modularActivityTotal =
+	document.querySelector(
+		'#modular-activity-total'
+	);
+const modularTagAssignmentsContainer =
+	document.querySelector(
+		'#modular-tag-assignments'
+	);
+const scanModeToggle =
+	document.querySelector(
+		'#scan-mode-toggle'
+	);
+const isStandardScanMode =
+	() => {
+
+		return (
+			scanModeToggle &&
+			scanModeToggle.checked === true
+		);
+
+	};
+/* =========================================================
+   MODULAR SCAN MODE TITLE
+========================================================= */
+
+const modularActivityStepTitle =
+	document.querySelector(
+		'.modular-activity-step-title'
+	);
+
+
+const updateModularActivityStepTitle =
+	() => {
+
+		if (
+			!modularActivityStepTitle
+		) {
+			return;
+		}
+
+
+		if (
+			scanModeToggle &&
+			scanModeToggle.checked
+		) {
+
+			modularActivityStepTitle.textContent =
+				'Scan all Mod tags in order';
+
+		}
+		else {
+
+			modularActivityStepTitle.textContent =
+				'Scan first and last Mod Tag';
+
+		}
+
+	};
+
+/* =========================================================
+   SMART TAG RANGE
+========================================================= */
+
+const generateSmartTagRange =
+	(
+		firstTag,
+		lastTag
+	) => {
+
+		const firstParts =
+			firstTag.split('-');
+
+		const lastParts =
+			lastTag.split('-');
+
+
+		if (
+			firstParts.length !== 4 ||
+			lastParts.length !== 4
+		) {
+
+			return [];
+
+		}
+
+
+		const firstPrefix =
+			`${firstParts[0]}-${firstParts[1]}-${firstParts[2]}`;
+
+		const lastPrefix =
+			`${lastParts[0]}-${lastParts[1]}-${lastParts[2]}`;
+
+
+		/*
+			The first and last Mod Tags must belong
+			to the same aisle / side / section.
+		*/
+
+		if (
+			firstPrefix !== lastPrefix
+		) {
+
+			return [];
+
+		}
+
+
+		const firstNumber =
+			Number(
+				firstParts[3]
+			);
+
+		const lastNumber =
+			Number(
+				lastParts[3]
+			);
+
+
+		if (
+			!Number.isInteger(firstNumber) ||
+			!Number.isInteger(lastNumber) ||
+			lastNumber < firstNumber
+		) {
+
+			return [];
+
+		}
+
+
+		const tags = [];
+
+
+		for (
+			let number = firstNumber;
+			number <= lastNumber;
+			number++
+		) {
+
+			tags.push(
+				`${firstPrefix}-${number}`
+			);
+
+		}
+
+
+		return tags;
+
+	};
+/* =========================================================
+   INITIAL TITLE
+========================================================= */
+
+updateModularActivityStepTitle();
+
+
+/* =========================================================
+   UPDATE WHEN SCAN MODE CHANGES
+========================================================= */
+
+if (
+	scanModeToggle
+) {
+
+	scanModeToggle.addEventListener(
+		'change',
+		updateModularActivityStepTitle
+	);
+
+}
+/* =========================================================
+   MODULAR SEARCH
+========================================================= */
+const showModularSearchError = (
+	message
+) => {
+
+	if (
+		!modularSearchError
+	) {
+		return;
+	}
+
+
+	if (
+		modularSearchErrorTimeout
+	) {
+
+		clearTimeout(
+			modularSearchErrorTimeout
+		);
+
+	}
+
+
+	modularSearchError.textContent =
+		message;
+
+	modularSearchError.hidden =
+		false;
+
+
+	modularSearchErrorTimeout =
+		setTimeout(
+			() => {
+
+				modularSearchError.hidden =
+					true;
+
+				modularSearchError.textContent =
+					'';
+
+			},
+			5000
+		);
+
+};
+const modularSearchButton =
+	document.querySelector(
+		'#modular-search-mod-tag'
+	);
+
+const modularSearchInput =
+	document.querySelector(
+		'#modular-search-upc'
+	);
+
+
+const searchModularTag =
+	async () => {
+
+		const modularTag =
+			modularSearchInput.value
+				.trim()
+				.toUpperCase();
+
+
+		/*
+			Expected formats:
+
+			FF-14-L-1
+			FF-15-R-13
+			FF-14-GE1-2
+			FF-15-GE2-3
+		*/
+
+		const modularTagPattern =
+			/^[A-Z0-9]+-[0-9]+-(?:L|R|GE1|GE2)-[0-9]+$/i;
+
+
+		if (
+			!modularTagPattern.test(
+				modularTag
+			)
+		) {
+
+			showModularSearchError(
+				'Invalid Mod Tag. Use the format FF-15-L-13, FF-14-GE1-2, etc.'
+			);
+
+			return;
+
+		}
+
+
+				try {
+
+			const response =
+				await fetch(
+					`${API_ORIGIN}/api/products/modular-tags/` +
+					encodeURIComponent(
+						modularTag
+					)
+				);
+
+
+			if (
+				!response.ok
+			) {
+
+				showModularSearchError(
+					'Mod Tag not found. Use a valid tag such as FF-15-L-13 or FF-14-GE1-2.'
+				);
+
+				return;
+
+			}
+
+
+			const result =
+				await response.json();
+
+
+			if (
+				!result ||
+				result.exists !== true
+			) {
+
+				showModularSearchError(
+					'Mod Tag not found. Use a valid tag such as FF-15-L-13 or FF-14-GE1-2.'
+				);
+
+				return;
+
+			}
+
+
+			/*
+				Prevent the same Mod Tag
+				from being submitted twice.
+			*/
+
+			const alreadySubmitted =
+				modularTagAssignments.some(
+					assignment =>
+						assignment.modularTag ===
+						modularTag
+				);
+
+
+			if (
+				alreadySubmitted
+			) {
+
+				showModularSearchError(
+					'This Mod Tag has already been submitted.'
+				);
+
+				return;
+
+			}
+
+
+			/*
+				Valid Mod Tag.
+				Temporarily assign it
+				to the next modular.
+			*/
+
+			if (
+				isStandardScanMode()
+			) {
+
+				/*
+					Standard mode:
+					add each scanned Mod Tag individually.
+				*/
+
+				addModularTagAssignment(
+					modularTag
+				);
+
+			}
+			else {
+
+				/*
+					Smart Tag mode:
+					the first scanned tag is stored,
+					then the second scanned tag completes
+					the range.
+				*/
+
+				if (
+					modularTagAssignments.length === 0
+				) {
+
+					modularTagAssignments.push({
+						modular:
+							requiredModulars[0],
+
+						modularTag:
+							modularTag,
+
+						smartTagStart:
+							true
+					});
+
+
+					renderModularTagAssignments();
+
+					updateModularActivityCounters();
+
+					updateModularBayCompletionStates();
+
+
+					if (
+						modularSearchInput
+					) {
+
+						modularSearchInput.value =
+							'';
+
+						modularSearchInput.focus();
+
+					}
+
+
+					return;
+
+				}
+
+
+				const firstTag =
+					modularTagAssignments[0].modularTag;
+
+
+				const smartTagRange =
+					generateSmartTagRange(
+						firstTag,
+						modularTag
+					);
+
+
+				if (
+					smartTagRange.length === 0
+				) {
+
+					showModularSearchError(
+						'The first and last Mod Tags must be in the same section, with the last tag after the first.'
+					);
+
+					return;
+
+				}
+
+
+				/*
+					Remove the temporary first-tag entry.
+				*/
+
+				modularTagAssignments.length =
+					0;
+
+
+				/*
+					Generate every Mod Tag in the range.
+				*/
+
+				smartTagRange.forEach(
+					(
+						tag,
+						index
+					) => {
+
+						modularTagAssignments.push({
+							modular:
+								requiredModulars[
+									index
+								] ?? null,
+
+							modularTag:
+								tag
+						});
+
+					}
+				);
+
+
+				renderModularTagAssignments();
+
+				updateModularActivityCounters();
+
+				updateModularBayCompletionStates();
+
+
+				console.log(
+					'Smart Tag range generated:',
+					modularTagAssignments
+				);
+
+
+				console.table(
+					modularTagAssignments
+				);
+
+			}
+
+
+			/*
+				Clear the search field
+				after successful submission.
+			*/
+
+			if (
+				modularSearchInput
+			) {
+
+				modularSearchInput.value =
+					'';
+
+				modularSearchInput.focus();
+
+			}
+
+		} catch (error) {
+
+			console.error(
+				'Unable to find Mod Tag:',
+				error
+			);
+
+
+			showModularSearchError(
+				'Unable to find this Mod Tag. Please try again.'
+			);
+
+		}
+
+	};
+
+
+if (
+	modularSearchButton
+) {
+
+	modularSearchButton.addEventListener(
+		'click',
+		event => {
+
+			event.preventDefault();
+
+			searchModularTag();
+
+		}
+	);
+
+}
+
+
+if (
+	modularSearchInput
+) {
+
+	modularSearchInput.addEventListener(
+		'keydown',
+		event => {
+
+			if (
+				event.key === 'Enter'
+			) {
+
+				event.preventDefault();
+
+				searchModularTag();
+
+			}
+
+		}
+	);
+
+}
+/* =========================================================
+   TEMPORARY MOD TAG ASSIGNMENTS
+========================================================= */
+
+const modularTagAssignments = [];
+
+
+let requiredModulars = [
+	10,
+	11,
+	12
+];
+const updateModularActivityCounters =
+	() => {
+
+		const total =
+			requiredModulars.length;
+
+
+		const current =
+			modularTagAssignments.length;
+
+
+		const remaining =
+			Math.max(
+				total - current,
+				0
+			);
+
+
+		if (
+			modularRemainingCount
+		) {
+
+			modularRemainingCount.textContent =
+				remaining;
+
+		}
+
+
+		if (
+			modularActivityCurrent
+		) {
+
+			modularActivityCurrent.textContent =
+				current;
+
+		}
+
+
+		if (
+			modularActivityTotal
+		) {
+
+			modularActivityTotal.textContent =
+				total;
+
+		}
+
+	};
+	updateModularActivityCounters();
+
+const addModularTagAssignment =
+	(
+		modularTag
+	) => {
+
+		const nextModular =
+			requiredModulars.find(
+				modular =>
+					!modularTagAssignments.some(
+						assignment =>
+							Number(
+								assignment.modular
+							) ===
+							Number(
+								modular
+							)
+					)
+			);
+		if (
+			nextModular === undefined
+		) {
+			return;
+		}
+
+
+		modularTagAssignments.push({
+			modular: nextModular,
+			modularTag: modularTag
+		});
+
+		modularTagAssignments.sort(
+			(
+				a,
+				b
+			) =>
+				Number(
+					a.modular
+				) -
+				Number(
+					b.modular
+				)
+		);
+
+		renderModularTagAssignments();
+		updateModularActivityCounters();
+		updateModularBayCompletionStates();
+
+		console.log(
+			'Temporary Mod Tag Assignments:',
+			modularTagAssignments
+		);
+
+
+		console.table(
+			modularTagAssignments
+		);
+
+
+		if (
+			modularTagAssignments.length >=
+			requiredModulars.length
+		) {
+
+			if (
+				modularSearchInput
+			) {
+
+				modularSearchInput.disabled =
+					true;
+
+			}
+
+
+			if (
+				modularSearchButton
+			) {
+
+				modularSearchButton.disabled =
+					true;
+
+			}
+
+
+			console.log(
+				'All required Mod Tags have been entered.'
+			);
+
+		}
+
+	};
+/* =========================================================
+   MOD TAG ASSIGNMENTS RENDERING
+========================================================= */
+const renderModularTagAssignments =
+	() => {
+
+		if (
+			!modularTagAssignmentsContainer
+		) {
+			return;
+		}
+
+
+		modularTagAssignmentsContainer.innerHTML =
+			'';
+
+
+		/*
+			Always display assignments
+			in ascending modular/bay order.
+		*/
+
+		const sortedAssignments =
+			[
+				...modularTagAssignments
+			].sort(
+				(
+					a,
+					b
+				) =>
+					Number(
+						a.modular
+					) -
+					Number(
+						b.modular
+					)
+			);
+
+
+		sortedAssignments.forEach(
+			(
+				assignment,
+				index
+			) => {
+
+				const assignmentWrapper =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentWrapper.className =
+					'modular-tag-assignment';
+
+
+				const assignmentLabel =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentLabel.className =
+					'modular-tag-assignment-label';
+
+
+				assignmentLabel.textContent =
+					`Bay ${assignment.modular} mod tag`;
+
+
+				const assignmentRow =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentRow.className =
+					'modular-tag-assignment-row';
+
+
+				const assignmentIndex =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentIndex.className =
+					'modular-tag-assignment-index';
+
+
+				assignmentIndex.textContent =
+					index;
+
+
+				const assignmentValue =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentValue.className =
+					'modular-tag-assignment-value';
+
+
+				assignmentValue.textContent =
+					assignment.modularTag;
+
+
+				const removeButton =
+					document.createElement(
+						'button'
+					);
+
+
+				removeButton.type =
+					'button';
+
+
+				removeButton.className =
+					'modular-tag-assignment-remove';
+
+
+				removeButton.setAttribute(
+					'aria-label',
+					`Remove Mod Tag for Bay ${assignment.modular}`
+				);
+
+
+				removeButton.innerHTML = `
+					<i
+						data-lucide="x"
+						aria-hidden="true"
+					></i>
+				`;
+
+
+				removeButton.addEventListener(
+					'click',
+					() => {
+
+						const assignmentIndex =
+							modularTagAssignments.findIndex(
+								item =>
+									item.modular ===
+									assignment.modular
+							);
+
+
+						if (
+							assignmentIndex !== -1
+						) {
+
+							modularTagAssignments.splice(
+								assignmentIndex,
+								1
+							);
+
+						}
+
+
+						renderModularTagAssignments();
+
+
+						updateModularActivityCounters();
+
+						updateModularBayCompletionStates();
+
+
+						if (
+							modularSearchInput
+						) {
+
+							modularSearchInput.disabled =
+								false;
+
+						}
+
+
+						if (
+							modularSearchButton
+						) {
+
+							modularSearchButton.disabled =
+								false;
+
+						}
+
+
+						console.log(
+							'Temporary Mod Tag Assignments:',
+							modularTagAssignments
+						);
+
+
+						console.table(
+							modularTagAssignments
+						);
+
+					}
+				);
+
+
+				assignmentRow.appendChild(
+					assignmentIndex
+				);
+
+
+				assignmentRow.appendChild(
+					assignmentValue
+				);
+
+
+				assignmentRow.appendChild(
+					removeButton
+				);
+
+
+				assignmentWrapper.appendChild(
+					assignmentLabel
+				);
+
+
+				assignmentWrapper.appendChild(
+					assignmentRow
+				);
+
+
+				modularTagAssignmentsContainer.appendChild(
+					assignmentWrapper
+				);
+
+			}
+		);
+
+
+		lucide.createIcons();
+
+	};
+/* =========================================================
+   UPDATE MODULAR BAY COMPLETION STATES
+========================================================= */
+
+const updateModularBayCompletionStates =
+	() => {
+
+		const bayWrappers =
+			document.querySelectorAll(
+				'.modular-activity-bay-image-wrapper'
+			);
+
+
+		bayWrappers.forEach(
+			bayWrapper => {
+
+				const bayNumber =
+					Number(
+						bayWrapper.dataset.bayNumber
+					);
+
+
+				const isAssigned =
+					modularTagAssignments.some(
+						assignment =>
+							Number(
+								assignment.modular
+							) ===
+							bayNumber
+					);
+
+
+				const overlay =
+					bayWrapper.querySelector(
+						'.modular-activity-bay-image-overlay'
+					);
+
+
+				if (
+					isAssigned
+				) {
+
+					bayWrapper.classList.add(
+						'completed'
+					);
+
+
+					if (
+						!overlay
+					) {
+
+						const completionOverlay =
+							document.createElement(
+								'div'
+							);
+
+						completionOverlay.className =
+							'modular-activity-bay-image-overlay';
+
+
+						const check =
+							document.createElement(
+								'div'
+							);
+
+						check.className =
+							'modular-activity-bay-check';
+
+						check.textContent =
+							'✓';
+
+
+						completionOverlay.appendChild(
+							check
+						);
+
+
+						bayWrapper.appendChild(
+							completionOverlay
+						);
+
+					}
+
+				}
+				else {
+
+					bayWrapper.classList.remove(
+						'completed'
+					);
+
+
+					if (
+						overlay
+					) {
+
+						overlay.remove();
+
+					}
+
+				}
+
+			}
+		);
+
+	};
 /* =========================================================
    LOAD MODULAR NAME
 ========================================================= */
@@ -134,6 +1194,7 @@ if (
 	);
 
 }
+
 /* =========================================================
    GET MODULAR BAY PRODUCTS
 ========================================================= */
@@ -1599,11 +2660,6 @@ const createModularBaySnapshot =
 		return snapshots;
 
 	};
-
-/* =========================================================
-   LOAD MODULAR ACTIVITY BAYS
-========================================================= */
-
 /* =========================================================
    LOAD MODULAR ACTIVITY BAYS
 ========================================================= */
@@ -1773,8 +2829,22 @@ const loadModularActivityBays =
 
 
 					/* =========================================
-					   BAY IMAGE
+					BAY IMAGE
 					========================================= */
+
+					const bayImageWrapper =
+						document.createElement(
+							'div'
+						);
+
+
+					bayImageWrapper.className =
+						'modular-activity-bay-image-wrapper';
+
+
+					bayImageWrapper.dataset.bayNumber =
+						bayNumber;
+
 
 					const bayImage =
 						document.createElement(
@@ -1794,14 +2864,18 @@ const loadModularActivityBays =
 						false;
 
 
+					bayImageWrapper.appendChild(
+						bayImage
+					);
+
+
 					bayContainer.appendChild(
 						bayLabel
 					);
 
 					bayContainer.appendChild(
-						bayImage
+						bayImageWrapper
 					);
-
 
 					snapshotContainer.appendChild(
 						bayContainer
@@ -1936,13 +3010,6 @@ const modularSearchCamera =
     document.querySelector(
         '#modular-search-camera'
     );
-
-const modularSearchInput =
-    document.querySelector(
-        '#modular-search-upc'
-    );
-
-
 if (
     modularSearchCamera
 ) {
