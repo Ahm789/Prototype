@@ -62,11 +62,11 @@ CREATE TABLE IF NOT EXISTS item_sales_daily (
 
 	units_sold INTEGER NOT NULL DEFAULT 0,
 
-	availability_percent NUMERIC(5,2) NOT NULL DEFAULT 0,
+	availability_percent NUMERIC(5, 2) NOT NULL DEFAULT 0,
 
-	sales_value NUMERIC(10,2) NOT NULL DEFAULT 0,
+	sales_value NUMERIC(10, 2) NOT NULL DEFAULT 0,
 
-	lost_sales NUMERIC(10,2) NOT NULL DEFAULT 0,
+	lost_sales NUMERIC(10, 2) NOT NULL DEFAULT 0,
 
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -129,10 +129,6 @@ BEGIN
 
 	/* =====================================================
 	   CHECK AGAINST OTHER ITEMS
-
-	   UPC, case barcode, alternative barcode and
-	   Asda item number cannot match ANY identifier
-	   belonging to another item.
 	===================================================== */
 
 	IF EXISTS (
@@ -141,25 +137,21 @@ BEGIN
 		WHERE id <> COALESCE(NEW.id, 0)
 
 		AND (
-			/* NEW UPC */
 			NEW.upc = upc
 			OR NEW.upc = case_barcode
 			OR NEW.upc = alternative_barcode
 			OR NEW.upc = item_number
 
-			/* NEW CASE BARCODE */
 			OR NEW.case_barcode = upc
 			OR NEW.case_barcode = case_barcode
 			OR NEW.case_barcode = alternative_barcode
 			OR NEW.case_barcode = item_number
 
-			/* NEW ALTERNATIVE BARCODE */
 			OR NEW.alternative_barcode = upc
 			OR NEW.alternative_barcode = case_barcode
 			OR NEW.alternative_barcode = alternative_barcode
 			OR NEW.alternative_barcode = item_number
 
-			/* NEW ASDA ITEM NUMBER */
 			OR NEW.item_number = upc
 			OR NEW.item_number = case_barcode
 			OR NEW.item_number = alternative_barcode
@@ -195,11 +187,6 @@ EXECUTE FUNCTION prevent_duplicate_barcodes();
 
 /* =========================================================
    CURRENT MODULAR LOCATIONS
-   ---------------------------------------------------------
-   Stores where items are currently located.
-
-   One item can have multiple current modular locations.
-   Multiple items can share the same modular.
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modulars (
@@ -233,12 +220,6 @@ CREATE TABLE IF NOT EXISTS modulars (
 
 /* =========================================================
    MODULAR ACTIVITY
-   ---------------------------------------------------------
-   Stores planned modular work.
-
-   This table represents the planned activity itself.
-   Current/live modular state is stored against the
-   individual modular bays.
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_activity (
@@ -263,21 +244,6 @@ CREATE TABLE IF NOT EXISTS modular_activity (
 
 /* =========================================================
    MODULAR BAYS
-   ---------------------------------------------------------
-   Represents the physical bays belonging to a planned
-   modular activity.
-
-   Also stores the current/live state of each bay.
-
-   Example:
-
-   planogram_number = 1
-   bay_number = 11
-
-   means Bay 11 belongs to Planogram 1.
-
-   modular_id remains NULL until the bay is assigned to
-   a live modular.
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_bays (
@@ -298,47 +264,12 @@ CREATE TABLE IF NOT EXISTS modular_bays (
 	CONSTRAINT fk_modular_bay_planogram
 		FOREIGN KEY (planogram_number)
 		REFERENCES modular_activity(planogram_number)
-		ON DELETE CASCADE,
-
-	CONSTRAINT unique_planogram_bay
-		UNIQUE (planogram_number, bay_number)
+		ON DELETE CASCADE
 );
 
 
 /* =========================================================
    MODULAR ITEMS
-   ---------------------------------------------------------
-   Stores the items physically belonging to a specific bay.
-
-   modular_items does NOT directly reference
-   modular_activity.
-
-   Relationship:
-
-   modular_activity
-          ↓ planogram_number
-   modular_bays
-          ↓ modular_bay_id
-   modular_items
-          ↓ item_id
-   items
-
-   shelf_order represents the physical order of an item
-   within its shelf.
-
-   Example:
-
-   shelf = 1
-   shelf_order = 1
-
-   shelf = 1
-   shelf_order = 2
-
-   shelf = 2
-   shelf_order = 1
-
-   shelf = 2
-   shelf_order = 2
 ========================================================= */
 
 CREATE TABLE IF NOT EXISTS modular_items (
@@ -350,8 +281,6 @@ CREATE TABLE IF NOT EXISTS modular_items (
 
 	shelf VARCHAR(32),
 
-	shelf_order INTEGER NOT NULL,
-
 	max_shelf INTEGER NOT NULL DEFAULT 0,
 
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -359,6 +288,10 @@ CREATE TABLE IF NOT EXISTS modular_items (
 	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	modular_bay_id INTEGER NOT NULL,
+
+	shelf_order INTEGER,
+
+	facings INTEGER NOT NULL DEFAULT 1,
 
 	CONSTRAINT fk_modular_items_item
 		FOREIGN KEY (item_id)
@@ -368,13 +301,32 @@ CREATE TABLE IF NOT EXISTS modular_items (
 	CONSTRAINT fk_modular_items_bay
 		FOREIGN KEY (modular_bay_id)
 		REFERENCES modular_bays(id)
-		ON DELETE CASCADE,
+		ON DELETE CASCADE
+);
 
-	CONSTRAINT unique_modular_bay_item
-		UNIQUE (modular_bay_id, item_id),
 
-	CONSTRAINT unique_modular_bay_shelf_order
-		UNIQUE (modular_bay_id, shelf, shelf_order)
+/* =========================================================
+   MODULAR TAGS
+========================================================= */
+
+CREATE TABLE IF NOT EXISTS modular_tags (
+	id SERIAL PRIMARY KEY,
+
+	modular_id VARCHAR(128) NOT NULL UNIQUE,
+
+	department VARCHAR(64),
+
+	aisle INTEGER,
+
+	aisle_side VARCHAR(8),
+
+	bay INTEGER,
+
+	active BOOLEAN NOT NULL DEFAULT TRUE,
+
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 

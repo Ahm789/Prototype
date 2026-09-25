@@ -1493,3 +1493,187 @@ background-repeat: no-repeat;
 	stroke-width: 2;
 }
 
+/* =========================================
+   BARCODE CAMERA SCANNER
+========================================= */
+
+.barcode-camera-overlay {
+	position: fixed;
+	inset: 0;
+
+	z-index: 9999;
+
+	display: none;
+
+	background: #000;
+}
+
+.barcode-camera-overlay.active {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+
+.barcode-camera-container {
+	position: relative;
+
+	width: 100%;
+	height: 100%;
+
+	display: flex;
+	flex-direction: column;
+
+	background: #000;
+}
+
+
+/* =========================================
+   CAMERA HEADER
+========================================= */
+
+.barcode-camera-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+
+	min-height: 60px;
+
+	padding:
+		env(safe-area-inset-top)
+		16px
+		0
+		16px;
+
+	box-sizing: border-box;
+
+	color: white;
+	background: #075E5B;
+}
+
+.barcode-camera-header strong {
+	font-size: 16px;
+	font-weight: 700;
+}
+
+
+.barcode-camera-close {
+	display: grid;
+	place-items: center;
+
+	width: 42px;
+	height: 42px;
+
+	padding: 0;
+
+	color: white;
+	background: transparent;
+
+	border: 0;
+	border-radius: 50%;
+
+	cursor: pointer;
+}
+
+.barcode-camera-close svg {
+	width: 24px;
+	height: 24px;
+
+	stroke-width: 2.5;
+}
+
+
+/* =========================================
+   CAMERA VIEW
+========================================= */
+
+.barcode-camera-view {
+	position: relative;
+
+	flex: 1;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	overflow: hidden;
+
+	background: #000;
+}
+
+
+.barcode-camera-video {
+	width: 100%;
+	height: 100%;
+
+	object-fit: cover;
+}
+
+
+/* =========================================
+   SCAN FRAME
+========================================= */
+
+.barcode-scan-frame {
+	position: absolute;
+
+	left: 50%;
+	top: 50%;
+
+	width: 78%;
+	max-width: 420px;
+	height: 150px;
+
+	transform: translate(
+		-50%,
+		-50%
+	);
+
+	border: 2px solid white;
+	border-radius: 10px;
+
+	box-shadow:
+		0 0 0 9999px
+		rgba(0, 0, 0, 0.35);
+}
+
+
+.barcode-scan-line {
+	position: absolute;
+
+	left: 5%;
+	right: 5%;
+	top: 50%;
+
+	height: 2px;
+
+	background: #16c5bf;
+
+	transform: translateY(-50%);
+
+	box-shadow:
+		0 0 8px #16c5bf;
+}
+
+
+/* =========================================
+   CAMERA STATUS
+========================================= */
+
+.barcode-camera-status {
+	padding:
+		14px
+		16px
+		calc(
+			14px + env(safe-area-inset-bottom)
+		);
+
+	box-sizing: border-box;
+
+	color: white;
+	background: #075E5B;
+
+	text-align: center;
+
+	font-size: 13px;
+}
