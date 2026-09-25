@@ -2087,7 +2087,7 @@ appMenuButton.addEventListener(
 		);
 
 		window.location.href =
-			'admin-panel.html';
+			'Admin-Panel.html';
 
 	}
 );

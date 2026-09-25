@@ -711,6 +711,10 @@ const modularTagAssignments = [];
 
 
 let requiredModulars = [];
+/* =========================================================
+   UPDATE MODULAR ACTIVITY COUNTERS
+========================================================= */
+
 const updateModularActivityCounters =
 	() => {
 
@@ -758,8 +762,46 @@ const updateModularActivityCounters =
 
 		}
 
+
+		/*
+			Enable Next only when all
+			required Mod Tags are assigned.
+		*/
+
+		const modularActivityNext =
+			document.querySelector(
+				'#modular-activity-next'
+			);
+
+
+		if (
+			modularActivityNext
+		) {
+
+			const isComplete =
+				total > 0 &&
+				current === total;
+
+
+			modularActivityNext.disabled =
+				!isComplete;
+
+
+			modularActivityNext.classList.toggle(
+				'ready',
+				isComplete
+			);
+
+		}
+
 	};
-	updateModularActivityCounters();
+
+
+/* =========================================================
+   INITIALISE MODULAR ACTIVITY COUNTERS
+========================================================= */
+
+updateModularActivityCounters();
 
 const addModularTagAssignment =
 	(

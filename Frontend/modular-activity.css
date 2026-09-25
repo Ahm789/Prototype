@@ -1775,3 +1775,44 @@
 	display: block;
 
 }
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - READY STATE
+========================================================= */
+
+.modular-activity-next.ready {
+
+	background: var(--aqua);
+
+	color: white;
+
+	border-color: var(--aqua);
+
+	cursor: pointer;
+
+	opacity: 1;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - READY HOVER
+========================================================= */
+
+.modular-activity-next.ready:hover {
+
+	background: var(--navy);
+
+	border-color: var(--navy);
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - DISABLED
+========================================================= */
+
+.modular-activity-next:disabled {
+
+	cursor: not-allowed;
+
+}
