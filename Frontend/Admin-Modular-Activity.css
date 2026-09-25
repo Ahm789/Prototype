@@ -1,0 +1,1298 @@
+/* =========================================================
+   MODULAR ACTIVITY
+========================================================= */
+
+.modular-activity-panel {
+
+	width: 100%;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY LAYOUT
+========================================================= */
+
+.modular-activity-layout {
+
+	display: grid;
+
+	grid-template-columns:
+		minmax(0, 1fr)
+		minmax(0, 1.15fr);
+
+	gap: 16px;
+
+	padding: 18px;
+
+}
+
+
+/* =========================================================
+   FORM COLUMN
+========================================================= */
+
+.modular-activity-form-column {
+
+	min-width: 0;
+
+}
+
+
+.modular-activity-form {
+
+	padding: 18px;
+
+	background: var(--paper);
+
+	border-radius: 7px;
+
+}
+
+
+/* =========================================================
+   FORM HEADER
+========================================================= */
+
+.modular-activity-form .form-heading {
+
+	display: flex;
+
+	align-items: flex-start;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	margin-bottom: 18px;
+
+}
+
+
+.modular-activity-form .form-heading > div {
+
+	min-width: 0;
+
+}
+
+
+.modular-activity-form .eyebrow {
+
+	display: block;
+
+	margin: 0 0 4px;
+
+	color: #527178;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	letter-spacing: 1.2px;
+
+}
+
+
+.modular-activity-form .form-heading h2 {
+
+	margin: 0;
+
+	color: var(--ink);
+
+	font-size: 21px;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   FORM HEADER BUTTONS
+========================================================= */
+
+.modular-activity-form .form-heading-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 6px;
+
+	flex-shrink: 0;
+
+}
+
+
+.new-item,
+.clear-form {
+
+	min-height: 31px;
+
+	padding: 6px 10px;
+
+	border-radius: 4px;
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+}
+
+
+.new-item {
+
+	color: var(--ink);
+
+	background: #bde8e5;
+
+}
+
+
+.new-item:hover {
+
+	background: #a9dfdb;
+
+}
+
+
+.clear-form {
+
+	color: var(--ink);
+
+	background: #cad4d6;
+
+}
+
+
+.clear-form:hover {
+
+	background: #bdc9cb;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY FORM GRID
+========================================================= */
+
+.modular-activity-form-grid {
+
+	display: grid;
+
+	grid-template-columns:
+		minmax(0, 1fr)
+		minmax(0, 1fr);
+
+	gap: 11px 10px;
+
+}
+
+
+.modular-activity-form-grid label {
+
+	display: block;
+
+	color: #4e6c73;
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+}
+
+
+.modular-activity-form-grid label.wide {
+
+	grid-column: 1 / -1;
+
+}
+
+
+.modular-activity-form-grid input {
+
+	display: block;
+
+	width: 100%;
+
+	margin-top: 5px;
+
+	padding: 10px;
+
+	color: var(--ink);
+
+	background: white;
+
+	border: 1px solid var(--line);
+
+	border-radius: 3px;
+
+}
+
+
+.modular-activity-form-grid input:focus {
+
+	outline: none;
+
+	border-color: var(--aqua);
+
+	box-shadow: 0 0 0 2px #16c5bf22;
+
+}
+
+
+/* =========================================================
+   SAVE BUTTON
+========================================================= */
+
+#save-modular-activity {
+
+	width: 100%;
+
+	margin-top: 16px;
+
+	padding: 11px;
+
+	color: var(--ink);
+
+	background: var(--aqua);
+
+	border-radius: 4px;
+
+	font-weight: 700;
+
+}
+
+
+#save-modular-activity:hover {
+
+	background: #12b4af;
+
+}
+
+
+#save-modular-activity:disabled {
+
+	cursor: not-allowed;
+
+	opacity: .45;
+
+}
+
+
+.modular-activity-form.editing #save-modular-activity {
+
+	background: #f4be4d;
+
+}
+
+
+.modular-activity-form.editing #save-modular-activity:hover {
+
+	background: #e9ae3e;
+
+}
+
+
+/* =========================================================
+   FORM MESSAGE
+========================================================= */
+
+#modular-activity-form-message {
+
+	min-height: 16px;
+
+	margin: 9px 0 0;
+
+	color: #25734d;
+
+	font-size: 12px;
+
+}
+
+
+#modular-activity-form-message.error {
+
+	color: #d32f2f;
+
+	font-weight: 600;
+
+}
+/* =========================================================
+   BAYS PANEL
+========================================================= */
+
+#modular-bays-panel {
+	margin-top: 16px;
+
+	padding: 18px;
+
+	background: var(--paper);
+
+	border-radius: 7px;
+}
+
+#modular-bays-panel[hidden] {
+	display: none;
+}
+
+.modular-bays-heading {
+	display: flex;
+
+	align-items: flex-start;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	margin-bottom: 16px;
+}
+
+.modular-bays-heading > div {
+	min-width: 0;
+}
+
+.modular-bays-heading .eyebrow {
+	display: block;
+
+	margin: 0 0 4px;
+
+	color: #527178;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	letter-spacing: 1.2px;
+}
+
+.modular-bays-heading h2 {
+	margin: 0;
+
+	color: var(--ink);
+
+	font-size: 21px;
+
+	line-height: 1.2;
+}
+
+#modular-bay-count {
+	flex-shrink: 0;
+
+	padding: 5px 8px;
+
+	color: #527178;
+
+	background: #dceeee;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+}
+
+/* =========================================================
+   MODULAR BAYS
+========================================================= */
+
+#modular-bays-panel {
+
+	margin-top: 16px;
+
+	padding: 18px;
+
+	background: var(--paper);
+
+	border-radius: 7px;
+
+}
+
+#modular-bays-panel[hidden] {
+
+	display: none;
+
+}
+
+
+/* =========================================================
+   BAYS HEADER
+========================================================= */
+
+#modular-bays-panel .form-heading {
+
+	display: flex;
+
+	align-items: flex-start;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	margin-bottom: 18px;
+
+}
+
+#modular-bays-panel .form-heading > div {
+
+	min-width: 0;
+
+}
+
+#modular-bays-panel .eyebrow {
+
+	display: block;
+
+	margin: 0 0 4px;
+
+	color: #527178;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	letter-spacing: 1.2px;
+
+}
+
+#modular-bays-panel .form-heading h2 {
+
+	margin: 0;
+
+	color: var(--ink);
+
+	font-size: 21px;
+
+	line-height: 1.2;
+
+}
+
+#modular-bay-count {
+
+	flex-shrink: 0;
+
+	padding: 5px 8px;
+
+	color: #527178;
+
+	background: #dceeee;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   BAY LIST
+========================================================= */
+
+.modular-bay-list {
+
+	display: grid;
+
+	gap: 9px;
+
+}
+
+
+/* =========================================================
+   BAY ROW
+========================================================= */
+
+.modular-bay-row {
+
+	display: grid;
+
+	grid-template-columns:
+		minmax(0, 1fr)
+		auto;
+
+	gap: 12px;
+
+	align-items: center;
+
+	padding: 12px;
+
+	background: white;
+
+	border: 1px solid #c6dfe0;
+
+	border-radius: 5px;
+
+	cursor: pointer;
+
+	transition:
+		border-color .15s ease,
+		box-shadow .15s ease,
+		background .15s ease;
+
+}
+
+.modular-bay-row:hover {
+
+	border-color: var(--aqua);
+
+	box-shadow: 0 2px 7px #123e5622;
+
+}
+
+.modular-bay-row:focus {
+
+	outline: none;
+
+	border-color: var(--aqua);
+
+	box-shadow: 0 0 0 2px #16c5bf22;
+
+}
+
+
+/* =========================================================
+   SELECTED BAY
+========================================================= */
+
+.modular-bay-row.editing {
+
+	border-color: #f4be4d;
+
+	box-shadow:
+		0 0 0 2px #f4be4d55,
+		0 0 12px #f4be4d88;
+
+	background: #fffdf5;
+
+}
+
+/* =========================================================
+   BAY DETAILS
+========================================================= */
+
+.modular-bay-details {
+
+	min-width: 0;
+
+	max-height: 100px;
+
+}
+
+.modular-bay-details p {
+
+	margin: 2px 0;
+
+	color: #5a777c;
+
+	font-size: 11px;
+
+	line-height: 1.2;
+
+}
+
+.modular-bay-details strong {
+
+	color: #365b63;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+}
+
+
+/* =========================================================
+   BAY ID
+========================================================= */
+
+.modular-bay-id {
+
+	display: inline-block;
+
+	margin: 0 0 7px;
+
+	padding: 5px 8px;
+
+	color: #1f907d;
+
+	background: #eafffd;
+
+	border: 1px solid #b9e5df;
+
+	border-radius: 3px;
+
+	font-size: 13px;
+
+	font-weight: 700;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   BAY ACTIONS
+========================================================= */
+
+.modular-bay-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 6px;
+
+	flex-shrink: 0;
+
+}
+
+.modular-bay-actions button {
+
+	padding: 7px 9px;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+}
+
+.delete-modular-bay {
+
+	color: #8a302d;
+
+	background: #f1d0ce;
+
+}
+
+.delete-modular-bay:hover {
+
+	background: #e8bbb8;
+
+}
+
+
+/* =========================================================
+   SELECTED BAY
+========================================================= */
+
+.modular-bay-row.editing {
+
+	border-color: #f4be4d;
+
+	box-shadow:
+
+		0 0 0 2px #f4be4d55,
+
+		0 0 12px #f4be4d88;
+
+	background: #fffdf5;
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.modular-bay-empty {
+
+	padding: 28px 12px;
+
+	color: #58757a;
+
+	text-align: center;
+
+	border: 1px dashed var(--line);
+
+	border-radius: 5px;
+
+	font-size: 12px;
+
+}
+
+
+/* =========================================================
+   LOADING STATE
+========================================================= */
+
+.modular-bay-loading {
+
+	padding: 28px 12px;
+
+	color: #58757a;
+
+	text-align: center;
+
+	font-size: 12px;
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+	.modular-bay-row {
+
+		grid-template-columns:
+			minmax(0, 1fr);
+
+		width: 100%;
+
+	}
+
+	.modular-bay-actions {
+
+		width: 100%;
+
+	}
+
+	.modular-bay-actions button {
+
+		flex: 1;
+
+	}
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 430px) {
+
+	#modular-bays-panel {
+
+		padding: 16px;
+
+	}
+
+	#modular-bays-panel .form-heading h2 {
+
+		font-size: 19px;
+
+	}
+
+}
+
+
+/* =========================================================
+   SAVED ACTIVITIES
+========================================================= */
+
+.modular-activity-records {
+
+	min-width: 0;
+
+}
+
+
+.modular-activity-records .saved-items-heading {
+
+	display: flex;
+
+	align-items: flex-start;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	margin-bottom: 18px;
+
+}
+
+
+.modular-activity-records .saved-items-heading > div {
+
+	min-width: 0;
+
+}
+
+
+.modular-activity-records .eyebrow {
+
+	display: block;
+
+	margin: 0 0 4px;
+
+	color: #527178;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	letter-spacing: 1.2px;
+
+}
+
+
+.modular-activity-records .saved-items-heading h2 {
+
+	margin: 0;
+
+	color: var(--ink);
+
+	font-size: 21px;
+
+	line-height: 1.2;
+
+}
+
+
+#modular-activity-count {
+
+	flex-shrink: 0;
+
+	padding: 5px 8px;
+
+	color: #527178;
+
+	background: #dceeee;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   ACTIVITY LIST
+========================================================= */
+
+.modular-activity-list {
+
+	display: grid;
+
+	gap: 9px;
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.modular-activity-empty {
+
+	padding: 28px 12px;
+
+	color: #58757a;
+
+	text-align: center;
+
+	border: 1px dashed var(--line);
+
+	border-radius: 5px;
+
+	font-size: 12px;
+
+}
+
+
+/* =========================================================
+   ACTIVITY ROW
+========================================================= */
+
+.modular-activity-row {
+
+	display: grid;
+
+	grid-template-columns:
+		minmax(0, 1fr)
+		auto;
+
+	gap: 12px;
+
+	align-items: center;
+
+	padding: 12px;
+
+	background: white;
+
+	border: 1px solid #c6dfe0;
+
+	border-radius: 5px;
+
+	transition:
+		border-color .15s ease,
+		box-shadow .15s ease;
+
+}
+
+
+.modular-activity-row:hover {
+
+	border-color: var(--aqua);
+
+	box-shadow: 0 2px 7px #123e5622;
+
+}
+.modular-activity-row {
+	cursor: pointer;
+}
+
+.modular-activity-row:focus {
+	outline: none;
+	border-color: var(--aqua);
+	box-shadow: 0 0 0 2px #16c5bf22;
+}
+
+/* =========================================================
+   ACTIVITY DETAILS
+========================================================= */
+
+.modular-activity-details {
+
+	min-width: 0;
+
+}
+
+
+.modular-activity-name {
+
+	display: block;
+
+	margin-bottom: 7px;
+
+	color: var(--ink);
+
+	font-size: 14px;
+
+	font-weight: 700;
+
+	line-height: 1.3;
+
+	overflow-wrap: anywhere;
+
+}
+
+
+.modular-activity-meta {
+
+	display: flex;
+
+	flex-wrap: wrap;
+
+	gap: 5px 12px;
+
+}
+
+
+.modular-activity-meta-item {
+
+	color: #5a777c;
+
+	font-size: 11px;
+
+	line-height: 1.35;
+
+}
+
+
+.modular-activity-meta-item strong {
+
+	color: #365b63;
+
+	font-weight: 700;
+
+}
+
+
+/* =========================================================
+   DUE DATE
+========================================================= */
+
+.modular-activity-due-date {
+
+	display: inline-block;
+
+	margin-top: 8px;
+
+	padding: 4px 7px;
+
+	color: #1f907d;
+
+	background: #eafffd;
+
+	border: 1px solid #b9e5df;
+
+	border-radius: 3px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+}
+
+
+/* =========================================================
+   ACTIVITY ACTIONS
+========================================================= */
+
+.modular-activity-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 6px;
+
+	flex-shrink: 0;
+
+}
+
+
+.modular-activity-actions button {
+
+	padding: 7px 9px;
+
+	border-radius: 4px;
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	white-space: nowrap;
+
+}
+
+.delete-modular-activity {
+
+	color: #8a302d;
+
+	background: #f1d0ce;
+
+}
+
+
+.delete-modular-activity:hover {
+
+	background: #e8bbb8;
+
+}
+
+
+/* =========================================================
+   EDITING ACTIVITY
+========================================================= */
+
+.modular-activity-row.editing {
+
+	border-color: #f4be4d;
+
+	background: #fffdf5;
+
+}
+
+
+.modular-activity-row.editing .edit-modular-activity {
+
+	color: var(--ink);
+
+	background: #f4be4d;
+
+}
+
+
+/* =========================================================
+   LOADING STATE
+========================================================= */
+
+.modular-activity-loading {
+
+	padding: 28px 12px;
+
+	color: #58757a;
+
+	text-align: center;
+
+	font-size: 12px;
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+	.modular-activity-layout {
+
+		display: flex;
+
+		flex-direction: column;
+
+		width: 100%;
+
+		max-width: 100%;
+
+		padding: 12px;
+
+		gap: 12px;
+
+	}
+
+
+	.modular-activity-layout > * {
+
+		width: 100%;
+
+		max-width: 100%;
+
+		min-width: 0;
+
+	}
+
+
+	.modular-activity-form {
+
+		width: 100%;
+
+	}
+
+
+	.modular-activity-records {
+
+		width: 100%;
+
+	}
+
+
+	/* =====================================================
+	   FORM
+	===================================================== */
+
+	.modular-activity-form-grid {
+
+		grid-template-columns: 1fr;
+
+	}
+
+
+	.modular-activity-form-grid label.wide {
+
+		grid-column: auto;
+
+	}
+
+
+	/* =====================================================
+	   ACTIVITY ROW
+	===================================================== */
+
+	.modular-activity-row {
+
+		grid-template-columns:
+			minmax(0, 1fr);
+
+		width: 100%;
+
+	}
+
+
+	.modular-activity-actions {
+
+		width: 100%;
+
+	}
+
+
+	.modular-activity-actions button {
+
+		flex: 1;
+
+	}
+
+
+	/* =====================================================
+	   HEADINGS
+	===================================================== */
+
+	.modular-activity-form .form-heading,
+	.modular-activity-records .saved-items-heading {
+
+		align-items: flex-start;
+
+	}
+
+
+	.modular-activity-form .form-heading-actions {
+
+		flex-shrink: 0;
+
+	}
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 430px) {
+
+	.modular-activity-form {
+
+		padding: 16px;
+
+	}
+
+
+	.modular-activity-records {
+
+		padding: 16px;
+
+	}
+
+
+	.modular-activity-form .form-heading h2,
+	.modular-activity-records .saved-items-heading h2 {
+
+		font-size: 19px;
+
+	}
+
+
+	.modular-activity-form .form-heading-actions {
+
+		gap: 4px;
+
+	}
+
+
+	.new-item,
+	.clear-form {
+
+		padding: 6px 8px;
+
+		font-size: 11px;
+
+	}
+
+
+	.modular-activity-meta {
+
+		flex-direction: column;
+
+		gap: 3px;
+
+	}
+
+}

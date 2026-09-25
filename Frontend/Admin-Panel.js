@@ -1,0 +1,1737 @@
+(function () {
+	const isLocal =
+	window.location.protocol === 'file:' ||
+	window.location.hostname === 'localhost' ||
+	window.location.hostname === '127.0.0.1';
+
+	const API_ORIGIN =
+		isLocal
+			? 'http://localhost:3000'
+			: '';
+
+	const API_BASE =
+		`${API_ORIGIN}/api/products`;
+
+
+	const form = document.querySelector('#item-form');
+	const list = document.querySelector('#items-list');
+	const count = document.querySelector('#item-count');
+	const message = document.querySelector('#form-message');
+	const formTitle = document.querySelector('#form-title');
+	const saveButton = document.querySelector('#save-item');
+	const newItemButton = document.querySelector('#new-item');
+
+	const locationsPanel = document.querySelector('#locations-panel');
+	const locationsHint = document.querySelector('#locations-hint');
+	const locationList = document.querySelector('#location-list');
+	const locationCount = document.querySelector('#location-count');
+	const locationForm =
+	document.querySelector('#location-form');
+
+	const saveLocationButton =
+		document.querySelector('#save-location');
+
+	const clearLocationButton =
+		document.querySelector('#clear-location');
+
+	let editingUpc = null;
+	let editingItem = null;
+	let formBaseline = '';
+
+	let editingLocationId = null;
+	let locationFormBaseline = '';
+
+	/* =========================================================
+	   API HELPERS
+	========================================================= */
+
+	const apiRequest = async (url, options = {}) => {
+		const response = await fetch(url, {
+			headers: {
+				'Content-Type': 'application/json',
+				...(options.headers || {})
+			},
+			...options
+		});
+
+		let data = null;
+
+		try {
+			data = await response.json();
+		} catch {
+			data = null;
+		}
+
+		if (!response.ok) {
+			throw new Error(
+				data?.error ||
+				data?.message ||
+				`Request failed with status ${response.status}`
+			);
+		}
+
+		return data;
+	};
+
+	const getItems = async () => {
+		return await apiRequest(API_BASE);
+	};
+
+	const getItem = async (upc) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}`
+		);
+	};
+
+	const getLocations = async (upc) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}/locations`
+		);
+	};
+
+	const createItem = async (item) => {
+		return await apiRequest(API_BASE, {
+			method: 'POST',
+			body: JSON.stringify(item)
+		});
+	};
+
+	const updateItem = async (upc, item) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}`,
+			{
+				method: 'PUT',
+				body: JSON.stringify(item)
+			}
+		);
+	};
+
+	const deleteItem = async (upc) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}`,
+			{
+				method: 'DELETE'
+			}
+		);
+	};
+
+	const addLocation = async (upc, location) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}/locations`,
+			{
+				method: 'POST',
+				body: JSON.stringify(location)
+			}
+		);
+	};
+	const updateLocation = async (
+		locationId,
+		location
+	) => {
+
+		return await apiRequest(
+			`${API_BASE}/locations/${encodeURIComponent(locationId)}`,
+			{
+				method: 'PUT',
+				body: JSON.stringify(location)
+			}
+		);
+
+	};
+
+	const deleteLocation = async (locationId) => {
+		return await apiRequest(
+			`${API_BASE}/locations/${encodeURIComponent(locationId)}`,
+			{
+				method: 'DELETE'
+			}
+		);
+	};
+
+	const setPrimaryLocation = async (upc, locationId) => {
+		return await apiRequest(
+			`${API_BASE}/${encodeURIComponent(upc)}/locations/${encodeURIComponent(locationId)}/primary`,
+			{
+				method: 'PUT'
+			}
+		);
+	};
+
+	/* =========================================================
+	   HELPERS
+	========================================================= */
+
+	const valueOrNull = (value) =>
+		value === '' ? null : value;
+
+	const numberOrNull = (value) =>
+		value === '' ? null : Number(value);
+
+	const readImageFile = (file) =>
+		new Promise((resolve, reject) => {
+			if (!file) {
+				resolve('');
+				return;
+			}
+
+			const reader = new FileReader();
+
+			reader.onload = () => resolve(reader.result);
+			reader.onerror = () => reject(reader.error);
+
+			reader.readAsDataURL(file);
+		});
+
+	const escapeHtml = (value) => {
+		return String(value ?? '')
+			.replaceAll('&', '&amp;')
+			.replaceAll('<', '&lt;')
+			.replaceAll('>', '&gt;')
+			.replaceAll('"', '&quot;')
+			.replaceAll("'", '&#039;');
+	};
+
+	const normaliseItem = (item) => {
+			return {
+				upc: item.upc,
+
+			caseBarcode:
+				item.caseBarcode ??
+				item.case_barcode ??
+				'',
+
+			alternativeBarcode:
+				item.alternativeBarcode ??
+				item.alternative_barcode ??
+				'',
+			itemNumber:
+				item.itemNumber ??
+				item.item_number ??
+				'',
+
+			description:
+				item.description ?? '',
+
+			onHand:
+				item.onHand ??
+				item.on_hand ??
+				0,
+
+			price:
+				item.price ??
+				0,
+
+			caseSize:
+				item.caseSize ??
+				item.case_size ??
+				0,
+
+			weight:
+				item.weight ??
+				0,
+
+			maxShelf:
+				item.maxShelf ??
+				item.max_shelf ??
+				0,
+
+			hffssStatus:
+				item.hffssStatus ??
+				item.hffss_status ??
+				'Compliant',
+			department:
+				item.department ??
+				'',
+
+			rangeStatus:
+				item.rangeStatus ??
+				item.range_status ??
+				'in-range',
+
+			aisle:
+				item.aisle ??
+				null,
+
+			aisleSide:
+				item.aisleSide ??
+				item.aisle_side ??
+				null,
+
+			bay:
+				item.bay ??
+				null,
+
+			image: item.image || {
+				url:
+					item.imageUrl ??
+					item.image_url ??
+					'',
+
+				alt:
+					item.imageAlt ??
+					item.image_alt ??
+					item.description ??
+					''
+			}
+		};
+	};
+
+	/* =========================================================
+	   RENDER ITEMS
+	========================================================= */
+
+	const renderItems = async () => {
+		try {
+			const rawItems = await getItems();
+
+			const items = rawItems.map(normaliseItem);
+
+			count.textContent =
+				`${items.length} item${items.length === 1 ? '' : 's'}`;
+
+			list.replaceChildren();
+
+			if (!items.length) {
+				list.innerHTML =
+					'<p class="empty-state">No items saved yet.</p>';
+				return;
+			}
+
+			items
+				.sort((first, second) =>
+					first.description.localeCompare(
+						second.description
+					)
+				)
+				.forEach((item) => {
+
+					const row =
+						document.createElement('article');
+
+					row.className = 'item-row';
+
+					/* IMAGE */
+
+					const image =
+						item.image?.url
+							? document.createElement('img')
+							: document.createElement('div');
+
+					image.className =
+						item.image?.url
+							? ''
+							: 'image-placeholder';
+
+					if (item.image?.url) {
+						image.src = item.image.url;
+
+						image.alt =
+							item.image.alt ||
+							item.description;
+
+						image.addEventListener(
+							'error',
+							() => {
+								image.removeAttribute('src');
+								image.className =
+									'image-placeholder';
+								image.textContent =
+									'No image';
+							},
+							{ once: true }
+						);
+					} else {
+						image.textContent = 'No image';
+					}
+
+					row.appendChild(image);
+
+					/* DETAILS */
+
+					const details =
+						document.createElement('div');
+
+					const rangeLabels = {
+						'in-range': 'In range',
+						'soon-ending':
+							'Soon to be ending',
+						'ended': 'Ended',
+						'soon-in-range':
+							'Soon to be in range'
+					};
+
+					const locationSummary =
+						(
+							item.aisle ||
+							item.aisleSide ||
+							item.bay
+						)
+							? `${item.aisle || '—'}-${item.aisleSide || '—'}-${item.bay || '—'}`
+							: 'No location set';
+
+					details.innerHTML = `
+						<h3>${escapeHtml(item.description)}</h3>
+
+						<p>
+							UPC ${escapeHtml(item.upc)}
+							· Dept ${escapeHtml(item.department || '9999')}
+						</p>
+
+						<p>
+							Case barcode:
+							${escapeHtml(item.caseBarcode || '—')}
+						</p>
+
+						<p>
+							Alternative barcode:
+							${escapeHtml(item.alternativeBarcode || '—')}
+						</p>
+
+						<p>
+							${escapeHtml(locationSummary)}
+							· Case ${item.caseSize ?? 0}
+							· Weight: ${escapeHtml(item.weight || '—')}
+						</p>
+
+						<p>
+							HFFSS:
+							${escapeHtml(item.hffssStatus || 'Compliant')}
+						</p>
+
+						<p>
+							Range:
+							${rangeLabels[item.rangeStatus] || 'In range'}
+						</p>
+					`;
+
+					row.appendChild(details);
+
+					/* ACTIONS */
+
+					const actions =
+						document.createElement('div');
+
+					actions.className =
+						'item-actions';
+
+					const stock =
+						document.createElement('strong');
+
+					stock.textContent =
+						`${item.onHand ?? 0} on hand`;
+
+					actions.appendChild(stock);
+
+					const deleteButton =
+						document.createElement('button');
+
+					deleteButton.className =
+						'delete-item';
+
+					deleteButton.type = 'button';
+
+					deleteButton.textContent =
+						'Delete';
+
+					deleteButton.addEventListener(
+						'click',
+						async (event) => {
+							event.stopPropagation();
+
+							if (
+								!window.confirm(
+									`Delete ${item.description}?`
+								)
+							) {
+								return;
+							}
+
+							try {
+								await deleteItem(
+									item.upc
+								);
+
+								if (
+									editingUpc ===
+									item.upc
+								) {
+									form.reset();
+									resetEditState();
+								}
+
+								message.textContent =
+									'Item deleted.';
+
+								await renderItems();
+
+							} catch (error) {
+								message.textContent =
+									error.message;
+							}
+						}
+					);
+
+					actions.appendChild(
+						deleteButton
+					);
+
+					row.appendChild(actions);
+
+					row.addEventListener(
+						'click',
+						() => startEdit(item)
+					);
+
+					list.appendChild(row);
+				});
+
+		} catch (error) {
+			console.error(
+				'Failed to load items:',
+				error
+			);
+
+			count.textContent = '0 items';
+
+			list.innerHTML = `
+				<p class="empty-state">
+					Unable to load items from the database.
+				</p>
+			`;
+
+			message.textContent =
+				error.message;
+		}
+	};
+
+/* =========================================================
+   LOCATIONS
+========================================================= */
+
+const clearLocationForm = () => {
+
+	editingLocationId = null;
+
+	locationForm.reset();
+
+	locationForm.elements.locModularId.value = '';
+
+	saveLocationButton.textContent =
+		'Add location';
+
+	locationFormBaseline =
+		locationFormSnapshot();
+
+	message.textContent =
+		'Ready to add a new location.';
+
+};
+
+
+/* =========================================================
+   LOCATION FORM SNAPSHOT
+========================================================= */
+
+const locationFormSnapshot = () => {
+
+	return Array.from(
+		locationForm.elements
+	)
+		.filter(
+			(element) =>
+				element.name
+		)
+		.map(
+			(element) =>
+				`${element.name}=${element.value}`
+		)
+		.join('&');
+
+};
+
+
+/* =========================================================
+   LOAD LOCATION INTO FORM
+========================================================= */
+
+const startLocationEdit = (location) => {
+
+	const locationId =
+		location.id;
+
+	editingLocationId =
+		locationId;
+
+	const aisle =
+		location.aisle ??
+		'';
+
+	const aisleSide =
+		location.aisleSide ??
+		location.aisle_side ??
+		'';
+
+	const bay =
+		location.bay ??
+		'';
+
+	const shelf =
+		location.shelf ??
+		'';
+
+	const modularId =
+		location.modularId ??
+		location.modular_id ??
+		'';
+
+	locationForm.elements.locAisle.value =
+		aisle;
+
+	locationForm.elements.locAisleSide.value =
+		aisleSide;
+
+	locationForm.elements.locBay.value =
+		bay;
+
+	locationForm.elements.locShelf.value =
+		shelf;
+
+	locationForm.elements.locModularId.value =
+		modularId;
+
+	locationForm.elements.locIsPrimary.checked =
+		Boolean(
+			location.isPrimary ??
+			location.is_primary
+		);
+
+	saveLocationButton.textContent =
+		'Update location';
+
+	locationFormBaseline =
+		locationFormSnapshot();
+
+	message.textContent =
+		'Editing location.';
+
+	locationForm.scrollIntoView({
+		behavior: 'smooth',
+		block: 'nearest'
+	});
+
+};
+
+
+/* =========================================================
+   RENDER LOCATIONS
+========================================================= */
+
+const renderLocations = async () => {
+
+	if (!editingUpc) {
+
+		locationsPanel.hidden =
+			true;
+
+		locationsHint.hidden =
+			false;
+
+		return;
+
+	}
+
+
+	locationsPanel.hidden =
+		false;
+
+	locationsHint.hidden =
+		true;
+
+
+	try {
+
+		const locations =
+			await getLocations(
+				editingUpc
+			);
+
+
+		locationCount.textContent =
+			`${locations.length} location${
+				locations.length === 1
+					? ''
+					: 's'
+			}`;
+
+
+		locationList.replaceChildren();
+
+
+		if (!locations.length) {
+
+			locationList.innerHTML =
+				'<p class="location-empty">No locations set for this item yet.</p>';
+
+			return;
+
+		}
+
+
+		locations.forEach(
+			(location) => {
+
+				const row =
+					document.createElement(
+						'div'
+					);
+
+				row.className =
+					`location-row${
+						location.isPrimary ||
+						location.is_primary
+							? ' is-primary'
+							: ''
+					}`;
+
+
+				const isPrimary =
+					location.isPrimary ??
+					location.is_primary ??
+					false;
+
+
+				const aisle =
+					location.aisle ??
+					'';
+
+				const aisleSide =
+					location.aisleSide ??
+					location.aisle_side ??
+					'';
+
+				const bay =
+					location.bay ??
+					'';
+
+				const shelf =
+					location.shelf ??
+					'';
+
+				const modularId =
+					location.modularId ??
+					location.modular_id ??
+					'';
+
+				const locationId =
+					location.id;
+
+
+				const codeParts = [
+					aisle,
+					aisleSide,
+					bay
+				].filter(Boolean);
+
+
+				const codeText =
+					codeParts.length
+						? codeParts.join('-')
+						: 'No aisle/bay set';
+
+
+				const metaParts = [];
+
+
+				if (shelf) {
+
+					metaParts.push(
+						`Shelf ${escapeHtml(shelf)}`
+					);
+
+				}
+
+
+				if (modularId) {
+
+					metaParts.push(
+						`Modular ${escapeHtml(modularId)}`
+					);
+
+				}
+
+
+				const details =
+					document.createElement(
+						'div'
+					);
+
+				details.className =
+					'location-row-details';
+
+
+				details.innerHTML = `
+					<span class="location-row-code">
+						${escapeHtml(codeText)}
+
+						${
+							isPrimary
+								? '<span class="location-primary-badge">PRIMARY</span>'
+								: ''
+						}
+					</span>
+
+					<span class="location-row-meta">
+						${
+							metaParts.length
+								? metaParts.join(' · ')
+								: 'No shelf/modular set'
+						}
+					</span>
+				`;
+
+
+				row.appendChild(
+					details
+				);
+
+
+				const rowActions =
+					document.createElement(
+						'div'
+					);
+
+				rowActions.className =
+					'location-row-actions';
+
+
+				/* =================================================
+				   MAKE PRIMARY
+				================================================= */
+
+				const makePrimaryButton =
+					document.createElement(
+						'button'
+					);
+
+				makePrimaryButton.type =
+					'button';
+
+				makePrimaryButton.className =
+					'make-primary';
+
+				makePrimaryButton.textContent =
+					'Make primary';
+
+				makePrimaryButton.disabled =
+					isPrimary;
+
+
+				makePrimaryButton.addEventListener(
+					'click',
+					async (event) => {
+
+						event.stopPropagation();
+
+
+						try {
+
+							await setPrimaryLocation(
+								editingUpc,
+								locationId
+							);
+
+							message.textContent =
+								'Primary location updated.';
+
+							await renderLocations();
+
+							await renderItems();
+
+						} catch (error) {
+
+							message.textContent =
+								error.message;
+
+						}
+
+					}
+				);
+
+
+				rowActions.appendChild(
+					makePrimaryButton
+				);
+
+
+				/* =================================================
+				   REMOVE
+				================================================= */
+
+				const removeButton =
+					document.createElement(
+						'button'
+					);
+
+				removeButton.type =
+					'button';
+
+				removeButton.className =
+					'remove-location';
+
+				removeButton.textContent =
+					'Remove';
+
+
+				removeButton.addEventListener(
+					'click',
+					async (event) => {
+
+						event.stopPropagation();
+
+
+						if (
+							!window.confirm(
+								'Remove this location?'
+							)
+						) {
+							return;
+						}
+
+
+						try {
+
+							await deleteLocation(
+								locationId
+							);
+
+
+							if (
+								editingLocationId ===
+								locationId
+							) {
+
+								clearLocationForm();
+
+							}
+
+
+							message.textContent =
+								'Location removed.';
+
+
+							await renderLocations();
+
+							await renderItems();
+
+						} catch (error) {
+
+							message.textContent =
+								error.message;
+
+						}
+
+					}
+				);
+
+
+				rowActions.appendChild(
+					removeButton
+				);
+
+
+				row.appendChild(
+					rowActions
+				);
+
+
+				/* =================================================
+				   CLICK LOCATION TO EDIT
+				================================================= */
+
+				row.addEventListener(
+					'click',
+					() => {
+
+						startLocationEdit(
+							location
+						);
+
+					}
+				);
+
+
+				locationList.appendChild(
+					row
+				);
+
+			}
+		);
+
+
+	} catch (error) {
+
+		console.error(
+			'Failed to load locations:',
+			error
+		);
+
+
+		locationCount.textContent =
+			'0 locations';
+
+
+		locationList.innerHTML = `
+			<p class="location-empty">
+				Unable to load locations.
+			</p>
+		`;
+
+
+		message.textContent =
+			error.message;
+
+	}
+
+};
+
+
+/* =========================================================
+   MODULAR ID
+========================================================= */
+
+const updateModularId = () => {
+
+	const aisle =
+		locationForm.elements.locAisle.value.trim();
+
+	const aisleSide =
+		locationForm.elements.locAisleSide.value.trim();
+
+	const bay =
+		locationForm.elements.locBay.value.trim();
+
+	const modularIdField =
+		locationForm.elements.locModularId;
+
+
+	if (
+		!aisle ||
+		!aisleSide ||
+		!bay
+	) {
+
+		modularIdField.value =
+			'';
+
+		return;
+
+	}
+
+
+	const upperAisle =
+		aisle.toUpperCase();
+
+	let formattedAisle =
+		upperAisle;
+
+
+	if (
+		upperAisle.startsWith('FF-')
+	) {
+
+		formattedAisle =
+			aisle.substring(3);
+
+	} else if (
+		upperAisle.startsWith('FF')
+	) {
+
+		formattedAisle =
+			aisle
+				.substring(2)
+				.replace(
+					/^-/,
+					''
+				);
+
+	}
+
+
+	modularIdField.value =
+		`FF-${formattedAisle}-${aisleSide.toUpperCase()}-${bay}`;
+
+};
+
+
+/* =========================================================
+   AUTO UPDATE MODULAR ID
+========================================================= */
+
+[
+	'locAisle',
+	'locAisleSide',
+	'locBay'
+].forEach(
+	(fieldName) => {
+
+		locationForm.elements[fieldName]
+			.addEventListener(
+				'input',
+				updateModularId
+			);
+
+	}
+);
+
+
+/* =========================================================
+   CLEAR LOCATION
+========================================================= */
+
+clearLocationButton.addEventListener(
+	'click',
+	() => {
+
+		clearLocationForm();
+
+	}
+);
+
+
+/* =========================================================
+   SUBMIT LOCATION
+========================================================= */
+
+locationForm.addEventListener(
+	'submit',
+	async (event) => {
+
+		event.preventDefault();
+
+
+		if (!editingUpc) {
+
+			return;
+
+		}
+
+
+		const aisle =
+			locationForm.elements.locAisle.value.trim();
+
+		const aisleSide =
+			locationForm.elements.locAisleSide.value.trim();
+
+		const bay =
+			locationForm.elements.locBay.value.trim();
+
+		const shelf =
+			locationForm.elements.locShelf.value.trim();
+
+
+		if (!aisle) {
+
+			message.textContent =
+				'Please enter an aisle number.';
+
+			locationForm.elements.locAisle.focus();
+
+			return;
+
+		}
+
+
+		if (!aisleSide) {
+
+			message.textContent =
+				'Please enter an aisle side.';
+
+			locationForm.elements.locAisleSide.focus();
+
+			return;
+
+		}
+
+
+		if (!bay) {
+
+			message.textContent =
+				'Please enter a bay number.';
+
+			locationForm.elements.locBay.focus();
+
+			return;
+
+		}
+
+
+		updateModularId();
+
+
+		const modularId =
+			locationForm.elements.locModularId.value.trim();
+
+
+		if (!modularId) {
+
+			message.textContent =
+				'Unable to generate Modular ID.';
+
+			return;
+
+		}
+
+
+		const location = {
+
+			aisle,
+
+			aisleSide:
+				aisleSide.toUpperCase(),
+
+			bay,
+
+			shelf,
+
+			modularId,
+
+			isPrimary:
+				locationForm.elements
+					.locIsPrimary
+					.checked
+
+		};
+
+
+		try {
+
+			/* =================================================
+			   UPDATE EXISTING LOCATION
+			================================================= */
+
+			if (editingLocationId) {
+
+				const changed =
+					locationFormSnapshot() !==
+					locationFormBaseline;
+
+
+				if (!changed) {
+
+					message.textContent =
+						'No changes to update.';
+
+					return;
+
+				}
+
+
+				await updateLocation(
+					editingLocationId,
+					location
+				);
+
+
+				message.textContent =
+					'Location updated.';
+
+
+			} else {
+
+				/* =============================================
+				   ADD NEW LOCATION
+				============================================= */
+
+				await addLocation(
+					editingUpc,
+					location
+				);
+
+
+				message.textContent =
+					'Location added.';
+
+			}
+
+
+			clearLocationForm();
+
+			await renderLocations();
+
+			await renderItems();
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to save location:',
+				error
+			);
+
+
+			message.textContent =
+				error.message;
+
+		}
+
+	}
+);
+
+
+
+/* =========================================================
+   AUTO-UPDATE MODULAR ID
+========================================================= */
+
+[
+	'locAisle',
+	'locAisleSide',
+	'locBay'
+].forEach((fieldName) => {
+
+	locationForm.elements[fieldName]
+		.addEventListener(
+			'input',
+			updateModularId
+		);
+
+});
+	/* =========================================================
+	   FORM HELPERS
+	========================================================= */
+
+	const setField = (name, value) => {
+		if (form.elements[name]) {
+			form.elements[name].value =
+				value ?? '';
+		}
+	};
+
+	const formSnapshot = () =>
+		Array.from(form.elements)
+			.filter(
+				(element) =>
+					element.name
+			)
+			.map((element) => {
+
+				if (element.type === 'file') {
+					const file =
+						element.files[0];
+
+					return `${element.name}=${
+						file
+							? `${file.name}:${file.size}:${file.lastModified}`
+							: ''
+					}`;
+				}
+
+				return `${element.name}=${element.value}`;
+			})
+			.join('&');
+
+	const updateSaveState = () => {
+
+		const hasChanges =
+			formSnapshot() !== formBaseline;
+
+		saveButton.disabled =
+			!hasChanges;
+
+		if (hasChanges) {
+			saveButton.removeAttribute('disabled');
+		} else {
+			saveButton.setAttribute(
+				'disabled',
+				''
+			);
+		}
+	};
+
+	const resetEditState = () => {
+		editingUpc = null;
+		editingItem = null;
+
+		form.classList.remove(
+			'editing'
+		);
+
+		formTitle.textContent =
+			'New item';
+
+		saveButton.textContent =
+			'Save item';
+
+		form.elements.upc.readOnly =
+			false;
+
+		formBaseline =
+			formSnapshot();
+
+		updateSaveState();
+
+		renderLocations();
+	};
+
+	/* =========================================================
+	   START EDIT
+	========================================================= */
+
+	const startEdit = async (rawItem) => {
+
+	const item =
+		normaliseItem(rawItem);
+
+	editingUpc =
+		item.upc;
+
+	editingItem =
+		item;
+
+	form.classList.add(
+		'editing'
+	);
+
+	formTitle.textContent =
+		'Edit item';
+
+	saveButton.textContent =
+		'Update item';
+
+	formBaseline =
+		formSnapshot();
+
+	updateSaveState();
+	form.elements.upc.readOnly =
+		false;
+
+	[
+		'upc',
+		'caseBarcode',
+		'alternativeBarcode',
+		'itemNumber',
+		'description',
+		'price',
+		'onHand',
+		'caseSize',
+		'weight',
+		'maxShelf',
+		'hffssStatus',
+		'department',
+		'rangeStatus'
+	].forEach((name) => {
+
+		setField(
+			name,
+			item[name]
+		);
+
+	});
+
+	setField(
+		'imageUrl',
+		item.image?.url?.startsWith('data:')
+			? ''
+			: item.image?.url
+	);
+
+	formBaseline =
+		formSnapshot();
+
+	message.classList.remove('error');
+
+	message.textContent =
+		`Editing ${item.description}.`;
+
+	form.scrollIntoView({
+		behavior: 'smooth',
+		block: 'start'
+	});
+
+	await renderLocations();
+};
+
+	/* =========================================================
+	   RESET / NEW ITEM
+	========================================================= */
+
+	form.addEventListener(
+		'reset',
+		() => {
+			setTimeout(
+				resetEditState
+			);
+		}
+	);
+
+	form.addEventListener(
+		'input',
+		updateSaveState
+	);
+
+	form.addEventListener(
+		'change',
+		updateSaveState
+	);
+
+	newItemButton.addEventListener(
+		'click',
+		() => {
+			form.reset();
+
+			message.textContent =
+				'Ready for a new item.';
+		}
+	);
+
+	/* =========================================================
+   SAVE / UPDATE ITEM
+========================================================= */
+
+form.addEventListener(
+	'submit',
+	async (event) => {
+
+		event.preventDefault();
+
+		const data =
+			new FormData(form);
+
+		const imageFile =
+			data.get('imageFile');
+
+		const uploadedImage =
+			await readImageFile(
+				imageFile instanceof File &&
+				imageFile.size
+					? imageFile
+					: null
+			);
+
+		const item = {
+
+			upc:
+				data.get('upc').trim(),
+
+			caseBarcode:
+				valueOrNull(
+					data
+						.get('caseBarcode')
+						.trim()
+				),
+
+			alternativeBarcode:
+				valueOrNull(
+					data
+						.get('alternativeBarcode')
+						.trim()
+				),
+
+			itemNumber:
+				valueOrNull(
+					data
+						.get('itemNumber')
+						.trim()
+				),
+
+			description:
+				data
+					.get('description')
+					.trim(),
+
+			onHand:
+				numberOrNull(
+					data.get('onHand')
+				) ?? 0,
+
+			caseSize:
+				numberOrNull(
+					data.get('caseSize')
+				) ?? 0,
+
+			weight:
+				valueOrNull(
+					data.get('weight').trim()
+				),
+
+			maxShelf:
+				numberOrNull(
+					data.get('maxShelf')
+				) ?? 0,
+
+			hffssStatus:
+				data.get('hffssStatus') ||
+				'Compliant',
+
+			department:
+				data
+					.get('department')
+					.trim() ||
+				'9999',
+
+			rangeStatus:
+				data.get('rangeStatus') ||
+				'in-range',
+
+			price:
+				numberOrNull(
+					data.get('price')
+				) ?? 1,
+
+			imageUrl:
+				uploadedImage ||
+				data
+					.get('imageUrl')
+					.trim() ||
+				editingItem?.image?.url ||
+				'',
+
+			imageAlt:
+				data
+					.get('description')
+					.trim()
+		};
+
+		try {
+
+			const wasNewItem =
+				!editingUpc;
+
+
+			/* =================================================
+			   CREATE NEW ITEM
+			================================================= */
+
+			if (wasNewItem) {
+
+				const savedItem =
+					await createItem(
+						item
+					);
+
+				message.textContent =
+					'Item saved. Add its locations below.';
+					message.classList.remove('error');
+
+				/*
+					Enter edit mode for the newly
+					created item so locations can
+					be added immediately.
+				*/
+
+				await startEdit(
+					savedItem
+				);
+
+			}
+
+
+			/* =================================================
+			   UPDATE EXISTING ITEM
+			================================================= */
+
+			else {
+
+				const oldUpc =
+					editingUpc;
+
+				await updateItem(
+					oldUpc,
+					item
+				);
+
+				/*
+					The database row has now been
+					updated, including a possible
+					UPC change.
+
+					Clear the old edit state so the
+					page is not permanently locked
+					to this item.
+				*/
+
+				editingUpc =
+					null;
+
+				editingItem =
+					null;
+
+				form.classList.remove(
+					'editing'
+				);
+
+				formTitle.textContent =
+					'New item';
+
+				saveButton.textContent =
+					'Save item';
+
+				form.elements.upc.readOnly =
+					false;
+
+				message.textContent =
+					'Item updated.';
+				message.classList.remove('error');
+				/*
+					Reset the form baseline so the
+					next item can be selected normally.
+				*/
+
+				formBaseline =
+					formSnapshot();
+
+				updateSaveState();
+
+				await renderLocations();
+			}
+
+
+			await renderItems();
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to save item:',
+				error
+			);
+
+			message.textContent =
+				error.message;
+
+			message.classList.add('error');
+		}
+	}
+);
+newItemButton.addEventListener(
+	'click',
+	() => {
+		form.reset();
+
+		message.classList.remove('error');
+
+		message.textContent =
+			'Ready for a new item.';
+	}
+);
+	/* =========================================================
+	   INITIAL LOAD
+	========================================================= */
+
+	const initialise = async () => {
+		try {
+			await renderItems();
+			await renderLocations();
+		} catch (error) {
+			console.error(
+				'Failed to initialise items page:',
+				error
+			);
+
+			message.textContent =
+				error.message;
+		}
+	};
+
+	initialise();
+})();

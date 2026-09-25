@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Asda Admin Panel</title>
+
+	<link rel="stylesheet" href="admin-panel.css">
+	<link rel="stylesheet" href="admin-modular-activity.css">
+</head>
+
+<body>
+
+	<main class="items-app">
+
+		<!-- =====================================================
+		     ADMIN PANEL HEADER
+		===================================================== -->
+
+		<header class="items-header">
+
+			<a
+				href="index.html"
+				class="back-link"
+				aria-label="Back to tasks"
+			>
+				‹
+			</a>
+
+			<div class="admin-header-title">
+				<p>ADMIN PANEL</p>
+				<h1 id="admin-panel-title">
+					Product Info
+				</h1>
+			</div>
+
+			<span
+				class="database-status"
+				id="database-status"
+			>
+				Database
+			</span>
+
+		</header>
+
+
+		<!-- =====================================================
+		     ADMIN PANEL SWITCH
+		===================================================== -->
+
+		<nav
+			class="admin-panel-switch"
+			aria-label="Admin panel sections"
+		>
+
+			<button
+				type="button"
+				class="admin-panel-switch-button active"
+				id="product-info-switch"
+				data-panel="product-info"
+				aria-selected="true"
+			>
+				Product Info
+			</button>
+
+			<button
+				type="button"
+				class="admin-panel-switch-button"
+				id="modular-activity-switch"
+				data-panel="modular-activity"
+				aria-selected="false"
+			>
+				Modular Activity
+			</button>
+
+		</nav>
+
+
+		<!-- =====================================================
+		     PRODUCT INFO
+		===================================================== -->
+
+		<section
+			id="product-info-panel"
+			class="admin-panel-section active"
+		>
+
+			<section class="items-layout">
+
+				<div class="item-form-column">
+
+					<form
+						class="item-form"
+						id="item-form"
+					>
+
+						<div class="form-heading">
+
+							<div>
+								<span class="eyebrow">
+									ITEM RECORD
+								</span>
+
+								<h2 id="form-title">
+									New item
+								</h2>
+							</div>
+
+							<div class="form-heading-actions">
+
+								<button
+									type="button"
+									class="new-item"
+									id="new-item"
+								>
+									New item
+								</button>
+
+								<button
+									type="reset"
+									class="clear-form"
+								>
+									Clear
+								</button>
+
+							</div>
+
+						</div>
+
+
+						<div class="form-grid">
+
+							<label>
+								UPC
+
+								<input
+									name="upc"
+									required
+									inputmode="numeric"
+									placeholder="Enter UPC"
+								>
+							</label>
+
+
+							<label>
+								Case Size barcode
+
+								<input
+									name="caseBarcode"
+									inputmode="numeric"
+									placeholder="Optional case barcode"
+								>
+							</label>
+
+
+							<label>
+								Alternative barcode
+
+								<input
+									name="alternativeBarcode"
+									inputmode="numeric"
+									placeholder="Optional alternative barcode"
+								>
+							</label>
+
+
+							<label>
+								ASDA item number
+
+								<input
+									name="itemNumber"
+									required
+									placeholder="Enter item number"
+								>
+							</label>
+
+
+							<label class="wide">
+								Description
+
+								<input
+									name="description"
+									required
+									placeholder="Enter item description"
+								>
+							</label>
+
+
+							<label>
+								Price
+
+								<input
+									name="price"
+									type="number"
+									min="0"
+									step="0.01"
+									placeholder="Defaults to £1.00"
+								>
+							</label>
+
+
+							<label>
+								On hand
+
+								<input
+									name="onHand"
+									type="number"
+									min="0"
+									step="1"
+									placeholder="Defaults to 0"
+								>
+							</label>
+
+
+							<label>
+								Case size
+
+								<input
+									name="caseSize"
+									type="number"
+									min="0"
+									step="1"
+									placeholder="Defaults to 0"
+								>
+							</label>
+
+
+							<label>
+								Weight
+
+								<input
+									name="weight"
+									type="text"
+									placeholder="e.g. 750g or 1kg"
+								>
+							</label>
+
+
+							<label>
+								Max shelf
+
+								<input
+									name="maxShelf"
+									type="number"
+									min="0"
+									step="1"
+									placeholder="Defaults to 0"
+								>
+							</label>
+
+
+							<label>
+								HFFSS
+
+								<select name="hffssStatus">
+
+									<option value="Compliant">
+										Compliant
+									</option>
+
+									<option value="Not Compliant">
+										Not Compliant
+									</option>
+
+								</select>
+
+							</label>
+
+
+							<label>
+								Department
+
+								<input
+									name="department"
+									placeholder="Defaults to 9999"
+								>
+							</label>
+
+
+							<label>
+								Range status
+
+								<select name="rangeStatus">
+
+									<option value="in-range">
+										In range
+									</option>
+
+									<option value="soon-ending">
+										Soon to be ending
+									</option>
+
+									<option value="ended">
+										Ended
+									</option>
+
+									<option value="soon-in-range">
+										Soon to be in range
+									</option>
+
+								</select>
+
+							</label>
+
+
+							<label class="wide">
+								Image URL
+
+								<input
+									name="imageUrl"
+									type="url"
+									placeholder="Optional image URL"
+								>
+							</label>
+
+
+							<label class="wide">
+								Or upload image
+
+								<input
+									name="imageFile"
+									type="file"
+									accept="image/*"
+								>
+							</label>
+
+						</div>
+
+
+						<button
+							class="save-item"
+							id="save-item"
+							type="submit"
+						>
+							Save item
+						</button>
+
+
+						<p
+							class="form-message"
+							id="form-message"
+							role="status"
+						></p>
+
+					</form>
+
+
+					<!-- =================================================
+					     LOCATIONS PANEL
+					================================================= -->
+
+					<section
+						class="locations-panel"
+						id="locations-panel"
+						hidden
+					>
+
+						<div class="form-heading">
+
+							<div>
+
+								<span class="eyebrow">
+									LOCATIONS
+								</span>
+
+								<h2>
+									Where this item lives
+								</h2>
+
+							</div>
+
+							<span id="location-count">
+								0 locations
+							</span>
+
+						</div>
+
+
+						<div
+							class="location-list"
+							id="location-list"
+						></div>
+
+
+						<form
+							class="location-form"
+							id="location-form"
+						>
+
+							<div class="location-grid">
+
+								<label>
+									Aisle
+
+									<input
+										name="locAisle"
+										placeholder="Optional"
+									>
+								</label>
+
+
+								<label>
+									Aisle side
+
+									<input
+										name="locAisleSide"
+										placeholder="Optional"
+									>
+								</label>
+
+
+								<label>
+									Bay
+
+									<input
+										name="locBay"
+										placeholder="Optional"
+									>
+								</label>
+
+
+								<label>
+									Shelf
+
+									<input
+										name="locShelf"
+										placeholder="Optional"
+									>
+								</label>
+
+
+								<label class="wide">
+									Modular ID
+
+									<input
+										name="locModularId"
+										placeholder="Auto-generated as FF-aisle-side-bay"
+									>
+								</label>
+
+							</div>
+
+
+							<label class="location-primary-check">
+
+								<input
+									type="checkbox"
+									name="locIsPrimary"
+								>
+
+								Set as primary location
+
+							</label>
+
+
+							<div class="location-form-actions">
+
+								<button
+									type="button"
+									class="clear-location"
+									id="clear-location"
+								>
+									Clear
+								</button>
+
+
+								<button
+									type="submit"
+									class="add-location"
+									id="save-location"
+								>
+									Add location
+								</button>
+
+							</div>
+
+						</form>
+
+					</section>
+
+
+					<p
+						class="locations-hint"
+						id="locations-hint"
+					>
+						Save the item first, then add its locations here.
+					</p>
+
+				</div>
+
+
+				<!-- =================================================
+				     SAVED ITEMS
+				================================================= -->
+
+				<section
+					class="saved-items"
+					aria-labelledby="saved-items-heading"
+				>
+
+					<div class="saved-items-heading">
+
+						<div>
+
+							<span class="eyebrow">
+								DATABASE
+							</span>
+
+							<h2 id="saved-items-heading">
+								Saved items
+							</h2>
+
+						</div>
+
+						<span id="item-count">
+							0 items
+						</span>
+
+					</div>
+
+
+					<div
+						class="items-list"
+						id="items-list"
+					></div>
+
+				</section>
+
+			</section>
+
+		</section>
+
+
+		<!-- =====================================================
+			MODULAR ACTIVITY
+		===================================================== -->
+
+		<section
+			id="modular-activity-panel"
+			class="admin-panel-section"
+			hidden
+		>
+
+			<section class="modular-activity-layout">
+
+
+				<!-- =================================================
+					MODULAR ACTIVITY FORM
+				================================================= -->
+
+				<div class="modular-activity-form-column">
+
+					<form
+						class="modular-activity-form"
+						id="modular-activity-form"
+					>
+
+						<div class="form-heading">
+
+							<div>
+
+								<span class="eyebrow">
+									MODULAR ACTIVITY
+								</span>
+
+								<h2 id="modular-activity-form-title">
+									New activity
+								</h2>
+
+							</div>
+
+
+							<div class="form-heading-actions">
+
+								<button
+									type="button"
+									class="new-item"
+									id="new-modular-activity"
+								>
+									New activity
+								</button>
+
+								<button
+									type="reset"
+									class="clear-form"
+								>
+									Clear
+								</button>
+
+							</div>
+
+						</div>
+
+
+						<div class="form-grid modular-activity-form-grid">
+
+
+							<!-- =========================================
+								MODULAR NAME
+							========================================= -->
+
+							<label class="wide">
+
+								Modular name
+
+								<input
+									name="modularName"
+									id="modular-name"
+									required
+									placeholder="e.g. 14B_Frozen_Pizza_4565"
+								>
+
+							</label>
+
+
+							<!-- =========================================
+								DEPARTMENT NUMBER
+							========================================= -->
+
+							<label>
+
+								Department number
+
+								<input
+									name="departmentNumber"
+									id="modular-department-number"
+									type="number"
+									min="0"
+									step="1"
+									required
+									placeholder="e.g. 1"
+								>
+
+							</label>
+
+
+							<!-- =========================================
+								PLANOGRAM NUMBER
+							========================================= -->
+
+							<label>
+
+								Planogram number
+
+								<input
+									name="planogramNumber"
+									id="modular-planogram-number"
+									type="number"
+									min="0"
+									step="1"
+									required
+									placeholder="e.g. 91"
+								>
+
+							</label>
+
+
+							<!-- =========================================
+								DUE DATE
+							========================================= -->
+
+							<label>
+
+								Due date
+
+								<input
+									name="dueDate"
+									id="modular-due-date"
+									type="date"
+									required
+								>
+
+							</label>
+
+
+						</div>
+
+
+						<button
+							class="save-item"
+							id="save-modular-activity"
+							type="submit"
+						>
+							Add activity
+						</button>
+
+
+						<p
+							class="form-message"
+							id="modular-activity-form-message"
+							role="status"
+						></p>
+
+					</form>
+					<!-- =====================================================
+						MODULAR BAYS
+					===================================================== -->
+
+					<section
+						class="modular-bays-panel"
+						id="modular-bays-panel"
+						hidden
+					>
+
+						<div class="form-heading">
+
+							<div>
+
+								<span class="eyebrow">
+									MODULAR BAYS
+								</span>
+
+								<h2>
+									Bays in this activity
+								</h2>
+
+							</div>
+
+							<span id="modular-bay-count">
+								0 bays
+							</span>
+
+						</div>
+
+						<div
+							class="modular-bay-list"
+							id="modular-bay-list"
+						></div>
+
+					</section>
+
+
+					<!-- =====================================================
+						NO ACTIVITY SELECTED
+					===================================================== -->
+
+					<p
+						class="modular-bays-hint"
+						id="modular-bays-hint"
+					>
+						Select a modular activity to view its bays.
+					</p>
+
+				</div>
+
+
+				<!-- =================================================
+					SAVED MODULAR ACTIVITY
+				================================================= -->
+
+				<section
+					class="saved-items modular-activity-records"
+					aria-labelledby="saved-modular-activity-heading"
+				>
+
+					<div class="saved-items-heading">
+
+						<div>
+
+							<span class="eyebrow">
+								DATABASE
+							</span>
+
+							<h2 id="saved-modular-activity-heading">
+								Saved modular activity
+							</h2>
+
+						</div>
+
+						<span id="modular-activity-count">
+							0 activities
+						</span>
+
+					</div>
+
+
+					<div
+						class="modular-activity-list"
+						id="modular-activity-list"
+					></div>
+
+				</section>
+
+
+			</section>
+
+		</section>
+
+	</main>
+
+
+	<!-- =====================================================
+	     PRODUCT INFO JS
+	===================================================== -->
+
+	<script src="admin-panel.js"></script>
+
+	<!-- =====================================================
+     MODULAR ACTIVITY JS
+	===================================================== -->
+
+	<script src="admin-modular-activity.js"></script>
+
+	<!-- =====================================================
+	     ADMIN PANEL SWITCH JS
+	===================================================== -->
+
+	<script>
+
+		(function () {
+
+			const productInfoSwitch =
+				document.querySelector(
+					'#product-info-switch'
+				);
+
+			const modularActivitySwitch =
+				document.querySelector(
+					'#modular-activity-switch'
+				);
+
+			const productInfoPanel =
+				document.querySelector(
+					'#product-info-panel'
+				);
+
+			const modularActivityPanel =
+				document.querySelector(
+					'#modular-activity-panel'
+				);
+
+			const adminPanelTitle =
+				document.querySelector(
+					'#admin-panel-title'
+				);
+
+
+			const setPanel =
+				(panel) => {
+
+					const showProductInfo =
+						panel === 'product-info';
+
+
+					productInfoPanel.hidden =
+						!showProductInfo;
+
+					modularActivityPanel.hidden =
+						showProductInfo;
+
+
+					productInfoPanel.classList.toggle(
+						'active',
+						showProductInfo
+					);
+
+					modularActivityPanel.classList.toggle(
+						'active',
+						!showProductInfo
+					);
+
+
+					productInfoSwitch.classList.toggle(
+						'active',
+						showProductInfo
+					);
+
+					modularActivitySwitch.classList.toggle(
+						'active',
+						!showProductInfo
+					);
+
+
+					productInfoSwitch.setAttribute(
+						'aria-selected',
+						String(showProductInfo)
+					);
+
+					modularActivitySwitch.setAttribute(
+						'aria-selected',
+						String(!showProductInfo)
+					);
+
+
+					adminPanelTitle.textContent =
+						showProductInfo
+							? 'Product Info'
+							: 'Modular Activity';
+
+				};
+
+
+			productInfoSwitch.addEventListener(
+				'click',
+				() => {
+					setPanel('product-info');
+				}
+			);
+
+
+			modularActivitySwitch.addEventListener(
+				'click',
+				() => {
+					setPanel('modular-activity');
+				}
+			);
+
+
+			setPanel('product-info');
+
+		})();
+
+	</script>
+
+</body>
+</html>

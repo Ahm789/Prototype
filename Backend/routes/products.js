@@ -356,6 +356,687 @@ router.post('/', async (req, res) => {
 }
 });
 /* =========================================================
+   ADMIN MODULAR ACTIVITY
+========================================================= */
+
+/*
+	These endpoints are specifically for the Admin Panel.
+
+	They intentionally do NOT use the modular_bays join/filter
+	from the normal Modular Activity endpoint.
+
+	Displayed/editable fields:
+
+	- modular_name
+	- department_number
+	- planogram_number
+	- due_date
+
+	The database id is returned internally so the frontend
+	can correctly edit/delete the selected record.
+
+	created_at / updated_at are not returned.
+*/
+
+
+/* =========================================================
+   GET ALL ADMIN MODULAR ACTIVITY
+========================================================= */
+
+router.get(
+	'/admin/modular-activity',
+	async (req, res) => {
+
+		try {
+
+			const result =
+				await pool.query(`
+					SELECT
+						id,
+						modular_name,
+						department_number,
+						planogram_number,
+						due_date
+
+					FROM modular_activity
+
+					ORDER BY
+						due_date,
+						planogram_number,
+						modular_name
+				`);
+
+
+			res.json(
+				result.rows.map(row => ({
+					id:
+						row.id,
+
+					modularName:
+						row.modular_name,
+
+					departmentNumber:
+						row.department_number,
+
+					planogramNumber:
+						row.planogram_number,
+
+					dueDate:
+						row.due_date
+							? row.due_date
+								.toISOString()
+								.slice(0, 10)
+							: null
+				}))
+			);
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load admin modular activity:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to load admin modular activity.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   ADD ADMIN MODULAR ACTIVITY
+========================================================= */
+
+router.post(
+	'/admin/modular-activity',
+	async (req, res) => {
+
+		const {
+			modularName,
+			departmentNumber,
+			planogramNumber,
+			dueDate
+		} = req.body;
+
+
+		const cleanModularName =
+			String(
+				modularName || ''
+			).trim();
+
+
+		const cleanDepartmentNumber =
+			Number(
+				departmentNumber
+			);
+
+
+		const cleanPlanogramNumber =
+			Number(
+				planogramNumber
+			);
+
+
+		const cleanDueDate =
+			String(
+				dueDate || ''
+			).trim();
+
+
+		if (!cleanModularName) {
+
+			return res.status(400).json({
+				error:
+					'Modular name is required.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanDepartmentNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Department number must be a whole number.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanPlanogramNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Planogram number must be a whole number.'
+			});
+
+		}
+
+
+		if (!cleanDueDate) {
+
+			return res.status(400).json({
+				error:
+					'Due date is required.'
+			});
+
+		}
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					INSERT INTO modular_activity (
+						modular_name,
+						department_number,
+						planogram_number,
+						due_date
+					)
+
+					VALUES (
+						$1,
+						$2,
+						$3,
+						$4
+					)
+
+					RETURNING
+						id,
+						modular_name,
+						department_number,
+						planogram_number,
+						due_date
+					`,
+					[
+						cleanModularName,
+						cleanDepartmentNumber,
+						cleanPlanogramNumber,
+						cleanDueDate
+					]
+				);
+
+
+			const row =
+				result.rows[0];
+
+
+			res.status(201).json({
+
+				id:
+					row.id,
+
+				modularName:
+					row.modular_name,
+
+				departmentNumber:
+					row.department_number,
+
+				planogramNumber:
+					row.planogram_number,
+
+				dueDate:
+					row.due_date
+						.toISOString()
+						.slice(0, 10)
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to create modular activity:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to create modular activity.'
+			});
+
+		}
+
+	}
+);
+
+
+/* =========================================================
+   UPDATE ADMIN MODULAR ACTIVITY
+========================================================= */
+
+router.put(
+	'/admin/modular-activity/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		const {
+			modularName,
+			departmentNumber,
+			planogramNumber,
+			dueDate
+		} = req.body;
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular activity ID.'
+			});
+
+		}
+
+
+		const cleanModularName =
+			String(
+				modularName || ''
+			).trim();
+
+
+		const cleanDepartmentNumber =
+			Number(
+				departmentNumber
+			);
+
+
+		const cleanPlanogramNumber =
+			Number(
+				planogramNumber
+			);
+
+
+		const cleanDueDate =
+			String(
+				dueDate || ''
+			).trim();
+
+
+		if (!cleanModularName) {
+
+			return res.status(400).json({
+				error:
+					'Modular name is required.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanDepartmentNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Department number must be a whole number.'
+			});
+
+		}
+
+
+		if (
+			!Number.isInteger(
+				cleanPlanogramNumber
+			)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Planogram number must be a whole number.'
+			});
+
+		}
+
+
+		if (!cleanDueDate) {
+
+			return res.status(400).json({
+				error:
+					'Due date is required.'
+			});
+
+		}
+
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					UPDATE modular_activity
+
+					SET
+						modular_name = $1,
+						department_number = $2,
+						planogram_number = $3,
+						due_date = $4
+
+					WHERE id = $5
+
+					RETURNING
+						id,
+						modular_name,
+						department_number,
+						planogram_number,
+						due_date
+					`,
+					[
+						cleanModularName,
+						cleanDepartmentNumber,
+						cleanPlanogramNumber,
+						cleanDueDate,
+						id
+					]
+				);
+
+
+			if (!result.rows.length) {
+
+				return res.status(404).json({
+					error:
+						'Modular activity record not found.'
+				});
+
+			}
+
+
+			const row =
+				result.rows[0];
+
+
+			res.json({
+
+				id:
+					row.id,
+
+				modularName:
+					row.modular_name,
+
+				departmentNumber:
+					row.department_number,
+
+				planogramNumber:
+					row.planogram_number,
+
+				dueDate:
+					row.due_date
+						.toISOString()
+						.slice(0, 10)
+
+			});
+
+
+		} catch (error) {
+
+			console.error(
+				'Unable to update modular activity:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to update modular activity.'
+			});
+
+		}
+
+	}
+);
+
+/* =========================================================
+   DELETE ADMIN MODULAR ACTIVITY
+========================================================= */
+
+router.delete(
+	'/admin/modular-activity/:id',
+	async (req, res) => {
+
+		const id =
+			Number(
+				req.params.id
+			);
+
+
+		if (
+			!Number.isInteger(id)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid modular activity ID.'
+			});
+
+		}
+
+
+		const client =
+			await pool.connect();
+
+
+		try {
+
+			await client.query(
+				'BEGIN'
+			);
+
+
+			/* =================================================
+			   FIND MODULAR ACTIVITY
+			================================================= */
+
+			const activityResult =
+				await client.query(
+					`
+					SELECT
+						id,
+						planogram_number
+
+					FROM modular_activity
+
+					WHERE id = $1
+
+					FOR UPDATE
+					`,
+					[
+						id
+					]
+				);
+
+
+			if (
+				!activityResult.rows.length
+			) {
+
+				await client.query(
+					'ROLLBACK'
+				);
+
+				return res.status(404).json({
+					error:
+						'Modular activity record not found.'
+				});
+
+			}
+
+
+			const planogramNumber =
+				activityResult.rows[0]
+					.planogram_number;
+
+
+			/* =================================================
+			   FIND ALL MODULAR BAYS FOR THIS PLANOGRAM
+			================================================= */
+
+			const bayResult =
+				await client.query(
+					`
+					SELECT
+						id
+
+					FROM modular_bays
+
+					WHERE
+						planogram_number = $1
+
+					FOR UPDATE
+					`,
+					[
+						planogramNumber
+					]
+				);
+
+
+			const bayIds =
+				bayResult.rows.map(
+					row => row.id
+				);
+
+
+			/* =================================================
+			   DELETE MODULAR ITEMS
+			   
+			   modular_items.modular_bay_id
+			   matches modular_bays.id
+			================================================= */
+
+			if (
+				bayIds.length
+			) {
+
+				await client.query(
+					`
+					DELETE FROM modular_items
+
+					WHERE
+						modular_bay_id =
+							ANY($1::integer[])
+					`,
+					[
+						bayIds
+					]
+				);
+
+			}
+
+
+			/* =================================================
+			   DELETE MODULAR BAYS
+			================================================= */
+
+			if (
+				bayIds.length
+			) {
+
+				await client.query(
+					`
+					DELETE FROM modular_bays
+
+					WHERE
+						id =
+							ANY($1::integer[])
+					`,
+					[
+						bayIds
+					]
+				);
+
+			}
+
+
+			/* =================================================
+			   DELETE MODULAR ACTIVITY
+			================================================= */
+
+			await client.query(
+				`
+				DELETE FROM modular_activity
+
+				WHERE id = $1
+				`,
+				[
+					id
+				]
+			);
+
+
+			/* =================================================
+			   COMMIT
+			================================================= */
+
+			await client.query(
+				'COMMIT'
+			);
+
+
+			res.json({
+
+				success: true,
+
+				id:
+					id,
+
+				planogramNumber:
+					planogramNumber,
+
+				deletedBayCount:
+					bayIds.length
+
+			});
+
+
+		} catch (error) {
+
+			await client.query(
+				'ROLLBACK'
+			);
+
+
+			console.error(
+				'Unable to delete modular activity:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Unable to delete modular activity.'
+			});
+
+
+		} finally {
+
+			client.release();
+
+		}
+
+	}
+);
+/* =========================================================
    GET MODULAR ACTIVITY DATES
 ========================================================= */
 

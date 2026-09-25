@@ -2073,7 +2073,7 @@ appMenuButton.addEventListener(
 		);
 
 		window.location.href =
-			'items.html';
+			'admin-panel.html';
 
 	}
 );
