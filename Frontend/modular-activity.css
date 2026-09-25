@@ -1534,3 +1534,244 @@
 	background: #b91c1c;
 
 }
+/* =========================================================
+   MODULAR ACTIVITY - HORIZONTAL BAY SCROLL
+========================================================= */
+
+.modular-activity-snapshots {
+
+	display: flex;
+
+	flex-direction: row;
+
+	align-items: flex-start;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin: 10px 0 15px;
+
+	padding: 0 2px 12px;
+
+	gap: 8px;
+
+	background: white;
+
+	overflow-x: auto;
+
+	overflow-y: hidden;
+
+	-webkit-overflow-scrolling: touch;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - HORIZONTAL SCROLLBAR
+========================================================= */
+
+.modular-activity-snapshots::-webkit-scrollbar {
+
+	height: 8px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-track {
+
+	background: #d6e9e9;
+
+	border-radius: 4px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-thumb {
+
+	background: #0A928C;
+
+	border-radius: 4px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-thumb:hover {
+
+	background: #087a75;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - BAY CARDS
+========================================================= */
+
+.modular-activity-bay {
+
+	flex: 0 0 150px;
+
+	width: 150px;
+
+	min-width: 150px;
+
+	max-width: 150px;
+
+	margin: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - BAY IMAGE
+========================================================= */
+
+.modular-activity-bay-image-wrapper {
+
+	position: relative;
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	box-sizing: border-box;
+
+	overflow: hidden;
+
+	background: white;
+
+	line-height: 0;
+
+}
+
+
+.modular-activity-bay-image {
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 0;
+
+	max-height: none;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	object-fit: contain;
+
+	cursor: pointer;
+
+}
+
+
+.modular-activity-bay-image-wrapper
+	.modular-activity-bay-image {
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 0;
+
+	max-height: none;
+
+	object-fit: contain;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+	.modular-activity-snapshots {
+
+		display: flex;
+
+		flex-direction: row;
+
+		overflow-x: auto;
+
+		overflow-y: hidden;
+
+		gap: 8px;
+
+		padding-bottom: 12px;
+
+	}
+
+
+	.modular-activity-bay {
+
+		flex: 0 0 150px;
+
+		width: 150px;
+
+		min-width: 150px;
+
+		max-width: 150px;
+
+	}
+
+}
+/* =========================================================
+   SMART MODE WAND ICON
+========================================================= */
+
+.modular-activity-bay-smart-icon {
+
+	width: 34px;
+
+	height: 34px;
+
+	stroke: black;
+
+	stroke-width: 2.5;
+
+	color: black;
+
+	fill: none;
+
+	filter:
+		drop-shadow(
+			0 1px 2px rgba(0, 0, 0, 0.5)
+		);
+
+}
+
+
+/* =========================================================
+   SMART MODE WAND ICON
+========================================================= */
+
+.modular-activity-bay-smart-icon {
+
+	width: 34px;
+
+	height: 34px;
+
+	display: block;
+
+}

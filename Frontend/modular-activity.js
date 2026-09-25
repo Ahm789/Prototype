@@ -557,6 +557,11 @@ const searchModularTag =
 						index
 					) => {
 
+						const isSmartGenerated =
+							index > 0 &&
+							index < smartTagRange.length - 1;
+
+
 						modularTagAssignments.push({
 							modular:
 								requiredModulars[
@@ -564,7 +569,10 @@ const searchModularTag =
 								] ?? null,
 
 							modularTag:
-								tag
+								tag,
+
+							smartGenerated:
+								isSmartGenerated
 						});
 
 					}
@@ -1102,13 +1110,26 @@ const updateModularBayCompletionStates =
 					);
 
 
-				const isAssigned =
-					modularTagAssignments.some(
-						assignment =>
+				const assignment =
+					modularTagAssignments.find(
+						item =>
 							Number(
-								assignment.modular
+								item.modular
 							) ===
 							bayNumber
+					);
+
+
+				const isAssigned =
+					Boolean(
+						assignment
+					);
+
+
+				const isSmartGenerated =
+					Boolean(
+						assignment &&
+						assignment.smartGenerated === true
 					);
 
 
@@ -1140,26 +1161,167 @@ const updateModularBayCompletionStates =
 							'modular-activity-bay-image-overlay';
 
 
-						const check =
-							document.createElement(
-								'div'
+						/* =====================================
+						   SMART MODE - WAND
+						===================================== */
+
+						if (
+							isSmartGenerated
+						) {
+
+							const wand =
+								document.createElementNS(
+									'http://www.w3.org/2000/svg',
+									'svg'
+								);
+
+							wand.classList.add(
+								'modular-activity-bay-smart-icon'
 							);
 
-						check.className =
-							'modular-activity-bay-check';
+							wand.setAttribute(
+								'viewBox',
+								'0 -4 24 28'
+							);
 
-						check.textContent =
-							'✓';
+							wand.setAttribute(
+								'aria-hidden',
+								'true'
+							);
+
+							/* =========================================================
+							SMART MODE WAND SVG
+							========================================================= */
+
+							wand.innerHTML = `
+
+							<!-- BLACK WAND BODY -->
+
+							<line
+								x1="4"
+								y1="20"
+								x2="17.2"
+								y2="6.8"
+								stroke="black"
+								stroke-width="4"
+								stroke-linecap="round"
+							/>
 
 
-						completionOverlay.appendChild(
-							check
-						);
+							<!-- WHITE WAND TIP -->
+
+							<line
+								x1="16.2"
+								y1="7.8"
+								x2="17.5"
+								y2="6.5"
+								stroke="white"
+								stroke-width="4"
+								stroke-linecap="round"
+							/>
+
+
+									<!-- LARGE SPARKLE ABOVE -->
+
+									<path
+									d="
+										M22 -3
+										L22.7 -1
+										L24.7 -0.3
+										L22.7 0.4
+										L22 2.4
+										L21.3 0.4
+										L19.3 -0.3
+										L21.3 -1
+										Z
+									"
+									fill="black"
+									stroke="black"
+									stroke-width="0.5"
+								/>
+
+
+								<!-- SMALL SPARKLE LEFT -->
+
+								<path
+									d="
+										M8 5
+										L8.5 7
+										L10.5 7.5
+										L8.5 8
+										L8 10
+										L7.5 8
+										L5.5 7.5
+										L7.5 7
+										Z
+									"
+									fill="none"
+									stroke="black"
+									stroke-width="1.1"
+									stroke-linejoin="round"
+								/>
+
+
+								<!-- SMALL SPARKLE RIGHT -->
+
+								<path
+									d="
+										M20 11
+										L20.5 13
+										L22.5 13.5
+										L20.5 14
+										L20 16
+										L19.5 14
+										L17.5 13.5
+										L19.5 13
+										Z
+									"
+									fill="none"
+									stroke="black"
+									stroke-width="1.1"
+									stroke-linejoin="round"
+								/>
+
+							`;
+
+							completionOverlay.appendChild(
+								wand
+							);
+
+						}
+
+
+						/* =====================================
+						   STANDARD MODE - TICK
+						===================================== */
+
+						else {
+
+							const check =
+								document.createElement(
+									'div'
+								);
+
+							check.className =
+								'modular-activity-bay-check';
+
+							check.textContent =
+								'✓';
+
+
+							completionOverlay.appendChild(
+								check
+							);
+
+						}
 
 
 						bayWrapper.appendChild(
 							completionOverlay
 						);
+
+
+						lucide.createIcons();
 
 					}
 
@@ -3088,57 +3250,71 @@ const enableModularBayImageZoom =
 		);
 
 	};
-	/* =========================================================
+/* =========================================================
    MOD TAG CAMERA BUTTON
 ========================================================= */
 
 const modularSearchCamera =
-    document.querySelector(
-        '#modular-search-camera'
-    );
+	document.querySelector(
+		'#modular-search-camera'
+	);
+
+
 if (
-    modularSearchCamera
+	modularSearchCamera
 ) {
 
-    modularSearchCamera.addEventListener(
-        'click',
-        () => {
+	modularSearchCamera.addEventListener(
+		'click',
+		() => {
 
-            startModularTagScanner(
-                async (
-                    modularTag
-                ) => {
+			startModularTagScanner(
+				async (
+					modularTag
+				) => {
 
-                    console.log(
-                        'Mod tag scanned:',
-                        modularTag
-                    );
-
-
-                    stopBarcodeScanner();
+					console.log(
+						'Mod tag scanned:',
+						modularTag
+					);
 
 
-                    /*
-                        Put the scanned Mod tag
-                        into the search field.
-                    */
+					stopBarcodeScanner();
 
-                    if (
-                        modularSearchInput
-                    ) {
 
-                        modularSearchInput.value =
-                            modularTag;
+					/*
+						Put the scanned Mod tag
+						into the search field.
+					*/
 
-                        modularSearchInput.focus();
+					if (
+						modularSearchInput
+					) {
 
-                    }
+						modularSearchInput.value =
+							modularTag;
 
-                }
-            );
 
-        }
-    );
+						/*
+							Trigger the existing
+							Mod tag search.
+						*/
+
+						if (
+							modularSearchButton
+						) {
+
+							modularSearchButton.click();
+
+						}
+
+					}
+
+				}
+			);
+
+		}
+	);
 
 }
 /* =========================================================
