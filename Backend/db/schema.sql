@@ -202,6 +202,8 @@ CREATE TABLE IF NOT EXISTS modulars (
 
 	shelf VARCHAR(32),
 
+	"order" INTEGER,
+
 	modular_id VARCHAR(128) NOT NULL,
 
 	is_primary BOOLEAN NOT NULL DEFAULT FALSE,

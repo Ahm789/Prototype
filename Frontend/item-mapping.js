@@ -33,7 +33,28 @@ const modularList =
 		'#item-mapping-mod-list'
 	);
 
+/* =========================================================
+   MODULAR TAG SEARCH BUTTON
+========================================================= */
 
+const itemMappingSearchSubmit =
+	document.querySelector(
+		'#item-mapping-search-submit'
+	);
+
+
+if (itemMappingSearchSubmit) {
+
+	itemMappingSearchSubmit.addEventListener(
+		'click',
+		() => {
+
+			filterModularTags();
+
+		}
+	);
+
+}
 /* =========================================================
    LOAD MODULAR TAGS
 ========================================================= */
@@ -62,9 +83,12 @@ const loadModularTags =
 				await response.json();
 
 
-			renderModularTags(
-				modularTags
-			);
+			allModularTags =
+                modularTags;
+
+            renderModularTags(
+                allModularTags
+            );
 
 		}
 		catch (error) {
@@ -97,7 +121,36 @@ const loadModularTags =
 
 	};
 
+/* =========================================================
+   MODULAR TAG SEARCH - ENTER
+========================================================= */
 
+const itemMappingSearchInput =
+	document.querySelector(
+		'#item-mapping-search-input'
+	);
+
+
+if (itemMappingSearchInput) {
+
+	itemMappingSearchInput.addEventListener(
+		'keydown',
+		(event) => {
+
+			if (
+				event.key === 'Enter'
+			) {
+
+				event.preventDefault();
+
+				filterModularTags();
+
+			}
+
+		}
+	);
+
+}
 /* =========================================================
    FORMAT MODULAR ID
 ========================================================= */
@@ -121,7 +174,64 @@ const formatModularId =
 
 	};
 
+/* =========================================================
+   MODULAR TAG SEARCH
+========================================================= */
 
+let allModularTags = [];
+
+
+const filterModularTags =
+	() => {
+
+		const searchInput =
+			document.querySelector(
+				'#item-mapping-search-input'
+			);
+
+
+		if (!searchInput) {
+
+			return;
+
+		}
+
+
+		const searchValue =
+			searchInput.value
+				.trim()
+				.toUpperCase();
+
+
+		if (!searchValue) {
+
+			renderModularTags(
+				allModularTags
+			);
+
+			return;
+
+		}
+
+
+		const filteredTags =
+			allModularTags.filter(
+				tag =>
+					String(
+						tag.modular_id || ''
+					)
+						.toUpperCase()
+						.includes(
+							searchValue
+						)
+			);
+
+
+		renderModularTags(
+			filteredTags
+		);
+
+	};
 /* =========================================================
    RENDER MODULAR TAGS
 ========================================================= */
@@ -408,63 +518,6 @@ const renderModularTags =
 
 			}
 		);
-        /* =========================================================
-        MOD TAG CAMERA SEARCH
-        ========================================================= */
-
-        const itemMappingSearchCamera =
-            document.querySelector(
-                '#item-mapping-search-camera'
-            );
-
-        const itemMappingSearchInput =
-            document.querySelector(
-                '#item-mapping-search-input'
-            );
-
-
-        if (
-            itemMappingSearchCamera &&
-            itemMappingSearchInput
-        ) {
-
-            itemMappingSearchCamera.addEventListener(
-                'click',
-                async () => {
-
-                    await startModularTagScanner(
-                        (modularTag) => {
-
-                            /*
-                                Set the scanned Mod tag
-                                into the search box.
-                            */
-
-                            itemMappingSearchInput.value =
-                                modularTag;
-
-
-                            /*
-                                Trigger the existing search
-                                behaviour.
-                            */
-
-                            itemMappingSearchInput.dispatchEvent(
-                                new Event(
-                                    'input',
-                                    {
-                                        bubbles: true
-                                    }
-                                )
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-        }
 
 		/* =====================================================
 		   INITIALISE NEW LUCIDE ICONS
@@ -480,7 +533,64 @@ const renderModularTags =
 
 	};
 
+/* =========================================================
+MOD TAG CAMERA SEARCH
+========================================================= */
 
+const itemMappingSearchCamera =
+    document.querySelector(
+        '#item-mapping-search-camera'
+    );
+
+
+if (itemMappingSearchCamera) {
+
+    itemMappingSearchCamera.addEventListener(
+        'click',
+        async () => {
+
+            await startModularTagScanner(
+                (modularTag) => {
+
+                    const selectedModularId =
+                        String(
+                            modularTag || ''
+                        )
+                            .trim()
+                            .toUpperCase();
+
+
+                    if (!selectedModularId) {
+
+                        return;
+
+                    }
+
+
+                    /* =============================================
+                    SAVE SELECTED MODULAR
+                    ============================================= */
+
+                    localStorage.setItem(
+                        'selectedModularId',
+                        selectedModularId
+                    );
+
+
+                    /* =============================================
+                    OPEN MODULAR ITEM MAPPING
+                    ============================================= */
+
+                    window.location.href =
+                        'modular-item-mapping.html';
+
+                }
+            );
+
+        }
+    );
+
+}
 /* =========================================================
    INITIALISE ITEM MAPPING
 ========================================================= */

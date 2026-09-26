@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
+
+	<title>Regular Mod</title>
+
+	<link
+		rel="stylesheet"
+		href="index.css"
+	>
+
+	<link
+		rel="stylesheet"
+		href="modular-activity.css"
+	>
+    <link
+		rel="stylesheet"
+		href="modular-item-mapping.css"
+	>
+	<script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+
+
+<body>
+
+	<main class="device-shell">
+
+		<section
+			class="scanner-app"
+			aria-label="Asda regular mod"
+		>
+
+
+			<!-- =====================================================
+                TOP BAR
+            ====================================================== -->
+
+            <div class="app-titlebar">
+
+                <button
+                    class="icon-button modular-activity-back"
+                    type="button"
+                    id="regular-mod-back"
+                    aria-label="Back"
+                >
+                    <i
+                        data-lucide="arrow-left"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+
+
+                <div class="regular-mod-title-group">
+
+                    <div class="tasks-title modular-activity-title">
+
+                        <h1 id="regular-mod-name">
+                            UPDATING
+                        </h1>
+
+                        <div
+                            class="modular-activity-subtitle"
+                            id="regular-mod-subtitle"
+                        >
+                            REGULAR MOD
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="regular-mod-help"
+                        id="regular-mod-help"
+                    >
+                        HELP
+                    </button>
+
+                </div>
+
+
+                <button
+                    class="icon-button modular-activity-menu"
+                    type="button"
+                    id="regular-mod-menu"
+                    aria-label="More options"
+                >
+                    <i
+                        data-lucide="more-vertical"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+
+            </div>
+
+
+			<!-- =====================================================
+			     REGULAR MOD CONTENT
+			====================================================== -->
+
+			<div class="task-list">
+
+				<!-- Content will be added here -->
+
+			</div>
+
+
+			<!-- =====================================================
+			     REGULAR MOD ACTION BAR
+			====================================================== -->
+
+			<div class="modular-activity-action-bar">
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-end"
+					id="regular-mod-cancel"
+				>
+					Cancel
+				</button>
+
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-clear"
+					id="regular-mod-reset"
+				>
+					Reset Modular
+				</button>
+
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-next"
+					id="regular-mod-update"
+					disabled
+				>
+					Update Modular
+				</button>
+
+			</div>
+
+		</section>
+
+	</main>
+
+
+	<!-- =========================================================
+	     JAVASCRIPT
+	========================================================= -->
+
+	<script>
+
+		if (
+			window.lucide
+		) {
+
+			lucide.createIcons();
+
+		}
+
+	</script>
+    <script src="modular-item-mapping.js"></script>
+
+</body>
+
+</html>
