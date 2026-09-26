@@ -578,6 +578,9 @@ const startLocationEdit = (location) => {
 	const shelf =
 		location.shelf ??
 		'';
+	const order =
+		location.order ??
+		'';
 
 	const modularId =
 		location.modularId ??
@@ -595,6 +598,8 @@ const startLocationEdit = (location) => {
 
 	locationForm.elements.locShelf.value =
 		shelf;
+	locationForm.elements.locOrder.value =
+		order;
 
 	locationForm.elements.locModularId.value =
 		modularId;
@@ -1193,6 +1198,11 @@ locationForm.addEventListener(
 
 			shelf,
 
+			order:
+				numberOrNull(
+					locationForm.elements.locOrder.value.trim()
+				),
+
 			modularId,
 
 			isPrimary:
@@ -1374,82 +1384,108 @@ locationForm.addEventListener(
 	};
 
 	/* =========================================================
-	   START EDIT
+	START EDIT
 	========================================================= */
 
 	const startEdit = async (rawItem) => {
 
-	const item =
-		normaliseItem(rawItem);
+		const item =
+			normaliseItem(rawItem);
 
-	editingUpc =
-		item.upc;
+		/*
+			Clear any location currently being edited
+			when switching to a different item.
+		*/
 
-	editingItem =
-		item;
+		editingLocationId =
+			null;
 
-	form.classList.add(
-		'editing'
-	);
+		locationForm.reset();
 
-	formTitle.textContent =
-		'Edit item';
+		locationForm.elements.locModularId.value =
+			'';
 
-	saveButton.textContent =
-		'Update item';
+		saveLocationButton.textContent =
+			'Add location';
 
-	formBaseline =
-		formSnapshot();
+		locationFormBaseline =
+			locationFormSnapshot();
 
-	updateSaveState();
-	form.elements.upc.readOnly =
-		false;
+		message.textContent =
+			'';
 
-	[
-		'upc',
-		'caseBarcode',
-		'alternativeBarcode',
-		'itemNumber',
-		'description',
-		'price',
-		'onHand',
-		'caseSize',
-		'weight',
-		'maxShelf',
-		'hffssStatus',
-		'department',
-		'rangeStatus'
-	].forEach((name) => {
+		editingUpc =
+			item.upc;
 
-		setField(
-			name,
-			item[name]
+		editingItem =
+			item;
+
+		form.classList.add(
+			'editing'
 		);
 
-	});
+		formTitle.textContent =
+			'Edit item';
 
-	setField(
-		'imageUrl',
-		item.image?.url?.startsWith('data:')
-			? ''
-			: item.image?.url
-	);
+		saveButton.textContent =
+			'Update item';
 
-	formBaseline =
-		formSnapshot();
+		formBaseline =
+			formSnapshot();
 
-	message.classList.remove('error');
+		updateSaveState();
 
-	message.textContent =
-		`Editing ${item.description}.`;
+		form.elements.upc.readOnly =
+			false;
 
-	form.scrollIntoView({
-		behavior: 'smooth',
-		block: 'start'
-	});
+		[
+			'upc',
+			'caseBarcode',
+			'alternativeBarcode',
+			'itemNumber',
+			'description',
+			'price',
+			'onHand',
+			'caseSize',
+			'weight',
+			'maxShelf',
+			'hffssStatus',
+			'department',
+			'rangeStatus'
+		].forEach((name) => {
 
-	await renderLocations();
-};
+			setField(
+				name,
+				item[name]
+			);
+
+		});
+
+		setField(
+			'imageUrl',
+			item.image?.url?.startsWith('data:')
+				? ''
+				: item.image?.url
+		);
+
+		formBaseline =
+			formSnapshot();
+
+		message.classList.remove(
+			'error'
+		);
+
+		message.textContent =
+			`Editing ${item.description}.`;
+
+		form.scrollIntoView({
+			behavior: 'smooth',
+			block: 'start'
+		});
+
+		await renderLocations();
+
+	};
 
 	/* =========================================================
 	   RESET / NEW ITEM

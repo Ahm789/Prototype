@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
+
+	<title>Asda Item Mapping</title>
+
+	<link
+		rel="stylesheet"
+		href="index.css"
+	>
+
+	<link
+		rel="stylesheet"
+		href="item-mapping.css"
+	>
+
+	<script
+		src="https://unpkg.com/lucide@latest"
+	></script>
+
+</head>
+
+
+<body>
+
+	<main class="device-shell">
+
+		<section
+			class="scanner-app"
+			aria-label="Asda item mapping"
+		>
+
+
+			<!-- =================================================
+			     TOP BAR
+			================================================= -->
+
+			<div class="app-titlebar">
+
+				<a
+					class="icon-button"
+					id="item-mapping-back-button"
+					href="index.html"
+					aria-label="Back to tasks"
+				>
+
+					<i
+						class="app-icon"
+						data-lucide="arrow-left"
+						aria-hidden="true"
+					></i>
+
+				</a>
+
+
+				<div class="tasks-title">
+
+					<h1>
+						ITEM MAPPING
+					</h1>
+
+				</div>
+
+
+				<button
+					class="item-mapping-filter-button"
+					id="item-mapping-filter-button"
+					type="button"
+					aria-label="Open filters"
+				>
+
+					<span></span>
+					<span></span>
+					<span></span>
+
+				</button>
+
+			</div>
+
+
+						<!-- =================================================
+			     MAIN CONTENT
+			================================================= -->
+
+			<div class="task-list">
+
+				<div class="item-mapping-main-card">
+
+
+					<!-- =================================================
+					     MOD TAG SCANNER
+					================================================= -->
+
+					<section
+						class="item-mapping-scan-section"
+					>
+
+						<h2>
+							Scan the mod tag
+						</h2>
+
+
+						<div class="item-mapping-qr-area">
+
+							<div
+								class="item-mapping-qr-format"
+							>
+
+								<span>
+									Scan a QR code in this format
+								</span>
+
+								<strong>
+									DEPT-AISLE-SIDE-BAY
+								</strong>
+
+								<span>
+									e.g. FF-15-L-1
+								</span>
+
+							</div>
+
+
+							<div
+								class="item-mapping-qr-code"
+							>
+
+								<img
+									id="item-mapping-qr"
+									src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=FF-14-L-3"
+									alt="Example Mod Tag QR code"
+								>
+
+							</div>
+
+						</div>
+
+
+						<p class="item-mapping-scan-help">
+
+							Tags are normally in the MOD top or
+							bottom right corners, Search or browse
+							the list below if you can't find the tag.
+
+						</p>
+
+					</section>
+
+
+					<!-- =================================================
+					     MOD LIST
+					================================================= -->
+
+					<section
+						class="item-mapping-mod-list-section"
+					>
+
+						<strong
+							class="item-mapping-mod-list-heading"
+						>
+
+							Scroll down to see all mods
+							(<span id="item-mapping-mod-count">0</span>)
+
+						</strong>
+
+
+						<div
+							class="item-mapping-search"
+						>
+
+							<div
+								class="item-mapping-search-box"
+							>
+
+								<i
+									data-lucide="search"
+									aria-hidden="true"
+								></i>
+
+
+								<input
+									type="text"
+									id="item-mapping-search-input"
+									placeholder="Search mods"
+									autocomplete="off"
+								>
+
+
+								<button
+									type="button"
+									id="item-mapping-search-camera"
+									aria-label="Scan mod tag"
+								>
+
+									<i
+										data-lucide="camera"
+										aria-hidden="true"
+									></i>
+
+								</button>
+
+							</div>
+
+						</div>
+
+
+						<!-- =================================================
+						     MOD TABLE
+						================================================= -->
+
+						<div class="item-mapping-table-header">
+
+							<div>Status</div>
+
+							<div class="item-mapping-table-divider">
+								|
+							</div>
+
+							<div>Dep</div>
+
+							<div>Aisle</div>
+
+							<div>Side</div>
+
+							<div>Mod</div>
+
+							<div class="item-mapping-table-divider">
+								|
+							</div>
+
+							<div>Discrep %</div>
+
+							<div></div>
+
+						</div>
+
+
+						<div
+							class="item-mapping-mod-list"
+							id="item-mapping-mod-list"
+						>
+
+							<!-- Rows populated by JavaScript -->
+
+						</div>
+
+					</section>
+
+				</div>
+
+			</div>
+
+
+
+			<!-- =================================================
+			     BOTTOM NAVIGATION
+			================================================= -->
+
+			<nav
+				class="bottom-nav"
+				aria-label="Main navigation"
+			>
+
+				<a
+					class="nav-link"
+					href="index.html"
+				>
+
+					<i
+						data-lucide="clipboard-list"
+					></i>
+
+					TASKS
+
+				</a>
+
+
+				<a
+					class="nav-link"
+					href="product.html"
+				>
+
+					<i
+						data-lucide="scan-barcode"
+					></i>
+
+					PRODUCT INFO
+
+				</a>
+
+
+				<button
+					type="button"
+				>
+
+					<i
+						data-lucide="undo-2"
+					></i>
+
+					REVERSE
+
+				</button>
+
+
+				<button
+					type="button"
+				>
+
+					<i
+						data-lucide="more-vertical"
+					></i>
+
+					MORE
+
+				</button>
+
+			</nav>
+
+		</section>
+
+	</main>
+
+
+	<script
+		src="https://unpkg.com/@zxing/browser@0.2.1"
+	></script>
+
+	<script
+		src="barcode-scanner.js"
+	></script>
+
+	<script
+		src="item-mapping.js"
+	></script>
+	<script>
+
+		lucide.createIcons();
+
+	</script>
+</body>
+
+</html>

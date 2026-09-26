@@ -49,7 +49,83 @@ button { font: inherit; border: 0; cursor: pointer; }
 	font-size: 17px;
 	background: #051e30;
 }
+/* =========================================================
+   ITEM MAPPING - FILTER BUTTON
+========================================================= */
 
+.item-mapping-filter-button {
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+
+	justify-content: center;
+
+	gap: 4px;
+
+	flex: 0 0 38px;
+
+	width: 38px;
+
+	height: 38px;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: transparent;
+
+	border: 0;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   ITEM MAPPING - FILTER BUTTON LINES
+========================================================= */
+
+.item-mapping-filter-button span {
+
+	display: block;
+
+	height: 2px;
+
+	background: white;
+
+	border-radius: 2px;
+
+}
+
+
+/* =========================================================
+   ITEM MAPPING - FILTER BUTTON LINE SIZES
+========================================================= */
+
+.item-mapping-filter-button span:nth-child(1) {
+
+	width: 22px;
+
+}
+
+
+.item-mapping-filter-button span:nth-child(2) {
+
+	width: 16px;
+
+}
+
+
+.item-mapping-filter-button span:nth-child(3) {
+
+	width: 10px;
+
+}
 .status-icons { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .battery { font-size: 22px; line-height: 0; }
 
@@ -588,6 +664,7 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .modular-activity-execution-status {
+
 	width: 100%;
 
 	box-sizing: border-box;
@@ -595,6 +672,7 @@ background-repeat: no-repeat;
 	padding: 6px 12px;
 
 	text-align: center;
+
 }
 
 
@@ -603,14 +681,17 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .modular-activity-execution-status-text {
+
 	display: inline-block;
 
 	width: 75%;
+
 	box-sizing: border-box;
 
 	padding: 4px 10px;
 
 	font-size: 10px;
+
 	font-weight: 600;
 
 	line-height: 1.2;
@@ -620,6 +701,7 @@ background-repeat: no-repeat;
 	border: 1px solid #c8c8c8;
 
 	border-radius: 4px;
+
 }
 
 
@@ -628,9 +710,23 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .modular-activity-execution-status.is-upcoming {
+
 	color: #555;
 
+	background: transparent;
+
+}
+
+
+/* =========================================================
+   UPCOMING TEXT BOX
+========================================================= */
+
+.modular-activity-execution-status.is-upcoming
+	.modular-activity-execution-status-text {
+
 	background: #eeeeee;
+
 }
 
 
@@ -639,15 +735,25 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .modular-activity-execution-status.is-overdue {
+
 	color: #8a3b00;
 
-	background: #f6d6bd;
+	background: transparent;
+
 }
+
+
+/* =========================================================
+   OVERDUE TEXT BOX
+========================================================= */
 
 .modular-activity-execution-status.is-overdue
 	.modular-activity-execution-status-text {
 
+	background: #f6d6bd;
+
 	border-color: #d69b75;
+
 }
 
 
@@ -656,9 +762,23 @@ background-repeat: no-repeat;
 ========================================================= */
 
 .modular-activity-execution-status.is-today {
+
 	color: #555;
 
+	background: transparent;
+
+}
+
+
+/* =========================================================
+   DUE TODAY TEXT BOX
+========================================================= */
+
+.modular-activity-execution-status.is-today
+	.modular-activity-execution-status-text {
+
 	background: #eeeeee;
+
 }
 /* =========================================================
    TASK TYPE GROUP
@@ -1677,3 +1797,4 @@ background-repeat: no-repeat;
 
 	font-size: 13px;
 }
+

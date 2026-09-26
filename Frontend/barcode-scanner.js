@@ -476,12 +476,15 @@ const startModularTagScanner =
 
 
                                 barcodeScanLocked =
-                                    true;
+									true;
 
 
-                                await onModularTagDetected(
-                                    value
-                                );
+								await onModularTagDetected(
+									value
+								);
+
+
+								stopBarcodeScanner();
 
                             }
 

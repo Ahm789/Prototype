@@ -356,6 +356,54 @@ router.post('/', async (req, res) => {
 }
 });
 /* =========================================================
+   GET MODULAR TAGS
+========================================================= */
+
+router.get(
+	'/modular-tags',
+	async (
+		req,
+		res
+	) => {
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						modular_id,
+						active
+
+					FROM modular_tags
+
+					ORDER BY modular_id
+					`
+				);
+
+
+			res.json(
+				result.rows
+			);
+
+		}
+		catch (error) {
+
+			console.error(
+				'Error fetching modular tags:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to fetch modular tags.'
+			});
+
+		}
+
+	}
+);
+/* =========================================================
    ADMIN MODULAR ACTIVITY
 ========================================================= */
 
@@ -2167,7 +2215,65 @@ router.post(
 
 
 			/* =================================================
-			   FIND NEXT SHELF ORDER
+			CHECK PREVIOUS SHELF EXISTS
+			================================================= */
+
+			const numericShelf =
+				Number(
+					cleanShelf
+				);
+
+
+			if (
+				Number.isInteger(
+					numericShelf
+				) &&
+				numericShelf > 1
+			) {
+
+				const previousShelf =
+					String(
+						numericShelf - 1
+					);
+
+
+				const previousShelfResult =
+					await pool.query(
+						`
+						SELECT
+							id
+
+						FROM modular_items
+
+						WHERE
+							modular_bay_id = $1
+							AND shelf = $2
+
+						LIMIT 1
+						`,
+						[
+							bayId,
+							previousShelf
+						]
+					);
+
+
+				if (
+					!previousShelfResult.rows.length
+				) {
+
+					return res.status(400).json({
+						error:
+							`Shelf ${numericShelf} cannot be added until shelf ${numericShelf - 1} has an item.`
+					});
+
+				}
+
+			}
+
+
+			/* =================================================
+			FIND NEXT SHELF ORDER
 			================================================= */
 
 			const shelfOrderResult =
@@ -2197,8 +2303,6 @@ router.post(
 					shelfOrderResult.rows[0]
 						.next_order
 				);
-
-
 			/* =================================================
 			   INSERT MODULAR ITEM
 			================================================= */
@@ -3669,16 +3773,17 @@ router.get(
 				await pool.query(
 					`
 					SELECT
-						i.id,
-						i.upc,
-						i.description,
-						i.image_url,
-						i.image_alt,
-						m.shelf,
-						m.aisle,
-						m.aisle_side,
-						m.bay,
-						m.modular_id
+					i.id,
+					i.upc,
+					i.description,
+					i.image_url,
+					i.image_alt,
+					m.shelf,
+					m."order",
+					m.aisle,
+					m.aisle_side,
+					m.bay,
+					m.modular_id
 
 					FROM modulars m
 
@@ -3699,6 +3804,7 @@ router.get(
 								''
 							) AS INTEGER
 						),
+						m."order",
 						i.description
 					`,
 					[modularId]
@@ -3719,6 +3825,7 @@ router.get(
 							}
 							: null,
 						shelf: row.shelf,
+						order: row.order,
 						aisle: row.aisle,
 						aisleSide:
 							row.aisle_side,
@@ -3748,6 +3855,10 @@ router.get(
    FORMAT LOCATION
 ========================================================= */
 
+/* =========================================================
+   FORMAT LOCATION
+========================================================= */
+
 const formatLocation = (row) => {
 
 	return {
@@ -3764,6 +3875,9 @@ const formatLocation = (row) => {
 		bay: row.bay,
 
 		shelf: row.shelf,
+
+		order:
+			row.order,
 
 		modularId: row.modular_id,
 
@@ -3927,6 +4041,7 @@ router.put(
             aisleSide,
             bay,
             shelf,
+			order,
             modularId,
             isPrimary
         } = req.body;
@@ -3934,6 +4049,41 @@ router.put(
         const finalModularId =
             modularId?.trim() ||
             `FF-${aisle}-${aisleSide}-${bay}`;
+		/* =========================================================
+		CHECK FOR DUPLICATE MODULAR POSITION
+		========================================================= */
+
+		const existingModular =
+			await pool.query(`
+				SELECT id
+				FROM modulars
+				WHERE modular_id = $1
+					AND shelf = $2
+					AND "order" IS NOT DISTINCT FROM $3
+					AND id <> $4
+				LIMIT 1
+			`, [
+				finalModularId,
+				shelf || null,
+				order === '' || order == null
+					? null
+					: Number(order),
+				locationId
+			]);
+
+
+		if (existingModular.rows.length) {
+
+			return res.status(409).json({
+				error:
+					`Shelf ${shelf} order ${
+						order === '' || order == null
+							? '-'
+							: Number(order)
+					} is already occupied on modular ${finalModularId}.`
+			});
+
+		}
 
 		try {
 
@@ -3946,9 +4096,10 @@ router.put(
 						aisle_side = $2,
 						bay = $3,
 						shelf = $4,
-						modular_id = $5,
-						is_primary = $6
-					WHERE id = $7
+						"order" = $5,
+						modular_id = $6,
+						is_primary = $7
+					WHERE id = $8
 					RETURNING *
 					`,
 					[
@@ -3956,6 +4107,9 @@ router.put(
                         aisleSide || null,
                         bay || null,
                         shelf || null,
+						order === '' || order == null
+							? null
+							: Number(order),
                         finalModularId,
                         Boolean(isPrimary),
                         locationId
@@ -4232,6 +4386,7 @@ router.post('/:upc/locations', async (req, res) => {
 		aisleSide,
 		bay,
 		shelf,
+		order,
 		isPrimary
 	} = req.body;
 
@@ -4362,31 +4517,37 @@ router.post('/:upc/locations', async (req, res) => {
 
 
 
-		/* =====================================================
-		   CHECK MODULAR ID IS UNIQUE
-		===================================================== */
+		/* =========================================================
+		CHECK FOR DUPLICATE MODULAR POSITION
+		========================================================= */
 
-		if (generatedModularId) {
+		const existingModular =
+			await pool.query(`
+				SELECT id
+				FROM modulars
+				WHERE modular_id = $1
+					AND shelf = $2
+					AND "order" IS NOT DISTINCT FROM $3
+				LIMIT 1
+			`, [
+				generatedModularId,
+				cleanShelf || null,
+				order === '' || order == null
+					? null
+					: Number(order)
+			]);
 
-			const existingModular =
-				await pool.query(`
-					SELECT id
-					FROM modulars
-					WHERE modular_id = $1
-					LIMIT 1
-				`, [
-					generatedModularId
-				]);
 
+		if (existingModular.rows.length) {
 
-			if (existingModular.rows.length) {
-
-				return res.status(409).json({
-					error:
-						`Modular ID ${generatedModularId} is already in use`
-				});
-
-			}
+			return res.status(409).json({
+				error:
+					`Shelf ${cleanShelf} order ${
+						order === '' || order == null
+							? '-'
+							: Number(order)
+					} is already occupied on modular ${generatedModularId}.`
+			});
 
 		}
 
@@ -4491,6 +4652,7 @@ router.post('/:upc/locations', async (req, res) => {
 					aisle_side,
 					bay,
 					shelf,
+					"order",
 					modular_id,
 					is_primary
 				)
@@ -4503,7 +4665,8 @@ router.post('/:upc/locations', async (req, res) => {
 					$5,
 					$6,
 					$7,
-					$8
+					$8,
+					$9
 				)
 
 				RETURNING *
@@ -4514,6 +4677,9 @@ router.post('/:upc/locations', async (req, res) => {
 				cleanAisleSide || null,
 				cleanBay || null,
 				cleanShelf || null,
+				order === '' || order == null
+					? null
+					: Number(order),
 				generatedModularId,
 				shouldBePrimary
 			]);
