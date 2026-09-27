@@ -162,3 +162,2763 @@
 	transform: translateY(1px);
 
 }
+/* =========================================================
+   REGULAR MOD VISUAL
+========================================================= */
+
+#modular-visual {
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+
+	width: 100%;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - ADD SHELF BUTTON
+========================================================= */
+
+.regular-mod-shelf-add {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 28px;
+
+	height: 28px;
+
+	margin: 8px auto;
+
+	padding: 0;
+
+	border: 0;
+
+	border-radius: 50%;
+
+	background: #00843D;
+
+	color: white;
+
+	cursor: pointer;
+
+	flex-shrink: 0;
+
+}
+
+
+.regular-mod-shelf-add span {
+
+	font-size: 21px;
+
+	font-weight: 400;
+
+	line-height: 1;
+
+}
+
+
+.regular-mod-shelf-add-bottom {
+
+	margin-top: 8px;
+
+	margin-bottom: 8px;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - SHELF
+========================================================= */
+
+.regular-mod-shelf {
+
+	width: 100%;
+
+	background: #eeeeee;
+
+	border-radius: 5px;
+
+	padding: 8px;
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - SHELF HEADER
+========================================================= */
+
+.regular-mod-shelf-header {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: space-between;
+
+	width: 100%;
+
+	min-height: 32px;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - HEADER LEFT
+========================================================= */
+
+.regular-mod-shelf-header-left {
+
+	display: flex;
+
+	align-items: center;
+
+	gap: 7px;
+
+	min-width: 0;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - MORE BUTTON
+========================================================= */
+
+.regular-mod-shelf-more {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 28px;
+
+	height: 28px;
+
+	padding: 0;
+
+	border: 1px solid #a8a8a8;
+
+	border-radius: 50%;
+
+	background: #dcdcdc;
+
+	color: #555555;
+
+	cursor: pointer;
+
+	flex-shrink: 0;
+
+}
+
+
+.regular-mod-shelf-more svg {
+
+	width: 16px;
+
+	height: 16px;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - SHELF LABEL
+========================================================= */
+
+.regular-mod-shelf-label {
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - UPC COUNT
+========================================================= */
+
+.regular-mod-upc-count {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	min-height: 22px;
+
+	padding: 0 7px;
+
+	box-sizing: border-box;
+
+	border: 1px solid #111111;
+
+	border-radius: 4px;
+
+	background: transparent;
+
+	color: #111111;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	white-space: nowrap;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - REMOVE SHELF
+========================================================= */
+
+.regular-mod-shelf-remove {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 28px;
+
+	height: 28px;
+
+	padding: 0;
+
+	border: 0;
+
+	border-radius: 50%;
+
+	background: #d92323;
+
+	color: white;
+
+	cursor: pointer;
+
+	flex-shrink: 0;
+
+}
+
+
+.regular-mod-shelf-remove span {
+
+	font-size: 21px;
+
+	font-weight: 400;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - PRODUCTS
+========================================================= */
+
+.regular-mod-products {
+
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	margin-top: 5px;
+
+	gap: 8px;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - PRODUCT
+========================================================= */
+
+.regular-mod-product {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	flex: 1 1 0;
+
+	min-width: 0;
+
+	height: 65px;
+
+	overflow: hidden;
+
+	background: white;
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - PRODUCT IMAGE
+========================================================= */
+
+.regular-mod-product-image {
+
+	display: block;
+
+	width: calc(100% - 10px);
+
+	height: 100%;
+
+	margin-left: 5px;
+
+	margin-right: 5px;
+
+	object-fit: contain;
+
+	background: white;
+
+}
+
+
+/* =========================================================
+   REGULAR MOD - EMPTY
+========================================================= */
+
+.regular-mod-empty {
+
+	width: 100%;
+
+	padding: 20px;
+
+	box-sizing: border-box;
+
+	text-align: center;
+
+	font-size: 12px;
+
+	color: #666666;
+
+}
+/* =========================================================
+   REGULAR MOD - EMPTY PRODUCT AREA
+========================================================= */
+
+.regular-mod-products:empty {
+
+	min-height: 65px;
+
+}
+/* =============================================================================================
+   									MODULAR ACTIVITY PAGE
+================================================================================================*/
+/* =========================================================
+   MODULAR ACTIVITY PAGE HEADER
+========================================================= */
+
+.scanner-app .app-titlebar:has(.modular-activity-title) {
+	display: grid;
+
+	grid-template-columns:
+		32px
+		1fr
+		32px;
+
+	align-items: center;
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY TITLE
+========================================================= */
+
+.scanner-app .app-titlebar
+.modular-activity-title {
+
+	display: flex;
+
+	flex-direction: column;
+
+	align-items: center;
+	justify-content: center;
+
+	gap: 2px;
+
+	min-width: 0;
+
+	width: auto;
+
+	justify-self: center;
+}
+
+
+.scanner-app .app-titlebar
+.modular-activity-title h1 {
+
+	margin: 0;
+
+	font-size: 15px;
+	font-weight: 700;
+
+	line-height: 1.1;
+
+	white-space: nowrap;
+}
+
+
+.scanner-app .app-titlebar
+.modular-activity-subtitle {
+
+	font-size: 9px;
+	font-weight: 700;
+
+	line-height: 1;
+
+	letter-spacing: 0.3px;
+
+	white-space: nowrap;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.scanner-app .app-titlebar
+.modular-activity-back {
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+}
+
+
+.scanner-app .app-titlebar
+.modular-activity-back svg {
+
+	width: 20px;
+	height: 20px;
+}
+
+
+/* =========================================================
+   MORE BUTTON
+========================================================= */
+
+.scanner-app .app-titlebar
+.menu-button {
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+}
+
+
+.scanner-app .app-titlebar
+.menu-button svg {
+
+	width: 20px;
+	height: 20px;
+}
+/* =========================================================
+   MODULAR ACTIVITY ACTION BAR
+========================================================= */
+
+.modular-activity-action-bar {
+	display: flex;
+	align-items: center;
+
+	width: 100%;
+	height: 52px;
+
+	padding: 6px 8px;
+
+	box-sizing: border-box;
+
+	gap: 8px;
+
+	background: white;
+
+	border-top: 1px solid #d6e9e9;
+}
+
+
+/* =========================================================
+   ACTION BUTTONS
+========================================================= */
+
+.modular-activity-action {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	flex: 1;
+	min-width: 0;
+
+	height: 40px;
+
+	padding: 0 8px;
+
+	box-sizing: border-box;
+
+	border-radius: 4px;
+
+	font-family: inherit;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 1;
+
+	cursor: pointer;
+
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease;
+}
+
+
+/* =========================================================
+   END TASK
+========================================================= */
+
+.modular-activity-end {
+	color: #0A928C;
+
+	background: white;
+
+	border: 1px solid #9cced2;
+}
+
+.modular-activity-end:hover {
+	background: #eefafa;
+
+	border-color: #0A928C;
+}
+
+
+/* =========================================================
+   CLEAR ALL
+========================================================= */
+
+.modular-activity-clear {
+	color: #0A928C;
+
+	background: white;
+
+	border: 1px solid #9cced2;
+}
+
+.modular-activity-clear:hover {
+	background: #eefafa;
+
+	border-color: #0A928C;
+}
+
+
+/* =========================================================
+   NEXT
+========================================================= */
+
+.modular-activity-next {
+	color: white;
+
+	background: #8fcfcb;
+
+	border: 1px solid #7bc3bf;
+
+	cursor: not-allowed;
+
+	opacity: 1;
+}
+
+.modular-activity-next:disabled {
+	color: white;
+
+	background: #8fcfcb;
+
+	border-color: #7bc3bf;
+
+	cursor: not-allowed;
+
+	opacity: 1;
+}
+/* =========================================================
+   SCAN MODE BAR
+========================================================= */
+
+.modular-scan-mode {
+	display: flex;
+
+	align-items: center;
+	justify-content: space-between;
+
+	width: 100%;
+	height: 48px;
+
+	margin-top: 10px;
+
+	padding: 6px 12px 8px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border-bottom: 1px solid #d6e9e9;
+	border-radius: 6px;
+}
+
+
+/* =========================================================
+   SCAN MODE LABEL
+========================================================= */
+
+.modular-scan-mode-label {
+	display: flex;
+
+	align-items: center;
+
+	gap: 7px;
+
+	color: #1a1a1a;
+
+	font-size: 12px;
+	font-weight: 700;
+
+	line-height: 1;
+}
+
+.modular-scan-mode-label svg {
+	width: 17px;
+	height: 17px;
+
+	margin-right: 7px;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+	stroke-width: 2.5;
+}
+
+/* =========================================================
+   MODE TOGGLE
+========================================================= */
+
+.modular-scan-mode-toggle {
+	display: flex;
+
+	align-items: center;
+
+	gap: 8px;
+
+	font-size: 12px;
+	font-weight: 700;
+
+	line-height: 1;
+}
+
+
+/* =========================================================
+   SMART
+========================================================= */
+
+.modular-scan-smart {
+	color: #0A928C;
+}
+
+
+/* =========================================================
+   STANDARD
+========================================================= */
+
+.modular-scan-standard {
+	color: #1a1a1a;
+}
+
+
+/* =========================================================
+   TOGGLE SWITCH
+========================================================= */
+
+.scan-mode-switch {
+	position: relative;
+
+	display: block;
+
+	width: 34px;
+	height: 19px;
+
+	flex: 0 0 34px;
+}
+
+
+/* Hide checkbox */
+
+.scan-mode-switch input {
+	width: 0;
+	height: 0;
+
+	opacity: 0;
+}
+
+
+/* Track */
+
+.scan-mode-slider {
+	position: absolute;
+
+	inset: 0;
+
+	background: #c7d1d1;
+
+	border-radius: 19px;
+
+	cursor: pointer;
+
+	transition:
+		background 0.2s ease;
+}
+
+
+/* Slider circle */
+
+.scan-mode-slider::before {
+	content: '';
+
+	position: absolute;
+
+	width: 15px;
+	height: 15px;
+
+	left: 2px;
+	top: 2px;
+
+	background: white;
+
+	border-radius: 50%;
+
+	box-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.2);
+
+	transition:
+		transform 0.2s ease;
+}
+
+
+/* =========================================================
+   SMART SELECTED
+========================================================= */
+
+.scan-mode-switch input:checked
++ .scan-mode-slider {
+	background: #0A928C;
+}
+
+
+.scan-mode-switch input:checked
++ .scan-mode-slider::before {
+	transform: translateX(15px);
+}
+/* =========================================================
+   MODULAR ACTIVITY STEP 1
+========================================================= */
+
+.modular-activity-step {
+
+    display: flex;
+
+    flex-direction: column;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-top: 10px;
+
+    padding: 10px 12px 0;
+
+    background: white;
+
+    border: 2px solid #0A928C;
+
+    border-radius: 6px;
+
+}
+
+
+/* =========================================================
+   STEP HEADER
+========================================================= */
+
+.modular-activity-step-header {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	gap: 7px;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin-bottom: 10px;
+
+}
+
+
+.modular-activity-step-number {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	height: 22px;
+
+	padding: 0 9px;
+
+	box-sizing: border-box;
+
+	color: #555;
+
+	background: #5FB3AE;
+
+	border: 2px solid #5FB3AE;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+.modular-activity-step-title {
+
+	color: #1a1a1a;
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   STEP ACTIONS
+========================================================= */
+
+.modular-activity-step-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	gap: 10px;
+
+}
+/* =========================================================
+   OR
+========================================================= */
+
+.modular-activity-or {
+
+	flex: 0 0 auto;
+
+	color: #777;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   SEARCH MOD TAG
+========================================================= */
+
+.modular-search-input {
+
+	display: flex;
+
+	align-items: center;
+
+	flex: 1;
+
+	min-width: 0;
+
+	height: 40px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 2px solid #0A928C;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* SEARCH ICON */
+
+.modular-search-input-icon {
+
+	width: 17px;
+
+	height: 17px;
+
+	flex: 0 0 17px;
+
+	margin-left: 9px;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+
+	stroke-width: 2.3;
+
+}
+
+
+/* INPUT */
+
+.modular-search-input input {
+
+	flex: 1;
+
+	min-width: 0;
+
+	width: 100%;
+
+	height: 100%;
+
+	padding: 0 8px;
+
+	box-sizing: border-box;
+
+	color: #1a1a1a;
+
+	background: transparent;
+
+	border: 0;
+
+	outline: none;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1;
+
+}
+
+
+/* PLACEHOLDER */
+
+.modular-search-input input::placeholder {
+
+	color: #777;
+
+	opacity: 1;
+
+}
+
+
+/* SEARCH BUTTON */
+
+.modular-search-input-button {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 40px;
+
+	height: 100%;
+
+	flex: 0 0 40px;
+
+	margin: 0;
+
+	padding: 0;
+
+	color: #0A928C;
+
+	background: transparent;
+
+	border: 0;
+
+	outline: none;
+
+	cursor: pointer;
+
+}
+
+
+/* SEARCH BUTTON ICON */
+
+.modular-search-input-button svg {
+
+	width: 17px;
+
+	height: 17px;
+
+	margin: 0;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+
+	stroke-width: 2.3;
+
+	margin-left: 30px;
+}
+
+
+/* =========================================================
+   STEP 1 ACTIONS
+========================================================= */
+
+.modular-activity-step-actions {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: space-between;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	gap: 10px;
+
+}
+
+/* =========================================================
+   REMINDER
+========================================================= */
+
+.modular-activity-step-reminder {
+
+	margin-top: 9px;
+
+	color: #555;
+
+	font-size: 12px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   COLOURED LINE
+========================================================= */
+
+.modular-activity-step-line {
+
+	width: 100%;
+
+	height: 3px;
+
+	margin-top: 9px;
+
+	background: #0A928C;
+
+}
+
+/* =========================================================
+   MODULAR PREVIEW TITLE
+========================================================= */
+
+.modular-activity-preview-title {
+
+	margin-top: 9px;
+
+	color: #555;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
+/* =========================================================
+   MODULAR ACTIVITY BAY SNAPSHOTS
+========================================================= */
+
+.modular-activity-snapshots {
+
+	display: grid;
+
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+
+	gap: 8px;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin: 10px 0 0;
+	margin-bottom: 15px;
+
+	padding: 0;
+
+	background: white;
+
+}
+
+
+/* =========================================================
+   BAY
+========================================================= */
+
+.modular-activity-bay {
+
+	display: flex;
+
+	flex-direction: column;
+
+	min-width: 0;
+
+	width: 100%;
+
+	margin: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* =========================================================
+   BAY LABEL
+========================================================= */
+
+.modular-activity-bay-label {
+
+	width: 100%;
+
+	padding: 5px 6px;
+
+	box-sizing: border-box;
+
+	color: #0A928C;
+
+	background: white;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	text-align: center;
+
+	border-bottom: 1px solid #d6e9e9;
+
+}
+
+
+/* =========================================================
+   BAY IMAGE
+========================================================= */
+
+.modular-activity-bay-image {
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 100px;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT GROUP
+========================================================= */
+
+.modular-product-group {
+
+	display: flex;
+
+	flex-direction: row;
+
+	align-items: stretch;
+
+	flex: 0 0 auto;
+
+	gap: 8px;
+
+}
+
+
+/* =========================================================
+   MODULAR PRODUCT IMAGE
+========================================================= */
+
+.modular-product-image {
+
+	display: block;
+
+	flex: 0 0 auto;
+
+	height: 90px;
+
+	object-fit: fill;
+
+	object-position: center center;
+
+}
+.modular-activity-snapshot-loading {
+
+	grid-column: 1 / -1;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	padding: 14px 12px;
+
+	color: #666;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1;
+
+	text-align: center;
+
+}
+/* =========================================================
+   REMAINING MOD TAGS
+========================================================= */
+
+.modular-activity-remaining {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin-top: 10px;
+
+    padding: 0 2px;
+
+    color: white;
+
+    background: transparent;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    line-height: 1.2;
+
+}
+.barcode-camera-video {
+
+    display: block;
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+.modular-search-error {
+	width: 100%;
+	box-sizing: border-box;
+	margin-top: 8px;
+	color: #d00000;
+	font-size: 10px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: center;
+}
+
+.modular-search-error[hidden] {
+	display: none;
+}
+/* =========================================================
+   MOD TAG ASSIGNMENTS
+========================================================= */
+
+.modular-tag-assignments {
+
+	display: flex;
+
+	flex-direction: column;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin-top: 8px;
+
+	gap: 7px;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT
+========================================================= */
+
+.modular-tag-assignment {
+
+	display: flex;
+
+	flex-direction: column;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT LABEL
+========================================================= */
+
+.modular-tag-assignment-label {
+
+	margin-bottom: 4px;
+
+	color: white;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1.2;
+
+}
+
+
+/* =========================================================
+   MOD TAG ASSIGNMENT ROW
+========================================================= */
+
+.modular-tag-assignment-row {
+
+	display: flex;
+
+	align-items: center;
+
+	width: 100%;
+
+	height: 32px;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* =========================================================
+   MOD TAG INDEX
+========================================================= */
+
+.modular-tag-assignment-index {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	height: 22px;
+
+	padding: 0 9px;
+
+	margin-left: 5px;
+
+	box-sizing: border-box;
+	color: #555;
+
+	background: #5FB3AE;
+
+	border: 2px solid #5FB3AE;
+
+	border-radius: 4px;
+
+	font-size: 10px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   MOD TAG VALUE
+========================================================= */
+
+.modular-tag-assignment-value {
+
+	display: flex;
+
+	align-items: center;
+
+	flex: 1;
+
+	min-width: 0;
+
+	height: 100%;
+
+	padding: 0 9px;
+
+	box-sizing: border-box;
+
+	color: #1a1a1a;
+
+	background: white;
+
+	font-size: 10px;
+
+	font-weight: 600;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   MOD TAG REMOVE BUTTON
+========================================================= */
+
+.modular-tag-assignment-remove {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 32px;
+
+	height: 100%;
+
+	flex: 0 0 32px;
+
+	margin: 0;
+
+	padding: 0;
+
+	color: #d00000;
+
+	background: white;
+
+	border: 0;
+
+	outline: none;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   MOD TAG REMOVE ICON
+========================================================= */
+
+.modular-tag-assignment-remove svg {
+
+	width: 15px;
+
+	height: 15px;
+
+	margin: 0;
+
+	color: #d00000;
+
+	stroke: #d00000;
+
+	stroke-width: 2.5;
+
+}
+/* =========================================================
+   COMPLETED MODULAR BAY IMAGE WRAPPER
+========================================================= */
+
+.modular-activity-bay-image-wrapper {
+
+	position: relative;
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	box-sizing: border-box;
+
+	overflow: hidden;
+
+	background: white;
+
+	line-height: 0;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY IMAGE
+========================================================= */
+
+.modular-activity-bay-image-wrapper
+	.modular-activity-bay-image {
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 100px;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY IMAGE EFFECT
+========================================================= */
+
+.modular-activity-bay-image-wrapper.completed
+	.modular-activity-bay-image {
+
+	filter: grayscale(1);
+
+	opacity: 0.45;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY OVERLAY
+========================================================= */
+
+.modular-activity-bay-image-overlay {
+
+	position: absolute;
+
+	top: 0;
+
+	left: 0;
+
+	width: 100%;
+
+	height: 100%;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	box-sizing: border-box;
+
+	background: rgba(255, 255, 255, 0.30);
+
+	pointer-events: none;
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY CHECK
+========================================================= */
+
+.modular-activity-bay-check {
+
+	display: block;
+
+	width: fit-content;
+
+	margin: 0 auto;
+
+	color: #0A928C;
+
+	font-size: 42px;
+
+	font-weight: 400;
+
+	line-height: 1;
+
+	transform: scaleX(1.15) scaleY(0.75);
+
+}
+
+
+/* =========================================================
+   COMPLETED BAY CHECK SVG
+========================================================= */
+
+.modular-activity-bay-check svg {
+
+	width: 28px;
+
+	height: 22px;
+
+	margin: 0;
+
+	color: #0A928C;
+
+	stroke: #0A928C;
+
+	stroke-width: 2;
+
+	stroke-linecap: round;
+
+	stroke-linejoin: round;
+
+}
+/* =========================================================
+   CLEAR ALL CONFIRMATION MODAL
+========================================================= */
+
+.modular-clear-modal {
+
+	position: fixed;
+
+	inset: 0;
+
+	z-index: 9999;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	padding: 24px;
+
+}
+
+
+.modular-clear-modal[hidden] {
+
+	display: none;
+
+}
+
+
+/* =========================================================
+   BACKDROP
+========================================================= */
+
+.modular-clear-modal-backdrop {
+
+	position: absolute;
+
+	inset: 0;
+
+	background: rgba(0, 0, 0, 0.55);
+
+	backdrop-filter: blur(2px);
+
+}
+
+
+/* =========================================================
+   DIALOG
+========================================================= */
+
+.modular-clear-modal-dialog {
+
+	position: relative;
+
+	width: 100%;
+
+	max-width: 380px;
+
+	padding: 24px;
+
+	background: var(--paper);
+
+	border-radius: 10px;
+
+	box-shadow:
+		0 18px 50px rgba(0, 0, 0, 0.25);
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   ICON
+========================================================= */
+
+.modular-clear-modal-icon {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 44px;
+
+	height: 44px;
+
+	margin-bottom: 16px;
+
+	border-radius: 50%;
+
+	background: rgba(234, 179, 8, 0.12);
+
+	color: #ca8a04;
+
+}
+
+
+.modular-clear-modal-icon svg {
+
+	width: 22px;
+
+	height: 22px;
+
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.modular-clear-modal-content h2 {
+
+	margin: 0 0 8px;
+
+	font-size: 18px;
+
+	font-weight: 600;
+
+}
+
+
+.modular-clear-modal-content p {
+
+	margin: 0;
+
+	font-size: 14px;
+
+	line-height: 1.5;
+
+	color: var(--text-muted);
+
+}
+
+
+/* =========================================================
+   ACTIONS
+========================================================= */
+
+.modular-clear-modal-actions {
+
+	display: flex;
+
+	justify-content: flex-end;
+
+	gap: 10px;
+
+	margin-top: 24px;
+
+}
+
+
+.modular-clear-modal-button {
+
+	height: 40px;
+
+	padding: 0 18px;
+
+	border-radius: 6px;
+
+	border: 1px solid transparent;
+
+	font: inherit;
+
+	font-size: 14px;
+
+	font-weight: 600;
+
+	cursor: pointer;
+
+}
+
+
+.modular-clear-modal-cancel {
+
+	background: transparent;
+
+	border-color: var(--border);
+
+	color: var(--text);
+
+}
+
+
+.modular-clear-modal-confirm {
+
+	background: #dc2626;
+
+	color: #ffffff;
+
+}
+
+
+.modular-clear-modal-confirm:hover {
+
+	background: #b91c1c;
+
+}
+/* =========================================================
+   MODULAR ACTIVITY - HORIZONTAL BAY SCROLL
+========================================================= */
+
+.modular-activity-snapshots {
+
+	display: flex;
+
+	flex-direction: row;
+
+	align-items: flex-start;
+
+	width: 100%;
+
+	box-sizing: border-box;
+
+	margin: 10px 0 15px;
+
+	padding: 0 2px 12px;
+
+	gap: 8px;
+
+	background: white;
+
+	overflow-x: auto;
+
+	overflow-y: hidden;
+
+	-webkit-overflow-scrolling: touch;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - HORIZONTAL SCROLLBAR
+========================================================= */
+
+.modular-activity-snapshots::-webkit-scrollbar {
+
+	height: 8px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-track {
+
+	background: #d6e9e9;
+
+	border-radius: 4px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-thumb {
+
+	background: #0A928C;
+
+	border-radius: 4px;
+
+}
+
+
+.modular-activity-snapshots::-webkit-scrollbar-thumb:hover {
+
+	background: #087a75;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - BAY CARDS
+========================================================= */
+
+.modular-activity-bay {
+
+	flex: 0 0 150px;
+
+	width: 150px;
+
+	min-width: 150px;
+
+	max-width: 150px;
+
+	margin: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	border: 1px solid #d6e9e9;
+
+	border-radius: 4px;
+
+	overflow: hidden;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - BAY IMAGE
+========================================================= */
+
+.modular-activity-bay-image-wrapper {
+
+	position: relative;
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	box-sizing: border-box;
+
+	overflow: hidden;
+
+	background: white;
+
+	line-height: 0;
+
+}
+
+
+.modular-activity-bay-image {
+
+	display: block;
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 0;
+
+	max-height: none;
+
+	margin: 0;
+
+	padding: 0;
+
+	box-sizing: border-box;
+
+	background: white;
+
+	object-fit: contain;
+
+	cursor: pointer;
+
+}
+
+
+.modular-activity-bay-image-wrapper
+	.modular-activity-bay-image {
+
+	width: 100%;
+
+	height: auto;
+
+	min-height: 0;
+
+	max-height: none;
+
+	object-fit: contain;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+	.modular-activity-snapshots {
+
+		display: flex;
+
+		flex-direction: row;
+
+		overflow-x: auto;
+
+		overflow-y: hidden;
+
+		gap: 8px;
+
+		padding-bottom: 12px;
+
+	}
+
+
+	.modular-activity-bay {
+
+		flex: 0 0 150px;
+
+		width: 150px;
+
+		min-width: 150px;
+
+		max-width: 150px;
+
+	}
+
+}
+/* =========================================================
+   SMART MODE WAND ICON
+========================================================= */
+
+.modular-activity-bay-smart-icon {
+
+	width: 34px;
+
+	height: 34px;
+
+	stroke: black;
+
+	stroke-width: 2.5;
+
+	color: black;
+
+	fill: none;
+
+	filter:
+		drop-shadow(
+			0 1px 2px rgba(0, 0, 0, 0.5)
+		);
+
+}
+
+
+/* =========================================================
+   SMART MODE WAND ICON
+========================================================= */
+
+.modular-activity-bay-smart-icon {
+
+	width: 34px;
+
+	height: 34px;
+
+	display: block;
+
+}
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - READY STATE
+========================================================= */
+
+.modular-activity-next.ready {
+
+	background: var(--aqua);
+
+	color: white;
+
+	border-color: var(--aqua);
+
+	cursor: pointer;
+
+	opacity: 1;
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - READY HOVER
+========================================================= */
+
+.modular-activity-next.ready:hover {
+
+	background: var(--navy);
+
+	border-color: var(--navy);
+
+}
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON - DISABLED
+========================================================= */
+
+.modular-activity-next:disabled {
+
+	cursor: not-allowed;
+
+}
+/* =========================================================
+   REGULAR MOD - SHELF EDITOR MODAL
+========================================================= */
+
+.regular-mod-shelf-modal {
+
+	position: fixed;
+
+	inset: 0;
+
+	z-index: 10000;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	padding: 24px;
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal[hidden] {
+
+	display: none;
+
+}
+
+
+/* =========================================================
+   BACKDROP
+========================================================= */
+
+.regular-mod-shelf-modal-backdrop {
+
+	position: absolute;
+
+	inset: 0;
+
+	background: rgba(0, 0, 0, 0.55);
+
+	backdrop-filter: blur(2px);
+
+}
+
+
+/* =========================================================
+   DIALOG
+========================================================= */
+
+.regular-mod-shelf-modal-dialog {
+
+	position: relative;
+
+	width: 100%;
+
+	max-width: 560px;
+
+	background: var(--paper);
+
+	border-radius: 10px;
+
+	box-shadow:
+		0 18px 50px rgba(0, 0, 0, 0.25);
+
+	overflow: hidden;
+
+	box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.regular-mod-shelf-modal-header {
+
+	position: relative;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	min-height: 58px;
+
+	padding: 0 56px;
+
+	background: #0A928C;
+
+	color: #ffffff;
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal-header h2 {
+
+	margin: 0;
+
+	font-size: 18px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	text-align: center;
+
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+========================================================= */
+
+.regular-mod-shelf-modal-close {
+
+	position: absolute;
+
+	top: 50%;
+
+	right: 12px;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 36px;
+
+	height: 36px;
+
+	padding: 0;
+
+	border: 0;
+
+	border-radius: 50%;
+
+	background: transparent;
+
+	color: #ffffff;
+
+	transform: translateY(-50%);
+
+	cursor: pointer;
+
+}
+
+
+.regular-mod-shelf-modal-close:hover {
+
+	background: rgba(255, 255, 255, 0.14);
+
+}
+
+
+.regular-mod-shelf-modal-close span {
+
+	font-size: 28px;
+
+	font-weight: 300;
+
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   INFORMATION
+========================================================= */
+
+.regular-mod-shelf-modal-info {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: space-between;
+
+	gap: 12px;
+
+	padding: 14px 16px 10px;
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal-upc-label {
+
+	font-size: 12px;
+
+	font-weight: 700;
+
+	color: var(--text);
+
+}
+
+
+.regular-mod-shelf-modal-duplicates {
+
+	font-size: 11px;
+
+	font-weight: 700;
+
+	color: #dc2626;
+
+	white-space: nowrap;
+
+}
+
+
+.regular-mod-shelf-modal-duplicates[hidden] {
+
+	display: none;
+
+}
+
+
+/* =========================================================
+   PRODUCT AREA
+========================================================= */
+
+.regular-mod-shelf-modal-products {
+
+	display: flex;
+
+	align-items: stretch;
+
+	gap: 10px;
+
+	width: 100%;
+
+	padding: 6px 16px 16px;
+
+	box-sizing: border-box;
+
+	overflow-x: auto;
+
+	overflow-y: hidden;
+
+	scrollbar-width: thin;
+
+}
+
+
+/* =========================================================
+   PRODUCT ITEM
+========================================================= */
+
+.regular-mod-shelf-modal-product {
+
+	position: relative;
+
+	flex: 0 0 78px;
+
+	width: 78px;
+
+	height: 78px;
+
+	background: #ffffff;
+
+	border: 1px solid #d7d7d7;
+
+	border-radius: 6px;
+
+	box-sizing: border-box;
+
+	cursor: grab;
+
+	user-select: none;
+
+}
+
+
+.regular-mod-shelf-modal-product:active {
+
+	cursor: grabbing;
+
+}
+
+
+.regular-mod-shelf-modal-product.dragging {
+
+	opacity: 0.45;
+
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
+
+.regular-mod-shelf-modal-product img {
+
+	display: block;
+
+	width: 100%;
+
+	height: 100%;
+
+	padding: 5px;
+
+	object-fit: contain;
+
+	box-sizing: border-box;
+
+	pointer-events: none;
+
+}
+
+
+/* =========================================================
+   REMOVE PRODUCT
+========================================================= */
+
+.regular-mod-shelf-modal-product-remove {
+
+	position: absolute;
+
+	top: -6px;
+
+	right: -6px;
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	width: 22px;
+
+	height: 22px;
+
+	padding: 0;
+
+	border: 2px solid var(--paper);
+
+	border-radius: 50%;
+
+	background: #dc2626;
+
+	color: #ffffff;
+
+	font-size: 16px;
+
+	font-weight: 700;
+
+	line-height: 1;
+
+	cursor: pointer;
+
+	z-index: 2;
+
+}
+
+
+.regular-mod-shelf-modal-product-remove:hover {
+
+	background: #b91c1c;
+
+}
+
+
+/* =========================================================
+   CAMERA ITEM
+========================================================= */
+
+.regular-mod-shelf-modal-camera {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	flex-direction: column;
+
+	gap: 5px;
+
+	flex: 0 0 78px;
+
+	width: 78px;
+
+	height: 78px;
+
+	padding: 0;
+
+	border: 1px dashed #9a9a9a;
+
+	border-radius: 6px;
+
+	background: #eeeeee;
+
+	color: #555555;
+
+	cursor: pointer;
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal-camera:hover {
+
+	background: #e4e4e4;
+
+}
+
+
+.regular-mod-shelf-modal-camera svg {
+
+	width: 24px;
+
+	height: 24px;
+
+}
+
+
+.regular-mod-shelf-modal-camera span {
+
+	font-size: 9px;
+
+	font-weight: 700;
+
+	text-transform: uppercase;
+
+}
+
+
+/* =========================================================
+   PRODUCT ACTIONS
+========================================================= */
+
+.regular-mod-shelf-modal-product-actions {
+
+	display: grid;
+
+	grid-template-columns: repeat(3, 1fr);
+
+	gap: 8px;
+
+	padding: 0 16px 16px;
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal-product-action {
+
+	display: flex;
+
+	align-items: center;
+
+	justify-content: center;
+
+	gap: 7px;
+
+	min-height: 42px;
+
+	padding: 0 8px;
+
+	border: 1px solid var(--border);
+
+	border-radius: 6px;
+
+	background: transparent;
+
+	color: var(--text);
+
+	font: inherit;
+
+	font-size: 11px;
+
+	font-weight: 600;
+
+	cursor: pointer;
+
+}
+
+
+.regular-mod-shelf-modal-product-action:hover {
+
+	background: #f1f1f1;
+
+}
+
+
+.regular-mod-shelf-modal-product-action svg {
+
+	width: 16px;
+
+	height: 16px;
+
+	flex-shrink: 0;
+
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.regular-mod-shelf-modal-footer {
+
+	display: grid;
+
+	grid-template-columns: 1fr 1fr;
+
+	gap: 10px;
+
+	padding: 14px 16px 16px;
+
+	border-top: 1px solid var(--border);
+
+	box-sizing: border-box;
+
+}
+
+
+.regular-mod-shelf-modal-finish,
+.regular-mod-shelf-modal-next {
+
+	height: 42px;
+
+	border: 0;
+
+	border-radius: 6px;
+
+	font: inherit;
+
+	font-size: 13px;
+
+	font-weight: 700;
+
+	cursor: pointer;
+
+}
+
+
+.regular-mod-shelf-modal-finish {
+
+	background: #eeeeee;
+
+	color: var(--text);
+
+}
+
+
+.regular-mod-shelf-modal-finish:hover {
+
+	background: #e2e2e2;
+
+}
+
+
+.regular-mod-shelf-modal-next {
+
+	background: #0A928C;
+
+	color: #ffffff;
+
+}
+
+
+.regular-mod-shelf-modal-next:hover {
+
+	background: #087d78;
+
+}

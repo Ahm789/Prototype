@@ -290,7 +290,40 @@ const renderModularTags =
 				row.className =
 					'item-mapping-mod-row';
 
+                /* =================================================
+                    TEMPORARY MODULAR ROW CLICK
+                    ================================================= */
 
+                    row.addEventListener(
+                        'click',
+                        () => {
+
+                            const selectedModularId =
+                                String(
+                                    tag.modular_id || ''
+                                )
+                                    .trim()
+                                    .toUpperCase();
+
+
+                            if (!selectedModularId) {
+
+                                return;
+
+                            }
+
+
+                            localStorage.setItem(
+                                'selectedModularId',
+                                selectedModularId
+                            );
+
+
+                            window.location.href =
+                                'modular-item-mapping.html';
+
+                        }
+                    );
 				/* =================================================
 				   STATUS
 				================================================= */

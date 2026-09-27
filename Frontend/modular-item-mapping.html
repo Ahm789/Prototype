@@ -29,6 +29,252 @@
 
 </head>
 
+<!-- =====================================================
+     CLEAR ALL CONFIRMATION MODAL
+====================================================== -->
+
+<div
+	class="modular-clear-modal"
+	id="modular-clear-modal"
+	hidden
+>
+
+	<div
+		class="modular-clear-modal-backdrop"
+		data-clear-modal-close
+	></div>
+
+
+	<div
+		class="modular-clear-modal-dialog"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="modular-clear-modal-title"
+	>
+
+		<div class="modular-clear-modal-icon">
+
+			<i
+				data-lucide="triangle-alert"
+				aria-hidden="true"
+			></i>
+
+		</div>
+
+
+		<div class="modular-clear-modal-content">
+
+			<h2 id="modular-clear-modal-title">
+				Clear Scanned Tags?
+			</h2>
+
+
+			<p id="modular-clear-modal-message">
+                Are you sure you want to remove all scanned tags?
+            </p>
+
+		</div>
+
+
+		<div class="modular-clear-modal-actions">
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-cancel"
+				id="modular-clear-modal-cancel"
+			>
+				Cancel
+			</button>
+
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-confirm"
+				id="modular-clear-modal-confirm"
+			>
+				Clear All
+			</button>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- =====================================================
+     REGULAR MOD SHELF EDITOR
+====================================================== -->
+
+<div
+	class="regular-mod-shelf-modal"
+	id="regular-mod-shelf-modal"
+	hidden
+>
+
+	<div
+		class="regular-mod-shelf-modal-backdrop"
+		data-shelf-modal-close
+	></div>
+
+
+	<div
+		class="regular-mod-shelf-modal-dialog"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="regular-mod-shelf-modal-title"
+	>
+
+		<!-- =================================================
+		     HEADER
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-header">
+
+			<h2
+				id="regular-mod-shelf-modal-title"
+			>
+				Shelf 1
+			</h2>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-close"
+				id="regular-mod-shelf-modal-close"
+				aria-label="Close shelf"
+			>
+				<span>×</span>
+			</button>
+
+		</div>
+
+
+		<!-- =================================================
+		     UPC INFORMATION
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-info">
+
+			<div
+				class="regular-mod-shelf-modal-upc-label"
+				id="regular-mod-shelf-modal-upc-label"
+			>
+				Shelf 1&nbsp;&nbsp; UPC's 0
+			</div>
+
+
+			<div
+				class="regular-mod-shelf-modal-duplicates"
+				id="regular-mod-shelf-modal-duplicates"
+				hidden
+			>
+				Duplicates 0 pairs
+			</div>
+
+		</div>
+
+
+		<!-- =================================================
+		     PRODUCT EDITOR
+		================================================== -->
+
+		<div
+			class="regular-mod-shelf-modal-products"
+			id="regular-mod-shelf-modal-products"
+		>
+		</div>
+
+
+		<!-- =================================================
+		     PRODUCT ACTIONS
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-product-actions">
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-enter-upc"
+			>
+
+				<i
+					data-lucide="keyboard"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Enter UPC
+				</span>
+
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-cannot-scan"
+			>
+
+				<i
+					data-lucide="scan-line"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Cannot Scan
+				</span>
+
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-unstructured"
+			>
+
+				<i
+					data-lucide="package-open"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Unstructured
+				</span>
+
+			</button>
+
+		</div>
+
+
+		<!-- =================================================
+		     FOOTER
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-footer">
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-finish"
+				id="regular-mod-shelf-finish"
+			>
+				Finish
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-next"
+				id="regular-mod-shelf-next"
+			>
+				Next Shelf
+			</button>
+
+		</div>
+
+	</div>
+
+</div>
 
 <body>
 
@@ -109,7 +355,9 @@
 
 			<div class="task-list">
 
-				<!-- Content will be added here -->
+				<div
+					id="modular-visual"
+				></div>
 
 			</div>
 
@@ -137,12 +385,17 @@
 					Reset Modular
 				</button>
 
-
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-clear"
+					id="regular-modular-clear"
+				>
+					Clear Modular
+				</button>
 				<button
 					type="button"
 					class="modular-activity-action modular-activity-next"
 					id="regular-mod-update"
-					disabled
 				>
 					Update Modular
 				</button>
