@@ -2922,3 +2922,140 @@
 	background: #087d78;
 
 }
+/* =========================================================
+   SHELF PRODUCT TILE
+========================================================= */
+
+.regular-mod-shelf-modal-product,
+.regular-mod-shelf-modal-scan {
+
+	position: relative;
+
+	width: 120px;
+	height: 120px;
+
+	flex: 0 0 120px;
+
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+========================================================= */
+
+.regular-mod-shelf-modal-product img {
+
+	display: block;
+
+	width: 100%;
+	height: 100%;
+
+	object-fit: contain;
+
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+========================================================= */
+
+.regular-mod-shelf-modal-remove {
+
+	position: absolute;
+
+	top: 6px;
+	right: 6px;
+
+	width: 20px;
+	height: 20px;
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+
+	padding: 0;
+
+	border: none;
+
+	border-radius: 50%;
+
+	background: #dc2626;
+
+	color: #ffffff;
+
+	cursor: pointer;
+
+	z-index: 2;
+
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1;
+
+}
+
+
+/* =========================================================
+   CAMERA TILE
+========================================================= */
+
+.regular-mod-shelf-modal-scan {
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+
+	padding: 0;
+
+	border: 2px dashed currentColor;
+
+	border-radius: 7px;
+
+	background: transparent;
+
+	cursor: pointer;
+
+}
+
+
+/* =========================================================
+   CAMERA ICON
+========================================================= */
+
+.regular-mod-shelf-modal-scan svg {
+
+	width: 30px;
+	height: 30px;
+
+}
+
+/* =========================================================
+   SHELF PRODUCT DROP ZONE
+========================================================= */
+
+.regular-mod-shelf-modal-drop-zone {
+
+	flex: 0 0 8px;
+
+	height: 120px;
+
+	margin-left: -10px;
+	margin-right: -10px;
+
+	position: relative;
+
+	z-index: 3;
+
+	cursor: pointer;
+
+}
+.regular-mod-upc-badge {
+
+	background: #e5e7eb;
+
+	padding: 4px 8px;
+
+	border-radius: 5px;
+
+}

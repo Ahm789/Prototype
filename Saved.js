@@ -200,11 +200,7 @@ let regularModModified = false;
 
 let activeShelfIndex = null;
 
-let activeShelfOriginalProducts = [];
-
 let draggedProductIndex = null;
-
-let freshShelfCreatedByNext = false;
 
 
 /* =========================================================
@@ -212,376 +208,6 @@ let freshShelfCreatedByNext = false;
 ========================================================= */
 
 let confirmationAction = null;
-
-
-/* =========================================================
-   SHARED BARCODE SCANNER STATE
-========================================================= */
-
-let cameraStream = null;
-
-let cameraVideo = null;
-
-let cameraOverlay = null;
-
-let barcodeReader = null;
-
-let barcodeControls = null;
-
-let barcodeScanLocked = false;
-
-
-/* =========================================================
-   CREATE CAMERA UI
-========================================================= */
-
-const createCameraScanner =
-	() => {
-
-		if (
-			cameraOverlay
-		) {
-
-			return;
-
-		}
-
-
-		cameraOverlay =
-			document.createElement(
-				'div'
-			);
-
-
-		cameraOverlay.className =
-			'barcode-camera-overlay';
-
-
-		cameraOverlay.innerHTML = `
-
-			<div class="barcode-camera-container">
-
-				<div class="barcode-camera-header">
-
-					<strong>
-						Scan Barcode
-					</strong>
-
-
-					<button
-						type="button"
-						class="barcode-camera-close"
-						aria-label="Close camera"
-					>
-
-						<i
-							data-lucide="x"
-						></i>
-
-					</button>
-
-				</div>
-
-
-				<div class="barcode-camera-view">
-
-					<video
-						class="barcode-camera-video"
-						autoplay
-						playsinline
-						muted
-					></video>
-
-
-					<div class="barcode-scan-frame">
-
-						<div class="barcode-scan-line"></div>
-
-					</div>
-
-				</div>
-
-
-				<div class="barcode-camera-status">
-
-					Point the camera at a barcode
-
-				</div>
-
-			</div>
-
-		`;
-
-
-		document.body.appendChild(
-			cameraOverlay
-		);
-
-
-		cameraVideo =
-			cameraOverlay.querySelector(
-				'.barcode-camera-video'
-			);
-
-
-		const closeButton =
-			cameraOverlay.querySelector(
-				'.barcode-camera-close'
-			);
-
-
-		closeButton.addEventListener(
-			'click',
-			stopBarcodeScanner
-		);
-
-
-		if (
-			window.lucide
-		) {
-
-			lucide.createIcons();
-
-		}
-
-	};
-
-
-/* =========================================================
-   START BARCODE SCANNER
-========================================================= */
-
-const startBarcodeScanner =
-	async (
-		onBarcodeDetected
-	) => {
-
-		createCameraScanner();
-
-
-		barcodeScanLocked =
-			false;
-
-
-		try {
-
-			cameraOverlay.classList.add(
-				'active'
-			);
-
-
-			barcodeReader =
-				new ZXingBrowser.BrowserMultiFormatReader();
-
-
-			const devices =
-				await ZXingBrowser
-					.BrowserCodeReader
-					.listVideoInputDevices();
-
-
-			if (
-				!devices ||
-				devices.length === 0
-			) {
-
-				throw new Error(
-					'No camera found.'
-				);
-
-			}
-
-
-			let selectedDevice =
-				devices.find(
-					device =>
-						/environment|back|rear/i.test(
-							device.label
-						)
-				);
-
-
-			if (!selectedDevice) {
-
-				selectedDevice =
-					devices[
-						devices.length - 1
-					];
-
-			}
-
-
-			barcodeControls =
-				await barcodeReader.decodeFromVideoDevice(
-					selectedDevice.deviceId,
-					cameraVideo,
-					async (
-						result,
-						error
-					) => {
-
-						if (
-							barcodeScanLocked
-						) {
-
-							return;
-
-						}
-
-
-						if (
-							result
-						) {
-
-							const barcode =
-								result.getText();
-
-
-							if (
-								barcode
-							) {
-
-								barcodeScanLocked =
-									true;
-
-
-								await onBarcodeDetected(
-									barcode
-								);
-
-							}
-
-						}
-
-					}
-				);
-
-		}
-		catch (error) {
-
-			console.error(
-				'Unable to start barcode scanner:',
-				error
-			);
-
-
-			stopBarcodeScanner();
-
-
-			alert(
-				'Unable to access the camera. Please check your camera permission.'
-			);
-
-		}
-
-	};
-
-
-/* =========================================================
-   STOP BARCODE SCANNER
-========================================================= */
-
-const stopBarcodeScanner =
-	() => {
-
-		barcodeScanLocked =
-			true;
-
-
-		if (
-			barcodeControls
-		) {
-
-			try {
-
-				barcodeControls.stop();
-
-			}
-			catch (error) {
-
-				console.error(
-					'Unable to stop barcode scanner:',
-					error
-				);
-
-			}
-
-
-			barcodeControls =
-				null;
-
-		}
-
-
-		if (
-			barcodeReader
-		) {
-
-			try {
-
-				barcodeReader.reset();
-
-			}
-			catch (error) {
-
-				console.error(
-					'Unable to reset barcode reader:',
-					error
-				);
-
-			}
-
-
-			barcodeReader =
-				null;
-
-		}
-
-
-		if (
-			cameraStream
-		) {
-
-			cameraStream
-				.getTracks()
-				.forEach(
-					track => {
-
-						track.stop();
-
-					}
-				);
-
-
-			cameraStream =
-				null;
-
-		}
-
-
-		if (
-			cameraVideo
-		) {
-
-			cameraVideo.pause();
-
-			cameraVideo.srcObject =
-				null;
-
-		}
-
-
-		if (
-			cameraOverlay
-		) {
-
-			cameraOverlay.classList.remove(
-				'active'
-			);
-
-		}
-
-	};
 
 
 /* =========================================================
@@ -1137,42 +763,726 @@ const confirmRemoveRegularModShelf =
 
 
 /* =========================================================
+   SHELF EDITOR STYLE
+========================================================= */
+
+const createShelfEditorStyles =
+	() => {
+
+		if (
+			document.querySelector(
+				'#regular-mod-shelf-editor-styles'
+			)
+		) {
+
+			return;
+
+		}
+
+
+		const style =
+			document.createElement(
+				'style'
+			);
+
+
+		style.id =
+			'regular-mod-shelf-editor-styles';
+
+
+		style.textContent = `
+
+			.regular-mod-shelf-editor {
+
+				position: fixed;
+
+				inset: 0;
+
+				z-index: 9998;
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				padding: 20px;
+
+				box-sizing: border-box;
+
+			}
+
+
+			.regular-mod-shelf-editor[hidden] {
+
+				display: none;
+
+			}
+
+
+			.regular-mod-shelf-editor-backdrop {
+
+				position: absolute;
+
+				inset: 0;
+
+				background: rgba(0, 0, 0, 0.55);
+
+				backdrop-filter: blur(2px);
+
+			}
+
+
+			.regular-mod-shelf-editor-dialog {
+
+				position: relative;
+
+				z-index: 1;
+
+				width: 100%;
+
+				max-width: 520px;
+
+				max-height: calc(100vh - 40px);
+
+				overflow: hidden;
+
+				background: var(--paper);
+
+				border-radius: 10px;
+
+				box-shadow:
+					0 18px 50px rgba(0, 0, 0, 0.25);
+
+			}
+
+
+			.regular-mod-shelf-editor-header {
+
+				position: relative;
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				min-height: 58px;
+
+				padding: 0 52px;
+
+				background: #0A928C;
+
+				color: #ffffff;
+
+				box-sizing: border-box;
+
+			}
+
+
+			.regular-mod-shelf-editor-title {
+
+				margin: 0;
+
+				font-size: 18px;
+
+				font-weight: 700;
+
+				text-align: center;
+
+			}
+
+
+			.regular-mod-shelf-editor-close {
+
+				position: absolute;
+
+				top: 50%;
+
+				right: 12px;
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				width: 34px;
+
+				height: 34px;
+
+				padding: 0;
+
+				transform: translateY(-50%);
+
+				border: 0;
+
+				border-radius: 50%;
+
+				background: transparent;
+
+				color: #ffffff;
+
+				font-size: 25px;
+
+				cursor: pointer;
+
+			}
+
+
+			.regular-mod-shelf-editor-body {
+
+				padding: 18px;
+
+				overflow-y: auto;
+
+			}
+
+
+			.regular-mod-shelf-editor-upcs {
+
+				margin-bottom: 14px;
+
+				font-size: 13px;
+
+				font-weight: 700;
+
+				color: var(--text);
+
+			}
+
+
+			.regular-mod-shelf-editor-products {
+
+				display: flex;
+
+				align-items: center;
+
+				gap: 10px;
+
+				width: 100%;
+
+				padding: 8px 4px 14px;
+
+				overflow-x: auto;
+
+				overflow-y: hidden;
+
+				box-sizing: border-box;
+
+			}
+
+
+			.regular-mod-shelf-editor-product {
+
+				position: relative;
+
+				flex: 0 0 76px;
+
+				width: 76px;
+
+				height: 76px;
+
+				border: 1px solid var(--border);
+
+				border-radius: 6px;
+
+				background: #ffffff;
+
+				cursor: grab;
+
+				user-select: none;
+
+				box-sizing: border-box;
+
+			}
+
+
+			.regular-mod-shelf-editor-product:active {
+
+				cursor: grabbing;
+
+			}
+
+
+			.regular-mod-shelf-editor-product.dragging {
+
+				opacity: 0.45;
+
+			}
+
+
+			.regular-mod-shelf-editor-product img {
+
+				display: block;
+
+				width: 100%;
+
+				height: 100%;
+
+				object-fit: contain;
+
+				border-radius: 6px;
+
+			}
+
+
+			.regular-mod-shelf-editor-remove {
+
+				position: absolute;
+
+				top: -7px;
+
+				right: -7px;
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				width: 22px;
+
+				height: 22px;
+
+				padding: 0;
+
+				border: 2px solid #ffffff;
+
+				border-radius: 50%;
+
+				background: #dc2626;
+
+				color: #ffffff;
+
+				font-size: 16px;
+
+				font-weight: 700;
+
+				line-height: 1;
+
+				cursor: pointer;
+
+				z-index: 2;
+
+			}
+
+
+			.regular-mod-shelf-editor-scan {
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				flex: 0 0 76px;
+
+				width: 76px;
+
+				height: 76px;
+
+				border: 2px dashed #0A928C;
+
+				border-radius: 6px;
+
+				background: rgba(10, 146, 140, 0.06);
+
+				color: #0A928C;
+
+				cursor: pointer;
+
+			}
+
+
+			.regular-mod-shelf-editor-scan svg {
+
+				width: 28px;
+
+				height: 28px;
+
+			}
+
+
+			.regular-mod-shelf-editor-duplicates {
+
+				min-height: 20px;
+
+				margin-bottom: 14px;
+
+				font-size: 12px;
+
+				font-weight: 700;
+
+				color: #dc2626;
+
+			}
+
+
+			.regular-mod-shelf-editor-tools {
+
+				display: grid;
+
+				grid-template-columns: repeat(3, 1fr);
+
+				gap: 8px;
+
+				margin-top: 4px;
+
+			}
+
+
+			.regular-mod-shelf-editor-tool {
+
+				display: flex;
+
+				align-items: center;
+
+				justify-content: center;
+
+				gap: 6px;
+
+				min-height: 42px;
+
+				padding: 8px;
+
+				border: 1px solid var(--border);
+
+				border-radius: 6px;
+
+				background: var(--paper);
+
+				color: var(--text);
+
+				font: inherit;
+
+				font-size: 12px;
+
+				font-weight: 600;
+
+				cursor: pointer;
+
+			}
+
+
+			.regular-mod-shelf-editor-tool svg {
+
+				width: 16px;
+
+				height: 16px;
+
+			}
+
+
+			.regular-mod-shelf-editor-actions {
+
+				display: flex;
+
+				gap: 10px;
+
+				margin-top: 18px;
+
+			}
+
+
+			.regular-mod-shelf-editor-action {
+
+				flex: 1;
+
+				min-height: 44px;
+
+				border: 0;
+
+				border-radius: 6px;
+
+				font: inherit;
+
+				font-size: 13px;
+
+				font-weight: 700;
+
+				cursor: pointer;
+
+			}
+
+
+			.regular-mod-shelf-editor-finish {
+
+				background: #78BE20;
+
+				color: #ffffff;
+
+			}
+
+
+			.regular-mod-shelf-editor-next {
+
+				background: #0A928C;
+
+				color: #ffffff;
+
+			}
+
+
+			@media (max-width: 480px) {
+
+				.regular-mod-shelf-editor-tools {
+
+					grid-template-columns: 1fr;
+
+				}
+
+			}
+
+		`;
+
+
+		document.head.appendChild(
+			style
+		);
+
+	};
+
+
+/* =========================================================
+   CREATE SHELF EDITOR
+========================================================= */
+
+const createShelfEditor =
+	() => {
+
+		if (
+			document.querySelector(
+				'#regular-mod-shelf-editor'
+			)
+		) {
+
+			return;
+
+		}
+
+
+		createShelfEditorStyles();
+
+
+		const editor =
+			document.createElement(
+				'div'
+			);
+
+
+		editor.id =
+			'regular-mod-shelf-editor';
+
+
+		editor.className =
+			'regular-mod-shelf-editor';
+
+
+		editor.hidden =
+			true;
+
+
+		editor.innerHTML = `
+
+			<div
+				class="regular-mod-shelf-editor-backdrop"
+			></div>
+
+
+			<div
+				class="regular-mod-shelf-editor-dialog"
+				role="dialog"
+				aria-modal="true"
+			>
+
+				<div
+					class="regular-mod-shelf-editor-header"
+				>
+
+					<h2
+						class="regular-mod-shelf-editor-title"
+						id="regular-mod-shelf-editor-title"
+					>
+						Shelf 1
+					</h2>
+
+
+					<button
+						type="button"
+						class="regular-mod-shelf-editor-close"
+						id="regular-mod-shelf-editor-close"
+						aria-label="Close shelf editor"
+					>
+						×
+					</button>
+
+				</div>
+
+
+				<div
+					class="regular-mod-shelf-editor-body"
+				>
+
+					<div
+						class="regular-mod-shelf-editor-upcs"
+						id="regular-mod-shelf-editor-upcs"
+					>
+						UPCs 0
+					</div>
+
+
+					<div
+						class="regular-mod-shelf-editor-products"
+						id="regular-mod-shelf-editor-products"
+					>
+					</div>
+
+
+					<div
+						class="regular-mod-shelf-editor-duplicates"
+						id="regular-mod-shelf-editor-duplicates"
+					>
+					</div>
+
+
+					<div
+						class="regular-mod-shelf-editor-tools"
+					>
+
+						<button
+							type="button"
+							class="regular-mod-shelf-editor-tool"
+							id="regular-mod-shelf-enter-upc"
+						>
+
+							<i
+								data-lucide="scan-barcode"
+								aria-hidden="true"
+							></i>
+
+							<span>
+								Enter UPC
+							</span>
+
+						</button>
+
+
+						<button
+							type="button"
+							class="regular-mod-shelf-editor-tool"
+							id="regular-mod-shelf-cannot-scan"
+						>
+
+							<i
+								data-lucide="triangle-alert"
+								aria-hidden="true"
+							></i>
+
+							<span>
+								Cannot Scan
+							</span>
+
+						</button>
+
+
+						<button
+							type="button"
+							class="regular-mod-shelf-editor-tool"
+							id="regular-mod-shelf-unstructured"
+						>
+
+							<i
+								data-lucide="package-open"
+								aria-hidden="true"
+							></i>
+
+							<span>
+								Unstructured
+							</span>
+
+						</button>
+
+					</div>
+
+
+					<div
+						class="regular-mod-shelf-editor-actions"
+					>
+
+						<button
+							type="button"
+							class="regular-mod-shelf-editor-action regular-mod-shelf-editor-finish"
+							id="regular-mod-shelf-finish"
+						>
+							Finish
+						</button>
+
+
+						<button
+							type="button"
+							class="regular-mod-shelf-editor-action regular-mod-shelf-editor-next"
+							id="regular-mod-shelf-next"
+						>
+							Next Shelf
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		`;
+
+
+		document.body.appendChild(
+			editor
+		);
+
+	};
+
+
+/* =========================================================
    SHELF EDITOR ELEMENTS
 ========================================================= */
 
+createShelfEditor();
+
+
 const shelfEditor =
 	document.querySelector(
-		'#regular-mod-shelf-modal'
+		'#regular-mod-shelf-editor'
 	);
 
 
 const shelfEditorTitle =
 	document.querySelector(
-		'#regular-mod-shelf-modal-title'
+		'#regular-mod-shelf-editor-title'
 	);
 
 
 const shelfEditorUpcs =
 	document.querySelector(
-		'#regular-mod-shelf-modal-upc-label'
+		'#regular-mod-shelf-editor-upcs'
 	);
 
 
 const shelfEditorProducts =
 	document.querySelector(
-		'#regular-mod-shelf-modal-products'
+		'#regular-mod-shelf-editor-products'
 	);
 
 
 const shelfEditorDuplicates =
 	document.querySelector(
-		'#regular-mod-shelf-modal-duplicates'
+		'#regular-mod-shelf-editor-duplicates'
 	);
 
 
 const shelfEditorClose =
 	document.querySelector(
-		'#regular-mod-shelf-modal-close'
+		'#regular-mod-shelf-editor-close'
 	);
 
 
@@ -1203,12 +1513,6 @@ const shelfEditorCannotScan =
 const shelfEditorUnstructured =
 	document.querySelector(
 		'#regular-mod-shelf-unstructured'
-	);
-
-
-const shelfEditorBackdrop =
-	document.querySelector(
-		'.regular-mod-shelf-modal-backdrop'
 	);
 
 
@@ -1320,21 +1624,8 @@ const updateShelfEditorSummary =
 			);
 
 
-		if (shelfEditorUpcs) {
-
-			shelfEditorUpcs.innerHTML = `
-
-				<span>
-					Shelf ${shelf.shelf}
-				</span>
-
-				<span class="regular-mod-upc-badge">
-					UPC's ${uniqueUpcs.size}
-				</span>
-
-			`;
-
-		}
+		shelfEditorUpcs.textContent =
+			`UPCs ${uniqueUpcs.size}`;
 
 
 		const duplicatePairs =
@@ -1344,31 +1635,17 @@ const updateShelfEditorSummary =
 
 
 		if (
-			shelfEditorDuplicates
+			duplicatePairs > 0
 		) {
 
-			if (
-				duplicatePairs > 0
-			) {
+			shelfEditorDuplicates.textContent =
+				`Duplicates ${duplicatePairs} pairs`;
 
-				shelfEditorDuplicates.hidden =
-					false;
+		}
+		else {
 
-
-				shelfEditorDuplicates.textContent =
-					`Duplicates ${duplicatePairs} pairs`;
-
-			}
-			else {
-
-				shelfEditorDuplicates.hidden =
-					true;
-
-
-				shelfEditorDuplicates.textContent =
-					'';
-
-			}
+			shelfEditorDuplicates.textContent =
+				'';
 
 		}
 
@@ -1409,242 +1686,11 @@ const renderShelfEditorProducts =
 			'';
 
 
-		/* =============================================
-		   CAMERA / ADD PRODUCT TILE
-		============================================= */
-
-		const scanButton =
-			document.createElement(
-				'button'
-			);
-
-
-		scanButton.type =
-			'button';
-
-
-		scanButton.className =
-			'regular-mod-shelf-modal-scan';
-
-
-		scanButton.setAttribute(
-			'aria-label',
-			'Scan product'
-		);
-
-
-		scanButton.innerHTML = `
-
-			<i
-				data-lucide="camera"
-				aria-hidden="true"
-			></i>
-
-		`;
-
-
-		/* =============================================
-		   CAMERA BUTTON
-		============================================= */
-
-		scanButton.addEventListener(
-			'click',
-			event => {
-
-				event.preventDefault();
-				event.stopPropagation();
-
-
-				startBarcodeScanner(
-					async barcode => {
-
-						try {
-
-							const results =
-								await apiRequest(
-									`${API_BASE}/search?q=${encodeURIComponent(barcode)}`
-								);
-
-
-							if (
-								!Array.isArray(results) ||
-								results.length === 0
-							) {
-
-								stopBarcodeScanner();
-
-
-								alert(
-									`No product found for barcode ${barcode}.`
-								);
-
-
-								return;
-
-							}
-
-
-							const product =
-								results[0];
-
-
-							shelf.products.push(
-								product
-							);
-
-
-							markRegularModModified();
-
-
-							stopBarcodeScanner();
-
-
-							renderShelfEditorProducts();
-
-
-							renderModularVisual();
-
-						}
-						catch (error) {
-
-							console.error(
-								'Failed to find scanned product:',
-								error
-							);
-
-
-							stopBarcodeScanner();
-
-
-							alert(
-								'Unable to find the scanned product.'
-							);
-
-						}
-
-					}
-				);
-
-			}
-		);
-
-
-		/* =============================================
-		   CAMERA FIRST
-		============================================= */
-
-		shelfEditorProducts.appendChild(
-			scanButton
-		);
-
-
-		/* =============================================
-		   PRODUCTS
-		============================================= */
-
 		shelf.products.forEach(
 			(
 				product,
 				productIndex
 			) => {
-
-				/* =============================================
-				   DROP ZONE BEFORE PRODUCT
-				============================================= */
-
-				const dropZone =
-					document.createElement(
-						'div'
-					);
-
-
-				dropZone.className =
-					'regular-mod-shelf-modal-drop-zone';
-
-
-				dropZone.addEventListener(
-					'dragover',
-					event => {
-
-						event.preventDefault();
-
-
-						event.dataTransfer.dropEffect =
-							'move';
-
-					}
-				);
-
-
-				dropZone.addEventListener(
-					'drop',
-					event => {
-
-						event.preventDefault();
-
-
-						if (
-							draggedProductIndex === null ||
-							draggedProductIndex === productIndex
-						) {
-
-							return;
-
-						}
-
-
-						const draggedProduct =
-							shelf.products.splice(
-								draggedProductIndex,
-								1
-							)[0];
-
-
-						let targetIndex =
-							productIndex;
-
-
-						if (
-							draggedProductIndex <
-							productIndex
-						) {
-
-							targetIndex--;
-
-						}
-
-
-						shelf.products.splice(
-							targetIndex,
-							0,
-							draggedProduct
-						);
-
-
-						draggedProductIndex =
-							null;
-
-
-						markRegularModModified();
-
-
-						renderShelfEditorProducts();
-
-
-						renderModularVisual();
-
-					}
-				);
-
-
-				shelfEditorProducts.appendChild(
-					dropZone
-				);
-
-
-				/* =============================================
-				   PRODUCT CARD
-				============================================= */
 
 				const productCard =
 					document.createElement(
@@ -1653,7 +1699,7 @@ const renderShelfEditorProducts =
 
 
 				productCard.className =
-					'regular-mod-shelf-modal-product';
+					'regular-mod-shelf-editor-product';
 
 
 				productCard.draggable =
@@ -1663,10 +1709,6 @@ const renderShelfEditorProducts =
 				productCard.dataset.productIndex =
 					productIndex;
 
-
-				/* =============================================
-				   PRODUCT IMAGE
-				============================================= */
 
 				const image =
 					document.createElement(
@@ -1696,10 +1738,6 @@ const renderShelfEditorProducts =
 				);
 
 
-				/* =============================================
-				   DELETE BUTTON
-				============================================= */
-
 				const removeButton =
 					document.createElement(
 						'button'
@@ -1711,7 +1749,7 @@ const renderShelfEditorProducts =
 
 
 				removeButton.className =
-					'regular-mod-shelf-modal-remove';
+					'regular-mod-shelf-editor-remove';
 
 
 				removeButton.setAttribute(
@@ -1720,18 +1758,14 @@ const renderShelfEditorProducts =
 				);
 
 
-				removeButton.innerHTML = `
-
-					−
-
-				`;
+				removeButton.textContent =
+					'−';
 
 
 				removeButton.addEventListener(
 					'click',
 					event => {
 
-						event.preventDefault();
 						event.stopPropagation();
 
 
@@ -1803,7 +1837,7 @@ const renderShelfEditorProducts =
 
 
 				/* =============================================
-				   DROP ON PRODUCT
+				   DRAG OVER
 				============================================= */
 
 				productCard.addEventListener(
@@ -1813,22 +1847,16 @@ const renderShelfEditorProducts =
 						event.preventDefault();
 
 
-						if (
-							draggedProductIndex === null ||
-							draggedProductIndex === productIndex
-						) {
-
-							return;
-
-						}
-
-
 						event.dataTransfer.dropEffect =
 							'move';
 
 					}
 				);
 
+
+				/* =============================================
+				   DROP
+				============================================= */
 
 				productCard.addEventListener(
 					'drop',
@@ -1899,6 +1927,98 @@ const renderShelfEditorProducts =
 		);
 
 
+		/* =============================================
+		   FIXED CAMERA BUTTON
+		============================================= */
+
+		const scanButton =
+			document.createElement(
+				'button'
+			);
+
+
+		scanButton.type =
+			'button';
+
+
+		scanButton.className =
+			'regular-mod-shelf-editor-scan';
+
+
+		scanButton.setAttribute(
+			'aria-label',
+			'Scan product'
+		);
+
+
+		scanButton.innerHTML = `
+
+			<i
+				data-lucide="camera"
+				aria-hidden="true"
+			></i>
+
+		`;
+
+
+		scanButton.addEventListener(
+			'click',
+			() => {
+
+				if (
+					typeof window.startProductScanner ===
+					'function'
+				) {
+
+					window.startProductScanner(
+						{
+							onScan:
+								product => {
+
+									if (
+										!product
+									) {
+
+										return;
+
+									}
+
+
+									shelf.products.push(
+										product
+									);
+
+
+									markRegularModModified();
+
+
+									renderShelfEditorProducts();
+
+
+									renderModularVisual();
+
+								}
+						}
+					);
+
+				}
+				else {
+
+					alert(
+						'Product scanner is not connected yet.'
+					);
+
+				}
+
+			}
+		);
+
+
+		shelfEditorProducts.appendChild(
+			scanButton
+		);
+
+
 		if (
 			window.lucide
 		) {
@@ -1942,18 +2062,6 @@ const openShelfEditor =
 			];
 
 
-		/* =============================================
-		   SAVE ORIGINAL SHELF STATE
-		============================================= */
-
-		activeShelfOriginalProducts =
-			JSON.parse(
-				JSON.stringify(
-					shelf.products
-				)
-			);
-
-
 		if (
 			shelfEditorTitle
 		) {
@@ -1993,59 +2101,7 @@ const openShelfEditor =
 ========================================================= */
 
 const closeShelfEditor =
-	(
-		saveChanges = false
-	) => {
-
-		/* =============================================
-		   REMOVE EMPTY SHELF CREATED BY NEXT
-		============================================= */
-
-		if (
-			!saveChanges &&
-			freshShelfCreatedByNext &&
-			activeShelfIndex !== null &&
-			regularModShelves[activeShelfIndex] &&
-			regularModShelves[
-				activeShelfIndex
-			].products.length === 0
-		) {
-
-			regularModShelves.splice(
-				activeShelfIndex,
-				1
-			);
-
-
-			renumberRegularModShelves();
-
-		}
-
-		/* =============================================
-		   CANCEL - RESTORE ORIGINAL SHELF
-		============================================= */
-
-		else if (
-			!saveChanges &&
-			activeShelfIndex !== null &&
-			regularModShelves[activeShelfIndex]
-		) {
-
-			regularModShelves[
-				activeShelfIndex
-			].products =
-				JSON.parse(
-					JSON.stringify(
-						activeShelfOriginalProducts
-					)
-				);
-
-		}
-
-
-		/* =============================================
-		   CLOSE POPUP
-		============================================= */
+	() => {
 
 		if (
 			shelfEditor
@@ -2061,19 +2117,8 @@ const closeShelfEditor =
 			null;
 
 
-		activeShelfOriginalProducts =
-			[];
-
-
 		draggedProductIndex =
 			null;
-
-
-		freshShelfCreatedByNext =
-			false;
-
-
-		renderModularVisual();
 
 	};
 
@@ -2086,11 +2131,7 @@ if (shelfEditorClose) {
 
 	shelfEditorClose.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			closeShelfEditor();
 
@@ -2104,15 +2145,17 @@ if (shelfEditorClose) {
    SHELF EDITOR BACKDROP
 ========================================================= */
 
+const shelfEditorBackdrop =
+	document.querySelector(
+		'.regular-mod-shelf-editor-backdrop'
+	);
+
+
 if (shelfEditorBackdrop) {
 
 	shelfEditorBackdrop.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			closeShelfEditor();
 
@@ -2130,27 +2173,29 @@ if (shelfEditorFinish) {
 
 	shelfEditorFinish.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
-
-			if (
-				activeShelfIndex === null
-			) {
-
-				return;
-
-			}
-
+		() => {
 
 			markRegularModModified();
 
 
-			closeShelfEditor(
-				true
+			activeShelfIndex = null;
+
+			activeShelfOriginalProducts = [];
+
+
+			if (shelfEditor) {
+
+				shelfEditor.hidden = true;
+
+			}
+
+
+			shelfEditor.classList.remove(
+				'active'
 			);
+
+
+			renderModularVisual();
 
 		}
 	);
@@ -2166,11 +2211,7 @@ if (shelfEditorNext) {
 
 	shelfEditorNext.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			if (
 				activeShelfIndex === null
@@ -2181,6 +2222,10 @@ if (shelfEditorNext) {
 			}
 
 
+			const nextShelfIndex =
+				activeShelfIndex + 1;
+
+
 			/* =============================================
 			   SAVE CURRENT SHELF
 			============================================= */
@@ -2188,12 +2233,8 @@ if (shelfEditorNext) {
 			markRegularModModified();
 
 
-			const nextShelfIndex =
-				activeShelfIndex + 1;
-
-
 			/* =============================================
-			   INSERT FRESH NEXT SHELF
+			   INSERT EMPTY SHELF AFTER CURRENT
 			============================================= */
 
 			regularModShelves.splice(
@@ -2217,23 +2258,11 @@ if (shelfEditorNext) {
 				nextShelfIndex;
 
 
-			activeShelfOriginalProducts =
-				[];
-
-
-			freshShelfCreatedByNext =
-				true;
-
-
 			markRegularModModified();
 
 
 			renderModularVisual();
 
-
-			/* =============================================
-			   OPEN FRESH SHELF
-			============================================= */
 
 			openShelfEditor(
 				nextShelfIndex
@@ -2253,11 +2282,7 @@ if (shelfEditorEnterUpc) {
 
 	shelfEditorEnterUpc.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			if (
 				activeShelfIndex === null
@@ -2309,11 +2334,7 @@ if (shelfEditorCannotScan) {
 
 	shelfEditorCannotScan.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			console.log(
 				'Cannot Scan selected.'
@@ -2333,11 +2354,7 @@ if (shelfEditorUnstructured) {
 
 	shelfEditorUnstructured.addEventListener(
 		'click',
-		event => {
-
-			event.preventDefault();
-			event.stopPropagation();
-
+		() => {
 
 			console.log(
 				'Unstructured selected.'
