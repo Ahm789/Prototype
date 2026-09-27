@@ -358,6 +358,18 @@ const startBarcodeScanner =
 
 		createCameraScanner();
 
+		if (
+			shelfEditor
+		) {
+
+			shelfEditor.hidden =
+				true;
+
+		}
+
+
+		barcodeScanLocked =
+			false;
 
 		barcodeScanLocked =
 			false;
@@ -578,6 +590,15 @@ const stopBarcodeScanner =
 			cameraOverlay.classList.remove(
 				'active'
 			);
+
+		}
+				if (
+			shelfEditor &&
+			activeShelfIndex !== null
+		) {
+
+			shelfEditor.hidden =
+				false;
 
 		}
 
