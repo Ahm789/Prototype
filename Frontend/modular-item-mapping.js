@@ -765,16 +765,20 @@ const updateRegularModButton =
 		}
 
 
-		const hasEmptyShelf =
-			regularModShelves.some(
-				shelf =>
-					shelf.products.length === 0
-			);
+		if (
+			regularModModified
+		) {
 
+			regularModUpdate.disabled =
+				false;
 
-		regularModUpdate.disabled =
-			!regularModModified ||
-			hasEmptyShelf;
+		}
+		else {
+
+			regularModUpdate.disabled =
+				true;
+
+		}
 
 	};
 
