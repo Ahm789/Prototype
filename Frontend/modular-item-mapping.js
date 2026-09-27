@@ -797,7 +797,104 @@ const markRegularModModified =
 		updateRegularModButton();
 
 	};
+/* =========================================================
+   FINISH REGULAR MODULAR
+========================================================= */
 
+if (regularModUpdate) {
+
+	regularModUpdate.addEventListener(
+		'click',
+		async event => {
+
+			event.preventDefault();
+			event.stopPropagation();
+
+
+			if (
+				!selectedModularId ||
+				!regularModModified
+			) {
+
+				return;
+
+			}
+
+
+			try {
+
+				regularModUpdate.disabled =
+					true;
+
+
+				const response =
+					await apiRequest(
+						`${API_BASE}/modular/${encodeURIComponent(selectedModularId)}`,
+						{
+							method:
+								'PUT',
+
+							headers: {
+								'Content-Type':
+									'application/json'
+							},
+
+							body:
+								JSON.stringify({
+									shelves:
+										regularModShelves
+								})
+						}
+					);
+
+
+				console.log(
+					'Modular saved:',
+					response
+				);
+
+
+				regularModOriginalShelves =
+					JSON.parse(
+						JSON.stringify(
+							regularModShelves
+						)
+					);
+
+
+				regularModModified =
+					false;
+
+
+				updateRegularModButton();
+
+
+				alert(
+					'Modular updated successfully.'
+				);
+
+			}
+			catch (error) {
+
+				console.error(
+					'Failed to save modular:',
+					error
+				);
+
+
+				updateRegularModButton();
+
+
+				alert(
+					'Unable to update the modular.'
+				);
+
+			}
+
+		}
+	);
+
+}
 
 /* =========================================================
    RENUMBER SHELVES

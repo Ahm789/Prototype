@@ -3852,9 +3852,202 @@ router.get(
 	}
 );
 /* =========================================================
-   FORMAT LOCATION
+   SAVE REGULAR MODULAR
 ========================================================= */
 
+router.put(
+	'/modular/:modularId',
+	async (req, res) => {
+
+		const modularId =
+			req.params.modularId;
+
+		const shelves =
+			req.body.shelves;
+
+
+		if (
+			!Array.isArray(shelves)
+		) {
+
+			return res.status(400).json({
+				error:
+					'Invalid shelves data.'
+			});
+
+		}
+
+
+		const client =
+			await pool.connect();
+
+
+		try {
+
+			await client.query(
+				'BEGIN'
+			);
+
+
+			/* =================================================
+			   REMOVE CURRENT MODULAR
+			================================================= */
+
+			await client.query(
+				`
+				DELETE FROM modulars
+
+				WHERE modular_id = $1
+				`,
+				[
+					modularId
+				]
+			);
+
+
+			/* =================================================
+			   INSERT CURRENT MODULAR
+			================================================= */
+
+			for (
+				const shelfData of shelves
+			) {
+
+				const shelfNumber =
+					String(
+						shelfData.shelf ?? ''
+					);
+
+
+				const products =
+					Array.isArray(
+						shelfData.products
+					)
+						? shelfData.products
+						: [];
+
+
+				for (
+					let productIndex = 0;
+					productIndex < products.length;
+					productIndex++
+				) {
+
+					const product =
+						products[
+							productIndex
+						];
+
+
+					const itemId =
+						Number(
+							product.id
+						);
+
+
+					if (
+						!Number.isInteger(
+							itemId
+						)
+					) {
+
+						continue;
+
+					}
+
+
+					await client.query(
+						`
+						INSERT INTO modulars (
+							item_id,
+							aisle,
+							aisle_side,
+							bay,
+							shelf,
+							modular_id,
+							is_primary,
+							created_at,
+							"order"
+						)
+
+						VALUES (
+							$1,
+							$2,
+							$3,
+							$4,
+							$5,
+							$6,
+							$7,
+							NOW(),
+							$8
+						)
+						`,
+						[
+							itemId,
+
+							product.aisle ??
+								null,
+
+							product.aisleSide ??
+								null,
+
+							product.bay ??
+								null,
+
+							shelfNumber,
+
+							modularId,
+
+							true,
+
+							productIndex + 1
+						]
+					);
+
+				}
+
+			}
+
+
+			await client.query(
+				'COMMIT'
+			);
+
+
+			res.json({
+				success:
+					true,
+				modularId
+			});
+
+		}
+		catch (error) {
+
+			await client.query(
+				'ROLLBACK'
+			);
+
+
+			console.error(
+				'Failed to save modular:',
+				error
+			);
+
+
+			res.status(500).json({
+				error:
+					'Failed to save modular.'
+			});
+
+		}
+		finally {
+
+			client.release();
+
+		}
+
+	}
+);
 /* =========================================================
    FORMAT LOCATION
 ========================================================= */
