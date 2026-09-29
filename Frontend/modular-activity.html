@@ -311,12 +311,77 @@
                 <!-- =====================================================
                     REMAINING MOD TAGS
                 ====================================================== -->
+                <div class="modular-activity-remaining"> 
+                    Remaining Mod Tags 
+                    (<span id="modular-remaining-count">0</span>) 
+                </div>
 
-                <div class="modular-activity-remaining">
+                <!-- =====================================================
+                    MODULAR ACTIVITY STEP 2
+                ====================================================== -->
 
-                    Remaining Mod Tags (<span id="modular-remaining-count">0</span>)
+                <div
+                    id="modular-activity-step-2"
+                    class="modular-activity-step modular-activity-step-2"
+                    hidden
+                >
+
+                    <div class="modular-activity-step-header">
+
+                        <span class="modular-activity-step-number">
+                            Step 2
+                        </span>
+
+                        <span class="modular-activity-step-title">
+                            Update Modular
+                        </span>
+
+                    </div>
+
+
+                    <div class="modular-activity-step-instruction">
+
+                        If changes are needed in the modular, perform a
+                        Modular Scan-In for each required mod.
+
+                    </div>
+
+                    <div class="modular-activity-step-instruction">
+
+                        ⚠ If a bay has existing modulars, choose to overwrite them or add below.
+
+                    </div>
+
+                    <div
+                        class="modular-activity-step-tip"
+                    >
+
+                        <strong>
+                            Tip:
+                        </strong>
+
+                        <span>
+                            If everything is fine, skip this step.
+                        </span>
+
+                    </div>
 
                 </div>
+
+                <!-- =====================================================
+                    LINKED MOD TAGS
+                ====================================================== -->
+
+                <div
+                    class="modular-activity-remaining"
+                    id="modular-linked-tags"
+                    hidden
+                >
+
+                    Linked Mod Tags
+                    (<span id="modular-linked-count">0</span>)
+
+                </div> 
                 
                 <!-- =====================================================
                     MOD TAG ASSIGNMENTS
@@ -325,6 +390,11 @@
                 <div
                     id="modular-tag-assignments"
                     class="modular-tag-assignments"
+                ></div>
+                <div
+                    id="modular-step-2-assignments"
+                    class="modular-step-2-assignments"
+                    hidden
                 ></div>
 
 			</div>
@@ -361,6 +431,27 @@
                     Next (<span id="modular-activity-current">0</span>/<span id="modular-activity-total">0</span>)
                 </button>
 
+                <!--- ===================================================
+                    Step 2 Buttons
+               ======================================================= -->
+
+                <button
+                    type="button"
+                    class="modular-activity-action modular-activity-step-back"
+                    id="modular-activity-step-back"
+                    hidden
+                >
+                    Back
+                </button>
+
+                <button
+                    type="button"
+                    class="modular-activity-action modular-activity-finish"
+                    id="modular-activity-finish"
+                    hidden
+                >
+                    Finish
+                </button>
             </div>
 
 		</section>

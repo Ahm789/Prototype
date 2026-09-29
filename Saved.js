@@ -1,7 +1,3 @@
-/* =========================================================
-   API CONFIGURATION
-========================================================= */
-
 const isLocal =
 	window.location.protocol === 'file:' ||
 	window.location.hostname === 'localhost' ||
@@ -18,1724 +14,1275 @@ const API_BASE =
 	`${API_ORIGIN}/api/products`;
 
 
-/* =========================================================
-   API REQUEST
-========================================================= */
-
-const apiRequest =
-	async (
-		url,
-		options = {}
-	) => {
-
-		const response =
-			await fetch(
-				url,
-				options
-			);
+const modularActivityName =
+	document.querySelector(
+		'#modular-activity-name'
+	);
 
 
-		if (!response.ok) {
-
-			throw new Error(
-				`Request failed: ${response.status}`
-			);
-
-		}
-
-
-		return response.json();
-
-	};
+const modularActivityBack =
+	document.querySelector(
+		'#modular-activity-back'
+	);
 
 
 /* =========================================================
-   GET MODULAR PRODUCTS
+   GET MODULAR ACTIVITY DATA
 ========================================================= */
 
-const getModularProducts =
-	async (
-		modularId
-	) => {
+const params =
+	new URLSearchParams(
+		window.location.search
+	);
 
-		return apiRequest(
-			`${API_BASE}/modular/${encodeURIComponent(modularId)}`
+
+const planogramNumber =
+	params.get(
+		'planogram'
+	);
+
+
+const modularName =
+	params.get(
+		'modularName'
+	);
+
+
+const departmentNumber =
+	params.get(
+		'departmentNumber'
+	);
+
+
+const dueDate =
+	params.get(
+		'dueDate'
+	);
+
+
+const searchUPC =
+	params.get(
+		'upc'
+	) || '';
+
+const modularSearchError =
+	document.querySelector(
+		'#modular-search-error'
+	);
+
+let modularSearchErrorTimeout =
+	null;
+const modularRemainingCount =
+	document.querySelector(
+		'#modular-remaining-count'
+	);
+
+
+const modularActivityCurrent =
+	document.querySelector(
+		'#modular-activity-current'
+	);
+
+
+const modularActivityTotal =
+	document.querySelector(
+		'#modular-activity-total'
+	);
+const modularTagAssignmentsContainer =
+	document.querySelector(
+		'#modular-tag-assignments'
+	);
+const scanModeToggle =
+	document.querySelector(
+		'#scan-mode-toggle'
+	);
+const isStandardScanMode =
+	() => {
+
+		return (
+			scanModeToggle &&
+			scanModeToggle.checked === true
 		);
 
 	};
-
-
-/* =========================================================
-   SELECTED MODULAR
-========================================================= */
-
-const selectedModularId =
-	localStorage.getItem(
-		'selectedModularId'
-	);
-
-
-/* =========================================================
-   REGULAR MOD NAME
-========================================================= */
-
-const regularModName =
-	document.querySelector(
-		'#regular-mod-name'
-	);
-
-
-if (regularModName) {
-
-	if (selectedModularId) {
-
-		regularModName.textContent =
-			`UPDATING (${selectedModularId})`;
-
-	}
-	else {
-
-		regularModName.textContent =
-			'UPDATING';
-
-	}
-
-}
-
-
-/* =========================================================
-   REGULAR MOD ELEMENTS
-========================================================= */
-
-const modularVisual =
-	document.querySelector(
-		'#modular-visual'
-	);
-
-
-const regularModUpdate =
-	document.querySelector(
-		'#regular-mod-update'
-	);
-
-
-const regularModBack =
-	document.querySelector(
-		'#regular-mod-back'
-	);
-
-
-const regularModCancel =
-	document.querySelector(
-		'#regular-mod-cancel'
-	);
-
-
-const regularModReset =
-	document.querySelector(
-		'#regular-mod-reset'
-	);
-
-
-const regularModClear =
-	document.querySelector(
-		'#regular-modular-clear'
-	);
-
-
-/* =========================================================
-   CONFIRMATION MODAL ELEMENTS
-========================================================= */
-
-const clearModal =
-	document.querySelector(
-		'#modular-clear-modal'
-	);
-
-
-const clearModalTitle =
-	document.querySelector(
-		'#modular-clear-modal-title'
-	);
-
-
-const clearModalMessage =
+const modularClearModalMessage =
 	document.querySelector(
 		'#modular-clear-modal-message'
 	);
-
-
-const clearModalCancel =
+const modularEndTaskButton =
 	document.querySelector(
-		'#modular-clear-modal-cancel'
+		'#modular-activity-end'
+	);
+const modularClearModalTitle =
+	document.querySelector(
+		'#modular-clear-modal-title'
+	);
+/* =========================================================
+   MODULAR SCAN MODE TITLE
+========================================================= */
+
+const modularActivityStepTitle =
+	document.querySelector(
+		'.modular-activity-step-title'
 	);
 
 
-const clearModalConfirm =
-	document.querySelector(
-		'#modular-clear-modal-confirm'
-	);
-
-
-const clearModalBackdrop =
-	document.querySelector(
-		'[data-clear-modal-close]'
-	);
-
-
-/* =========================================================
-   REGULAR MOD STATE
-========================================================= */
-
-let regularModShelves = [];
-
-let regularModOriginalShelves = [];
-
-let regularModModified = false;
-
-
-/* =========================================================
-   SHELF EDITOR STATE
-========================================================= */
-
-let activeShelfIndex = null;
-
-let draggedProductIndex = null;
-
-
-/* =========================================================
-   CONFIRMATION MODAL STATE
-========================================================= */
-
-let confirmationAction = null;
-
-
-/* =========================================================
-   OPEN CONFIRMATION MODAL
-========================================================= */
-
-const openConfirmationModal =
-	({
-		title,
-		message,
-		confirmText,
-		onConfirm
-	}) => {
-
-		if (
-			!clearModal ||
-			!clearModalTitle ||
-			!clearModalMessage ||
-			!clearModalConfirm
-		) {
-
-			return;
-
-		}
-
-
-		clearModalTitle.textContent =
-			title;
-
-
-		clearModalMessage.textContent =
-			message;
-
-
-		clearModalConfirm.textContent =
-			confirmText;
-
-
-		confirmationAction =
-			onConfirm;
-
-
-		clearModal.hidden =
-			false;
-
-
-		if (
-			window.lucide
-		) {
-
-			lucide.createIcons();
-
-		}
-
-	};
-
-
-/* =========================================================
-   CLOSE CONFIRMATION MODAL
-========================================================= */
-
-const closeConfirmationModal =
+const updateModularActivityStepTitle =
 	() => {
 
-		if (!clearModal) {
+		if (
+			!modularActivityStepTitle
+		) {
+			return;
+		}
+
+
+		if (
+			scanModeToggle &&
+			scanModeToggle.checked
+		) {
+
+			modularActivityStepTitle.textContent =
+				'Scan all Mod tags in order';
+
+		}
+		else {
+
+			modularActivityStepTitle.textContent =
+				'Scan first and last Mod Tag';
+
+		}
+
+	};
+
+/* =========================================================
+   SMART TAG RANGE
+========================================================= */
+
+const generateSmartTagRange =
+	(
+		firstTag,
+		lastTag
+	) => {
+
+		const firstParts =
+			firstTag.split('-');
+
+		const lastParts =
+			lastTag.split('-');
+
+
+		if (
+			firstParts.length !== 4 ||
+			lastParts.length !== 4
+		) {
+
+			return [];
+
+		}
+
+
+		const firstPrefix =
+			`${firstParts[0]}-${firstParts[1]}-${firstParts[2]}`;
+
+		const lastPrefix =
+			`${lastParts[0]}-${lastParts[1]}-${lastParts[2]}`;
+
+
+		/*
+			The first and last Mod Tags must belong
+			to the same aisle / side / section.
+		*/
+
+		if (
+			firstPrefix !== lastPrefix
+		) {
+
+			return [];
+
+		}
+
+
+		const firstNumber =
+			Number(
+				firstParts[3]
+			);
+
+		const lastNumber =
+			Number(
+				lastParts[3]
+			);
+
+
+		if (
+			!Number.isInteger(firstNumber) ||
+			!Number.isInteger(lastNumber) ||
+			lastNumber < firstNumber
+		) {
+
+			return [];
+
+		}
+
+
+		const tags = [];
+
+
+		for (
+			let number = firstNumber;
+			number <= lastNumber;
+			number++
+		) {
+
+			tags.push(
+				`${firstPrefix}-${number}`
+			);
+
+		}
+
+
+		return tags;
+
+	};
+/* =========================================================
+   INITIAL TITLE
+========================================================= */
+
+updateModularActivityStepTitle();
+
+
+/* =========================================================
+   UPDATE WHEN SCAN MODE CHANGES
+========================================================= */
+
+if (
+	scanModeToggle
+) {
+
+	scanModeToggle.addEventListener(
+		'change',
+		updateModularActivityStepTitle
+	);
+
+}
+/* =========================================================
+   MODULAR SEARCH
+========================================================= */
+const showModularSearchError = (
+	message
+) => {
+
+	if (
+		!modularSearchError
+	) {
+		return;
+	}
+
+
+	if (
+		modularSearchErrorTimeout
+	) {
+
+		clearTimeout(
+			modularSearchErrorTimeout
+		);
+
+	}
+
+
+	modularSearchError.textContent =
+		message;
+
+	modularSearchError.hidden =
+		false;
+
+
+	modularSearchErrorTimeout =
+		setTimeout(
+			() => {
+
+				modularSearchError.hidden =
+					true;
+
+				modularSearchError.textContent =
+					'';
+
+			},
+			5000
+		);
+
+};
+const modularSearchButton =
+	document.querySelector(
+		'#modular-search-mod-tag'
+	);
+
+const modularSearchInput =
+	document.querySelector(
+		'#modular-search-upc'
+	);
+
+
+const searchModularTag =
+	async () => {
+
+		const modularTag =
+			modularSearchInput.value
+				.trim()
+				.toUpperCase();
+
+
+		/*
+			Expected formats:
+
+			FF-14-L-1
+			FF-15-R-13
+			FF-14-GE1-2
+			FF-15-GE2-3
+		*/
+
+		const modularTagPattern =
+			/^[A-Z0-9]+-[0-9]+-(?:L|R|GE1|GE2)-[0-9]+$/i;
+
+
+		if (
+			!modularTagPattern.test(
+				modularTag
+			)
+		) {
+
+			showModularSearchError(
+				'Invalid Mod Tag. Use the format FF-15-L-13, FF-14-GE1-2, etc.'
+			);
 
 			return;
 
 		}
 
 
-		clearModal.hidden =
-			true;
+				try {
 
-
-		confirmationAction =
-			null;
-
-	};
-
-
-/* =========================================================
-   CONFIRMATION MODAL - CANCEL
-========================================================= */
-
-if (clearModalCancel) {
-
-	clearModalCancel.addEventListener(
-		'click',
-		() => {
-
-			closeConfirmationModal();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   CONFIRMATION MODAL - BACKDROP
-========================================================= */
-
-if (clearModalBackdrop) {
-
-	clearModalBackdrop.addEventListener(
-		'click',
-		() => {
-
-			closeConfirmationModal();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   CONFIRMATION MODAL - CONFIRM
-========================================================= */
-
-if (clearModalConfirm) {
-
-	clearModalConfirm.addEventListener(
-		'click',
-		() => {
-
-			const action =
-				confirmationAction;
-
-
-			closeConfirmationModal();
+			const response =
+				await fetch(
+					`${API_ORIGIN}/api/products/modular-tags/` +
+					encodeURIComponent(
+						modularTag
+					)
+				);
 
 
 			if (
-				typeof action === 'function'
+				!response.ok
 			) {
 
-				action();
+				showModularSearchError(
+					'Mod Tag not found. Use a valid tag such as FF-15-L-13 or FF-14-GE1-2.'
+				);
+
+				return;
 
 			}
 
-		}
-	);
 
-}
-
-
-/* =========================================================
-   UPDATE BUTTON STATE
-========================================================= */
-
-const updateRegularModButton =
-	() => {
-
-		if (!regularModUpdate) {
-
-			return;
-
-		}
+			const result =
+				await response.json();
 
 
-		const hasEmptyShelf =
-			regularModShelves.some(
-				shelf =>
-					shelf.products.length === 0
-			);
+			if (
+				!result ||
+				result.exists !== true
+			) {
 
+				showModularSearchError(
+					'Mod Tag not found. Use a valid tag such as FF-15-L-13 or FF-14-GE1-2.'
+				);
 
-		regularModUpdate.disabled =
-			!regularModModified ||
-			hasEmptyShelf;
-
-	};
-
-
-/* =========================================================
-   MARK REGULAR MOD AS MODIFIED
-========================================================= */
-
-const markRegularModModified =
-	() => {
-
-		regularModModified =
-			true;
-
-
-		updateRegularModButton();
-
-	};
-
-
-/* =========================================================
-   RENUMBER SHELVES
-========================================================= */
-
-const renumberRegularModShelves =
-	() => {
-
-		regularModShelves.forEach(
-			(
-				shelf,
-				index
-			) => {
-
-				shelf.shelf =
-					index + 1;
+				return;
 
 			}
-		);
-
-	};
 
 
-/* =========================================================
-   INSERT SHELF
-========================================================= */
+			/*
+				Prevent the same Mod Tag
+				from being submitted twice.
+			*/
 
-const insertRegularModShelf =
-	(
-		index
-	) => {
+			const alreadySubmitted =
+				modularTagAssignments.some(
+					assignment =>
+						assignment.modularTag ===
+						modularTag
+				);
 
-		regularModShelves.splice(
-			index,
-			0,
-			{
-				shelf: 0,
-				products: []
+
+			if (
+				alreadySubmitted
+			) {
+
+				showModularSearchError(
+					'This Mod Tag has already been submitted.'
+				);
+
+				return;
+
 			}
-		);
 
 
-		renumberRegularModShelves();
+			/*
+				Valid Mod Tag.
+				Temporarily assign it
+				to the next modular.
+			*/
 
+			if (
+				isStandardScanMode()
+			) {
 
-		markRegularModModified();
+				/*
+					Standard mode:
+					add each scanned Mod Tag individually.
+				*/
 
+				addModularTagAssignment(
+					modularTag
+				);
 
-		renderModularVisual();
+			}
+			else {
 
-	};
+				/*
+					Smart Tag mode:
+					the first scanned tag is stored,
+					then the second scanned tag completes
+					the range.
+				*/
 
+				if (
+					modularTagAssignments.length === 0
+				) {
 
-/* =========================================================
-   LEAVE WITHOUT SAVING
-========================================================= */
+					modularTagAssignments.push({
+						modular:
+							requiredModulars[0],
 
-const leaveRegularMod =
-	() => {
+						modularTag:
+							modularTag,
 
-		closeShelfEditor();
+						smartTagStart:
+							true
+					});
 
 
-		window.history.back();
+					renderModularTagAssignments();
 
-	};
+					updateModularActivityCounters();
 
-
-/* =========================================================
-   CONFIRM LEAVE
-========================================================= */
-
-const confirmLeaveRegularMod =
-	() => {
-
-		openConfirmationModal({
-
-			title:
-				'Leave Without Saving?',
-
-			message:
-				'Are you sure you want to leave this modular without saving your changes?',
-
-			confirmText:
-				'Leave',
-
-			onConfirm:
-				leaveRegularMod
-
-		});
-
-	};
-
-
-/* =========================================================
-   REGULAR MOD BACK BUTTON
-========================================================= */
-
-if (regularModBack) {
-
-	regularModBack.addEventListener(
-		'click',
-		() => {
-
-			confirmLeaveRegularMod();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   REGULAR MOD CANCEL BUTTON
-========================================================= */
-
-if (regularModCancel) {
-
-	regularModCancel.addEventListener(
-		'click',
-		() => {
-
-			confirmLeaveRegularMod();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   RESET MODULAR
-========================================================= */
-
-const resetRegularMod =
-	() => {
-
-		closeShelfEditor();
-
-
-		regularModShelves =
-			JSON.parse(
-				JSON.stringify(
-					regularModOriginalShelves
-				)
-			);
-
-
-		regularModModified =
-			false;
-
-
-		renderModularVisual();
-
-	};
-
-
-/* =========================================================
-   CLEAR MODULAR
-========================================================= */
-
-const clearRegularMod =
-	() => {
-
-		closeShelfEditor();
-
-
-		regularModShelves =
-			[];
-
-
-		regularModModified =
-			true;
-
-
-		renderModularVisual();
-
-	};
-
-
-/* =========================================================
-   CONFIRM CLEAR MODULAR
-========================================================= */
-
-const confirmClearRegularMod =
-	() => {
-
-		openConfirmationModal({
-
-			title:
-				'Clear Modular?',
-
-			message:
-				'Are you sure you want to clear this modular? All shelves and items will be removed from the current edit.',
-
-			confirmText:
-				'Clear Modular',
-
-			onConfirm:
-				clearRegularMod
-
-		});
-
-	};
-
-
-/* =========================================================
-   REGULAR MOD CLEAR BUTTON
-========================================================= */
-
-if (regularModClear) {
-
-	regularModClear.addEventListener(
-		'click',
-		() => {
-
-			confirmClearRegularMod();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   CONFIRM RESET MODULAR
-========================================================= */
-
-const confirmResetRegularMod =
-	() => {
-
-		openConfirmationModal({
-
-			title:
-				'Reset Modular?',
-
-			message:
-				'Are you sure you want to reset this modular? All unsaved changes will be removed.',
-
-			confirmText:
-				'Reset Modular',
-
-			onConfirm:
-				resetRegularMod
-
-		});
-
-	};
-
-
-/* =========================================================
-   REGULAR MOD RESET BUTTON
-========================================================= */
-
-if (regularModReset) {
-
-	regularModReset.addEventListener(
-		'click',
-		() => {
-
-			confirmResetRegularMod();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   REMOVE SHELF
-========================================================= */
-
-const removeRegularModShelf =
-	(
-		shelfIndex
-	) => {
-
-		if (
-			shelfIndex < 0 ||
-			shelfIndex >= regularModShelves.length
-		) {
-
-			return;
-
-		}
-
-
-		regularModShelves.splice(
-			shelfIndex,
-			1
-		);
-
-
-		renumberRegularModShelves();
-
-
-		markRegularModModified();
-
-
-		renderModularVisual();
-
-	};
-
-
-/* =========================================================
-   CONFIRM REMOVE SHELF
-========================================================= */
-
-const confirmRemoveRegularModShelf =
-	(
-		shelfIndex,
-		onComplete = null
-	) => {
-
-		const shelfNumber =
-			regularModShelves[
-				shelfIndex
-			]?.shelf;
-
-
-		if (
-			typeof shelfNumber !== 'number'
-		) {
-
-			return;
-
-		}
-
-
-		openConfirmationModal({
-
-			title:
-				`Remove Shelf ${shelfNumber}?`,
-
-			message:
-				`Are you sure you want to remove Shelf ${shelfNumber}? All products currently on this shelf will be removed from the current edit.`,
-
-			confirmText:
-				'Remove Shelf',
-
-			onConfirm:
-				() => {
-
-					removeRegularModShelf(
-						shelfIndex
-					);
+					updateModularBayCompletionStates();
 
 
 					if (
-						typeof onComplete === 'function'
+						modularSearchInput
 					) {
 
-						onComplete();
+						modularSearchInput.value =
+							'';
+
+						modularSearchInput.focus();
 
 					}
 
-				}
-
-		});
-
-	};
-
-
-/* =========================================================
-   SHELF EDITOR STYLE
-========================================================= */
-
-const createShelfEditorStyles =
-	() => {
-
-		if (
-			document.querySelector(
-				'#regular-mod-shelf-editor-styles'
-			)
-		) {
-
-			return;
-
-		}
-
-
-		const style =
-			document.createElement(
-				'style'
-			);
-
-
-		style.id =
-			'regular-mod-shelf-editor-styles';
-
-
-		style.textContent = `
-
-			.regular-mod-shelf-editor {
-
-				position: fixed;
-
-				inset: 0;
-
-				z-index: 9998;
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				padding: 20px;
-
-				box-sizing: border-box;
-
-			}
-
-
-			.regular-mod-shelf-editor[hidden] {
-
-				display: none;
-
-			}
-
-
-			.regular-mod-shelf-editor-backdrop {
-
-				position: absolute;
-
-				inset: 0;
-
-				background: rgba(0, 0, 0, 0.55);
-
-				backdrop-filter: blur(2px);
-
-			}
-
-
-			.regular-mod-shelf-editor-dialog {
-
-				position: relative;
-
-				z-index: 1;
-
-				width: 100%;
-
-				max-width: 520px;
-
-				max-height: calc(100vh - 40px);
-
-				overflow: hidden;
-
-				background: var(--paper);
-
-				border-radius: 10px;
-
-				box-shadow:
-					0 18px 50px rgba(0, 0, 0, 0.25);
-
-			}
-
-
-			.regular-mod-shelf-editor-header {
-
-				position: relative;
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				min-height: 58px;
-
-				padding: 0 52px;
-
-				background: #0A928C;
-
-				color: #ffffff;
-
-				box-sizing: border-box;
-
-			}
-
-
-			.regular-mod-shelf-editor-title {
-
-				margin: 0;
-
-				font-size: 18px;
-
-				font-weight: 700;
-
-				text-align: center;
-
-			}
-
-
-			.regular-mod-shelf-editor-close {
-
-				position: absolute;
-
-				top: 50%;
-
-				right: 12px;
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				width: 34px;
-
-				height: 34px;
-
-				padding: 0;
-
-				transform: translateY(-50%);
-
-				border: 0;
-
-				border-radius: 50%;
-
-				background: transparent;
-
-				color: #ffffff;
-
-				font-size: 25px;
-
-				cursor: pointer;
-
-			}
-
-
-			.regular-mod-shelf-editor-body {
-
-				padding: 18px;
-
-				overflow-y: auto;
-
-			}
-
-
-			.regular-mod-shelf-editor-upcs {
-
-				margin-bottom: 14px;
-
-				font-size: 13px;
-
-				font-weight: 700;
-
-				color: var(--text);
-
-			}
-
-
-			.regular-mod-shelf-editor-products {
-
-				display: flex;
-
-				align-items: center;
-
-				gap: 10px;
-
-				width: 100%;
-
-				padding: 8px 4px 14px;
-
-				overflow-x: auto;
-
-				overflow-y: hidden;
-
-				box-sizing: border-box;
-
-			}
-
-
-			.regular-mod-shelf-editor-product {
-
-				position: relative;
-
-				flex: 0 0 76px;
-
-				width: 76px;
-
-				height: 76px;
-
-				border: 1px solid var(--border);
-
-				border-radius: 6px;
-
-				background: #ffffff;
-
-				cursor: grab;
-
-				user-select: none;
-
-				box-sizing: border-box;
-
-			}
-
-
-			.regular-mod-shelf-editor-product:active {
-
-				cursor: grabbing;
-
-			}
-
-
-			.regular-mod-shelf-editor-product.dragging {
-
-				opacity: 0.45;
-
-			}
-
-
-			.regular-mod-shelf-editor-product img {
-
-				display: block;
-
-				width: 100%;
-
-				height: 100%;
-
-				object-fit: contain;
-
-				border-radius: 6px;
-
-			}
-
-
-			.regular-mod-shelf-editor-remove {
-
-				position: absolute;
-
-				top: -7px;
-
-				right: -7px;
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				width: 22px;
-
-				height: 22px;
-
-				padding: 0;
-
-				border: 2px solid #ffffff;
-
-				border-radius: 50%;
-
-				background: #dc2626;
-
-				color: #ffffff;
-
-				font-size: 16px;
-
-				font-weight: 700;
-
-				line-height: 1;
-
-				cursor: pointer;
-
-				z-index: 2;
-
-			}
-
-
-			.regular-mod-shelf-editor-scan {
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				flex: 0 0 76px;
-
-				width: 76px;
-
-				height: 76px;
-
-				border: 2px dashed #0A928C;
-
-				border-radius: 6px;
-
-				background: rgba(10, 146, 140, 0.06);
-
-				color: #0A928C;
-
-				cursor: pointer;
-
-			}
-
-
-			.regular-mod-shelf-editor-scan svg {
-
-				width: 28px;
-
-				height: 28px;
-
-			}
-
-
-			.regular-mod-shelf-editor-duplicates {
-
-				min-height: 20px;
-
-				margin-bottom: 14px;
-
-				font-size: 12px;
-
-				font-weight: 700;
-
-				color: #dc2626;
-
-			}
-
-
-			.regular-mod-shelf-editor-tools {
-
-				display: grid;
-
-				grid-template-columns: repeat(3, 1fr);
-
-				gap: 8px;
-
-				margin-top: 4px;
-
-			}
-
-
-			.regular-mod-shelf-editor-tool {
-
-				display: flex;
-
-				align-items: center;
-
-				justify-content: center;
-
-				gap: 6px;
-
-				min-height: 42px;
-
-				padding: 8px;
-
-				border: 1px solid var(--border);
-
-				border-radius: 6px;
-
-				background: var(--paper);
-
-				color: var(--text);
-
-				font: inherit;
-
-				font-size: 12px;
-
-				font-weight: 600;
-
-				cursor: pointer;
-
-			}
-
-
-			.regular-mod-shelf-editor-tool svg {
-
-				width: 16px;
-
-				height: 16px;
-
-			}
-
-
-			.regular-mod-shelf-editor-actions {
-
-				display: flex;
-
-				gap: 10px;
-
-				margin-top: 18px;
-
-			}
-
-
-			.regular-mod-shelf-editor-action {
-
-				flex: 1;
-
-				min-height: 44px;
-
-				border: 0;
-
-				border-radius: 6px;
-
-				font: inherit;
-
-				font-size: 13px;
-
-				font-weight: 700;
-
-				cursor: pointer;
-
-			}
-
-
-			.regular-mod-shelf-editor-finish {
-
-				background: #78BE20;
-
-				color: #ffffff;
-
-			}
-
-
-			.regular-mod-shelf-editor-next {
-
-				background: #0A928C;
-
-				color: #ffffff;
-
-			}
-
-
-			@media (max-width: 480px) {
-
-				.regular-mod-shelf-editor-tools {
-
-					grid-template-columns: 1fr;
-
-				}
-
-			}
-
-		`;
-
-
-		document.head.appendChild(
-			style
-		);
-
-	};
-
-
-/* =========================================================
-   CREATE SHELF EDITOR
-========================================================= */
-
-const createShelfEditor =
-	() => {
-
-		if (
-			document.querySelector(
-				'#regular-mod-shelf-editor'
-			)
-		) {
-
-			return;
-
-		}
-
-
-		createShelfEditorStyles();
-
-
-		const editor =
-			document.createElement(
-				'div'
-			);
-
-
-		editor.id =
-			'regular-mod-shelf-editor';
-
-
-		editor.className =
-			'regular-mod-shelf-editor';
-
-
-		editor.hidden =
-			true;
-
-
-		editor.innerHTML = `
-
-			<div
-				class="regular-mod-shelf-editor-backdrop"
-			></div>
-
-
-			<div
-				class="regular-mod-shelf-editor-dialog"
-				role="dialog"
-				aria-modal="true"
-			>
-
-				<div
-					class="regular-mod-shelf-editor-header"
-				>
-
-					<h2
-						class="regular-mod-shelf-editor-title"
-						id="regular-mod-shelf-editor-title"
-					>
-						Shelf 1
-					</h2>
-
-
-					<button
-						type="button"
-						class="regular-mod-shelf-editor-close"
-						id="regular-mod-shelf-editor-close"
-						aria-label="Close shelf editor"
-					>
-						×
-					</button>
-
-				</div>
-
-
-				<div
-					class="regular-mod-shelf-editor-body"
-				>
-
-					<div
-						class="regular-mod-shelf-editor-upcs"
-						id="regular-mod-shelf-editor-upcs"
-					>
-						UPCs 0
-					</div>
-
-
-					<div
-						class="regular-mod-shelf-editor-products"
-						id="regular-mod-shelf-editor-products"
-					>
-					</div>
-
-
-					<div
-						class="regular-mod-shelf-editor-duplicates"
-						id="regular-mod-shelf-editor-duplicates"
-					>
-					</div>
-
-
-					<div
-						class="regular-mod-shelf-editor-tools"
-					>
-
-						<button
-							type="button"
-							class="regular-mod-shelf-editor-tool"
-							id="regular-mod-shelf-enter-upc"
-						>
-
-							<i
-								data-lucide="scan-barcode"
-								aria-hidden="true"
-							></i>
-
-							<span>
-								Enter UPC
-							</span>
-
-						</button>
-
-
-						<button
-							type="button"
-							class="regular-mod-shelf-editor-tool"
-							id="regular-mod-shelf-cannot-scan"
-						>
-
-							<i
-								data-lucide="triangle-alert"
-								aria-hidden="true"
-							></i>
-
-							<span>
-								Cannot Scan
-							</span>
-
-						</button>
-
-
-						<button
-							type="button"
-							class="regular-mod-shelf-editor-tool"
-							id="regular-mod-shelf-unstructured"
-						>
-
-							<i
-								data-lucide="package-open"
-								aria-hidden="true"
-							></i>
-
-							<span>
-								Unstructured
-							</span>
-
-						</button>
-
-					</div>
-
-
-					<div
-						class="regular-mod-shelf-editor-actions"
-					>
-
-						<button
-							type="button"
-							class="regular-mod-shelf-editor-action regular-mod-shelf-editor-finish"
-							id="regular-mod-shelf-finish"
-						>
-							Finish
-						</button>
-
-
-						<button
-							type="button"
-							class="regular-mod-shelf-editor-action regular-mod-shelf-editor-next"
-							id="regular-mod-shelf-next"
-						>
-							Next Shelf
-						</button>
-
-					</div>
-
-				</div>
-
-			</div>
-
-		`;
-
-
-		document.body.appendChild(
-			editor
-		);
-
-	};
-
-
-/* =========================================================
-   SHELF EDITOR ELEMENTS
-========================================================= */
-
-createShelfEditor();
-
-
-const shelfEditor =
-	document.querySelector(
-		'#regular-mod-shelf-editor'
-	);
-
-
-const shelfEditorTitle =
-	document.querySelector(
-		'#regular-mod-shelf-editor-title'
-	);
-
-
-const shelfEditorUpcs =
-	document.querySelector(
-		'#regular-mod-shelf-editor-upcs'
-	);
-
-
-const shelfEditorProducts =
-	document.querySelector(
-		'#regular-mod-shelf-editor-products'
-	);
-
-
-const shelfEditorDuplicates =
-	document.querySelector(
-		'#regular-mod-shelf-editor-duplicates'
-	);
-
-
-const shelfEditorClose =
-	document.querySelector(
-		'#regular-mod-shelf-editor-close'
-	);
-
-
-const shelfEditorFinish =
-	document.querySelector(
-		'#regular-mod-shelf-finish'
-	);
-
-
-const shelfEditorNext =
-	document.querySelector(
-		'#regular-mod-shelf-next'
-	);
-
-
-const shelfEditorEnterUpc =
-	document.querySelector(
-		'#regular-mod-shelf-enter-upc'
-	);
-
-
-const shelfEditorCannotScan =
-	document.querySelector(
-		'#regular-mod-shelf-cannot-scan'
-	);
-
-
-const shelfEditorUnstructured =
-	document.querySelector(
-		'#regular-mod-shelf-unstructured'
-	);
-
-
-/* =========================================================
-   DUPLICATE PAIRS
-========================================================= */
-
-const getDuplicatePairCount =
-	(
-		products
-	) => {
-
-		const counts =
-			new Map();
-
-
-		products.forEach(
-			product => {
-
-				const upc =
-					String(
-						product.upc ?? ''
-					).trim();
-
-
-				if (!upc) {
 
 					return;
 
 				}
 
 
-				counts.set(
-					upc,
-					(
-						counts.get(upc) ||
-						0
-					) + 1
-				);
-
-			}
-		);
+				const firstTag =
+					modularTagAssignments[0].modularTag;
 
 
-		let pairs =
-			0;
+				const smartTagRange =
+					generateSmartTagRange(
+						firstTag,
+						modularTag
+					);
 
-
-		counts.forEach(
-			count => {
 
 				if (
-					count > 1
+					smartTagRange.length === 0
 				) {
 
-					pairs +=
-						Math.floor(
-							count / 2
-						);
+					showModularSearchError(
+						'The first and last Mod Tags must be in the same section, with the last tag after the first.'
+					);
+
+					return;
 
 				}
 
+
+				/* =================================================
+				PREVENT SMART RANGE EXCEEDING AVAILABLE MODULARS
+				================================================= */
+
+				if (
+					smartTagRange.length >
+					requiredModulars.length
+				) {
+
+					showModularSearchError(
+						`This Mod Tag range contains ${smartTagRange.length} mods, but only ${requiredModulars.length} are available.`
+					);
+
+					return;
+
+				}
+
+
+				/*
+					Remove the temporary first-tag entry.
+				*/
+
+				modularTagAssignments.length =
+					0;
+
+
+				/*
+					Generate every Mod Tag in the range.
+				*/
+
+				smartTagRange.forEach(
+					(
+						tag,
+						index
+					) => {
+
+						const isSmartGenerated =
+							index > 0 &&
+							index < smartTagRange.length - 1;
+
+
+						modularTagAssignments.push({
+							modular:
+								requiredModulars[
+									index
+								] ?? null,
+
+							modularTag:
+								tag,
+
+							smartGenerated:
+								isSmartGenerated
+						});
+
+					}
+				);
+
+
+				renderModularTagAssignments();
+
+				updateModularActivityCounters();
+
+				updateModularBayCompletionStates();
+
+
+				/* =============================================
+				   LOCK MOD TAG ENTRY WHEN ALL MODULARS ARE FILLED
+				============================================= */
+
+				if (
+					modularTagAssignments.length >=
+					requiredModulars.length
+				) {
+
+					if (
+						modularSearchInput
+					) {
+
+						modularSearchInput.disabled =
+							true;
+
+					}
+
+
+					if (
+						modularSearchButton
+					) {
+
+						modularSearchButton.disabled =
+							true;
+
+					}
+
+
+					console.log(
+						'All required Mod Tags have been entered.'
+					);
+
+				}
+
+
+				console.log(
+					'Smart Tag range generated:',
+					modularTagAssignments
+				);
+
 			}
+
+
+			/*
+				Clear the search field
+				after successful submission.
+			*/
+
+			if (
+				modularSearchInput
+			) {
+
+				modularSearchInput.value =
+					'';
+
+				modularSearchInput.focus();
+
+			}
+
+		} catch (error) {
+
+			console.error(
+				'Unable to find Mod Tag:',
+				error
+			);
+
+
+			showModularSearchError(
+				'Unable to find this Mod Tag. Please try again.'
+			);
+
+		}
+
+	};
+
+
+if (
+	modularSearchButton
+) {
+
+	modularSearchButton.addEventListener(
+		'click',
+		event => {
+
+			event.preventDefault();
+
+			searchModularTag();
+
+		}
+	);
+
+}
+
+
+if (
+	modularSearchInput
+) {
+
+	modularSearchInput.addEventListener(
+		'keydown',
+		event => {
+
+			if (
+				event.key === 'Enter'
+			) {
+
+				event.preventDefault();
+
+				searchModularTag();
+
+			}
+
+		}
+	);
+
+}
+/* =========================================================
+   TEMPORARY MOD TAG ASSIGNMENTS
+========================================================= */
+
+const modularTagAssignments = [];
+
+
+let requiredModulars = [];
+/* =========================================================
+   UPDATE MODULAR ACTIVITY COUNTERS
+========================================================= */
+
+const updateModularActivityCounters =
+	() => {
+
+		const total =
+			requiredModulars.length;
+
+
+		const current =
+			modularTagAssignments.length;
+
+
+		const remaining =
+			Math.max(
+				total - current,
+				0
+			);
+
+
+		if (
+			modularRemainingCount
+		) {
+
+			modularRemainingCount.textContent =
+				remaining;
+
+		}
+
+
+		if (
+			modularActivityCurrent
+		) {
+
+			modularActivityCurrent.textContent =
+				current;
+
+		}
+
+
+		if (
+			modularActivityTotal
+		) {
+
+			modularActivityTotal.textContent =
+				total;
+
+		}
+
+
+		/*
+			Enable Next only when all
+			required Mod Tags are assigned.
+		*/
+
+		const modularActivityNext =
+			document.querySelector(
+				'#modular-activity-next'
+			);
+
+
+		if (
+			modularActivityNext
+		) {
+
+			const isComplete =
+				total > 0 &&
+				current === total;
+
+
+			modularActivityNext.disabled =
+				!isComplete;
+
+
+			modularActivityNext.classList.toggle(
+				'ready',
+				isComplete
+			);
+
+		}
+
+	};
+
+const showUpdateModular =
+	() => {
+
+		const modularActivityStep1 =
+			document.querySelector(
+				'.modular-activity-step:not(.modular-activity-step-2)'
+			);
+
+
+		const modularActivityStep2 =
+			document.querySelector(
+				'#modular-activity-step-2'
+			);
+
+
+		const modularScanMode =
+			document.querySelector(
+				'div.modular-scan-mode'
+			);
+
+
+		const modularRemainingTags =
+			document.querySelector(
+				'.modular-activity-remaining:not(#modular-linked-tags)'
+			);
+
+
+		const modularLinkedTags =
+			document.querySelector(
+				'#modular-linked-tags'
+			);
+
+
+		const modularTagAssignments =
+			document.querySelector(
+				'#modular-tag-assignments'
+			);
+
+
+		const modularStep2Assignments =
+			document.querySelector(
+				'#modular-step-2-assignments'
+			);
+
+
+		const modularActivityEnd =
+			document.querySelector(
+				'#modular-activity-end'
+			);
+
+
+		const modularActivityClear =
+			document.querySelector(
+				'#modular-activity-clear'
+			);
+
+
+		const modularActivityNext =
+			document.querySelector(
+				'#modular-activity-next'
+			);
+
+
+		const modularActivityStepBack =
+			document.querySelector(
+				'#modular-activity-step-back'
+			);
+
+
+		const modularActivityFinish =
+			document.querySelector(
+				'#modular-activity-finish'
+			);
+
+
+		/*
+			Hide Step 1.
+		*/
+
+		if (
+			modularActivityStep1
+		) {
+
+			modularActivityStep1.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Step 2.
+		*/
+
+		if (
+			modularActivityStep2
+		) {
+
+			modularActivityStep2.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Scan Mode.
+		*/
+
+		if (
+			modularScanMode
+		) {
+
+			modularScanMode.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide Remaining Mod Tags.
+		*/
+
+		if (
+			modularRemainingTags
+		) {
+
+			modularRemainingTags.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Linked Mod Tags.
+		*/
+
+		if (
+			modularLinkedTags
+		) {
+
+			modularLinkedTags.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Step 1 Mod Tag Assignments.
+		*/
+
+		if (
+			modularTagAssignments
+		) {
+
+			modularTagAssignments.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Step 2 Mod Tag Assignments.
+		*/
+
+		if (
+			modularStep2Assignments
+		) {
+
+			modularStep2Assignments.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide End Task button.
+		*/
+
+		if (
+			modularActivityEnd
+		) {
+
+			modularActivityEnd.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide Clear All button.
+		*/
+
+		if (
+			modularActivityClear
+		) {
+
+			modularActivityClear.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide the Next button.
+		*/
+
+		if (
+			modularActivityNext
+		) {
+
+			modularActivityNext.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show the Step 2 Back button.
+		*/
+
+		if (
+			modularActivityStepBack
+		) {
+
+			modularActivityStepBack.hidden =
+				false;
+
+		}
+
+
+		/*
+			Show the Step 2 Finish button.
+		*/
+
+		if (
+			modularActivityFinish
+		) {
+
+			modularActivityFinish.hidden =
+				false;
+
+		}
+
+	};
+
+/* =========================================================
+   HANDLE MODULAR ACTIVITY NEXT
+========================================================= */
+
+const handleModularActivityNext =
+	() => {
+
+		/*
+			This is the main Next handler.
+
+			Any processing of the scanned Mod Tags,
+			changes, API calls, etc. will eventually
+			go here.
+
+			For now, simply move to Step 2.
+		*/
+
+		showUpdateModular();
+
+	};
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON
+========================================================= */
+
+const modularActivityNextButton =
+	document.querySelector(
+		'#modular-activity-next'
+	);
+
+
+if (
+	modularActivityNextButton
+) {
+
+	modularActivityNextButton.addEventListener(
+		'click',
+		handleModularActivityNext
+	);
+
+}
+/* =========================================================
+   INITIALISE MODULAR ACTIVITY COUNTERS
+========================================================= */
+
+updateModularActivityCounters();
+
+const addModularTagAssignment =
+	(
+		modularTag
+	) => {
+
+		const nextModular =
+			requiredModulars.find(
+				modular =>
+					!modularTagAssignments.some(
+						assignment =>
+							Number(
+								assignment.modular
+							) ===
+							Number(
+								modular
+							)
+					)
+			);
+		if (
+			nextModular === undefined
+		) {
+			return;
+		}
+
+
+		modularTagAssignments.push({
+			modular: nextModular,
+			modularTag: modularTag
+		});
+
+		modularTagAssignments.sort(
+			(
+				a,
+				b
+			) =>
+				Number(
+					a.modular
+				) -
+				Number(
+					b.modular
+				)
+		);
+
+		renderModularTagAssignments();
+		updateModularActivityCounters();
+		updateModularBayCompletionStates();
+
+		console.log(
+			'Temporary Mod Tag Assignments:',
+			modularTagAssignments
 		);
 
 
-		return pairs;
-
-	};
-
-
-/* =========================================================
-   UPDATE SHELF EDITOR SUMMARY
-========================================================= */
-
-const updateShelfEditorSummary =
-	() => {
-
-		if (
-			activeShelfIndex === null
-		) {
-
-			return;
-
-		}
-
-
-		const shelf =
-			regularModShelves[
-				activeShelfIndex
-			];
-
-
-		if (!shelf) {
-
-			return;
-
-		}
-
-
-		const uniqueUpcs =
-			new Set(
-				shelf.products.map(
-					product =>
-						String(
-							product.upc ?? ''
-						).trim()
-				)
-			);
-
-
-		shelfEditorUpcs.textContent =
-			`UPCs ${uniqueUpcs.size}`;
-
-
-		const duplicatePairs =
-			getDuplicatePairCount(
-				shelf.products
-			);
+		console.table(
+			modularTagAssignments
+		);
 
 
 		if (
-			duplicatePairs > 0
+			modularTagAssignments.length >=
+			requiredModulars.length
 		) {
 
-			shelfEditorDuplicates.textContent =
-				`Duplicates ${duplicatePairs} pairs`;
+			if (
+				modularSearchInput
+			) {
 
-		}
-		else {
+				modularSearchInput.disabled =
+					true;
 
-			shelfEditorDuplicates.textContent =
-				'';
+			}
+
+
+			if (
+				modularSearchButton
+			) {
+
+				modularSearchButton.disabled =
+					true;
+
+			}
+
+
+			console.log(
+				'All required Mod Tags have been entered.'
+			);
 
 		}
 
 	};
-
-
 /* =========================================================
-   RENDER SHELF EDITOR PRODUCTS
+   MOD TAG ASSIGNMENTS RENDERING
 ========================================================= */
-
-const renderShelfEditorProducts =
+const renderModularTagAssignments =
 	() => {
 
 		if (
-			activeShelfIndex === null ||
-			!shelfEditorProducts
+			!modularTagAssignmentsContainer
 		) {
-
 			return;
-
 		}
 
 
-		const shelf =
-			regularModShelves[
-				activeShelfIndex
-			];
-
-
-		if (!shelf) {
-
-			return;
-
-		}
-
-
-		shelfEditorProducts.innerHTML =
+		modularTagAssignmentsContainer.innerHTML =
 			'';
 
 
-		shelf.products.forEach(
+		/*
+			Always display assignments
+			in ascending modular/bay order.
+		*/
+
+		const sortedAssignments =
+			[
+				...modularTagAssignments
+			].sort(
+				(
+					a,
+					b
+				) =>
+					Number(
+						a.modular
+					) -
+					Number(
+						b.modular
+					)
+			);
+
+
+		sortedAssignments.forEach(
 			(
-				product,
-				productIndex
+				assignment,
+				index
 			) => {
 
-				const productCard =
+				const assignmentWrapper =
 					document.createElement(
 						'div'
 					);
 
 
-				productCard.className =
-					'regular-mod-shelf-editor-product';
+				assignmentWrapper.className =
+					'modular-tag-assignment';
 
 
-				productCard.draggable =
-					true;
-
-
-				productCard.dataset.productIndex =
-					productIndex;
-
-
-				const image =
+				const assignmentLabel =
 					document.createElement(
-						'img'
+						'div'
 					);
 
 
-				const imageUrl =
-					product.image?.url ||
-					product.imageUrl ||
-					product.image_url ||
-					'';
+				assignmentLabel.className =
+					'modular-tag-assignment-label';
 
 
-				image.src =
-					imageUrl;
+				assignmentLabel.textContent =
+					`Bay ${assignment.modular} mod tag`;
 
 
-				image.alt =
-					product.image?.alt ||
-					product.description ||
-					'Product';
+				const assignmentRow =
+					document.createElement(
+						'div'
+					);
 
 
-				productCard.appendChild(
-					image
-				);
+				assignmentRow.className =
+					'modular-tag-assignment-row';
+
+
+				const assignmentIndex =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentIndex.className =
+					'modular-tag-assignment-index';
+
+
+				assignmentIndex.textContent =
+					index + 1;
+
+
+				const assignmentValue =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentValue.className =
+					'modular-tag-assignment-value';
+
+
+				assignmentValue.textContent =
+					assignment.modularTag;
 
 
 				const removeButton =
@@ -1749,1177 +1296,1063 @@ const renderShelfEditorProducts =
 
 
 				removeButton.className =
-					'regular-mod-shelf-editor-remove';
+					'modular-tag-assignment-remove';
 
 
 				removeButton.setAttribute(
 					'aria-label',
-					'Remove product'
+					`Remove Mod Tag for Bay ${assignment.modular}`
 				);
 
 
-				removeButton.textContent =
-					'−';
+				removeButton.innerHTML = `
+					<i
+						data-lucide="x"
+						aria-hidden="true"
+					></i>
+				`;
 
 
 				removeButton.addEventListener(
 					'click',
-					event => {
+					() => {
 
-						event.stopPropagation();
+						const assignmentIndex =
+							modularTagAssignments.findIndex(
+								item =>
+									item.modular ===
+									assignment.modular
+							);
 
 
-						shelf.products.splice(
-							productIndex,
-							1
+						if (
+							assignmentIndex !== -1
+						) {
+
+							modularTagAssignments.splice(
+								assignmentIndex,
+								1
+							);
+
+						}
+
+
+						renderModularTagAssignments();
+
+
+						updateModularActivityCounters();
+
+						updateModularBayCompletionStates();
+
+
+						if (
+							modularSearchInput
+						) {
+
+							modularSearchInput.disabled =
+								false;
+
+						}
+
+
+						if (
+							modularSearchButton
+						) {
+
+							modularSearchButton.disabled =
+								false;
+
+						}
+
+
+						console.log(
+							'Temporary Mod Tag Assignments:',
+							modularTagAssignments
 						);
 
 
-						markRegularModModified();
-
-
-						renderShelfEditorProducts();
-
-
-						renderModularVisual();
+						console.table(
+							modularTagAssignments
+						);
 
 					}
 				);
 
 
-				productCard.appendChild(
+				assignmentRow.appendChild(
+					assignmentIndex
+				);
+
+
+				assignmentRow.appendChild(
+					assignmentValue
+				);
+
+
+				assignmentRow.appendChild(
 					removeButton
 				);
 
 
-				/* =============================================
-				   DRAG START
-				============================================= */
-
-				productCard.addEventListener(
-					'dragstart',
-					event => {
-
-						draggedProductIndex =
-							productIndex;
-
-
-						productCard.classList.add(
-							'dragging'
-						);
-
-
-						event.dataTransfer.effectAllowed =
-							'move';
-
-					}
+				assignmentWrapper.appendChild(
+					assignmentLabel
 				);
 
 
-				/* =============================================
-				   DRAG END
-				============================================= */
-
-				productCard.addEventListener(
-					'dragend',
-					() => {
-
-						draggedProductIndex =
-							null;
-
-
-						productCard.classList.remove(
-							'dragging'
-						);
-
-					}
+				assignmentWrapper.appendChild(
+					assignmentRow
 				);
 
 
-				/* =============================================
-				   DRAG OVER
-				============================================= */
-
-				productCard.addEventListener(
-					'dragover',
-					event => {
-
-						event.preventDefault();
-
-
-						event.dataTransfer.dropEffect =
-							'move';
-
-					}
-				);
-
-
-				/* =============================================
-				   DROP
-				============================================= */
-
-				productCard.addEventListener(
-					'drop',
-					event => {
-
-						event.preventDefault();
-
-
-						if (
-							draggedProductIndex === null ||
-							draggedProductIndex === productIndex
-						) {
-
-							return;
-
-						}
-
-
-						const draggedProduct =
-							shelf.products.splice(
-								draggedProductIndex,
-								1
-							)[0];
-
-
-						let targetIndex =
-							productIndex;
-
-
-						if (
-							draggedProductIndex <
-							productIndex
-						) {
-
-							targetIndex--;
-
-						}
-
-
-						shelf.products.splice(
-							targetIndex,
-							0,
-							draggedProduct
-						);
-
-
-						draggedProductIndex =
-							null;
-
-
-						markRegularModModified();
-
-
-						renderShelfEditorProducts();
-
-
-						renderModularVisual();
-
-					}
-				);
-
-
-				shelfEditorProducts.appendChild(
-					productCard
+				modularTagAssignmentsContainer.appendChild(
+					assignmentWrapper
 				);
 
 			}
 		);
 
 
-		/* =============================================
-		   FIXED CAMERA BUTTON
-		============================================= */
+		lucide.createIcons();
 
-		const scanButton =
-			document.createElement(
-				'button'
+	};
+/* =========================================================
+   UPDATE MODULAR BAY COMPLETION STATES
+========================================================= */
+
+const updateModularBayCompletionStates =
+	() => {
+
+		const bayWrappers =
+			document.querySelectorAll(
+				'.modular-activity-bay-image-wrapper'
 			);
 
 
-		scanButton.type =
-			'button';
+		bayWrappers.forEach(
+			bayWrapper => {
+
+				const bayNumber =
+					Number(
+						bayWrapper.dataset.bayNumber
+					);
 
 
-		scanButton.className =
-			'regular-mod-shelf-editor-scan';
+				const assignment =
+					modularTagAssignments.find(
+						item =>
+							Number(
+								item.modular
+							) ===
+							bayNumber
+					);
 
 
-		scanButton.setAttribute(
-			'aria-label',
-			'Scan product'
-		);
+				const isAssigned =
+					Boolean(
+						assignment
+					);
 
 
-		scanButton.innerHTML = `
-
-			<i
-				data-lucide="camera"
-				aria-hidden="true"
-			></i>
-
-		`;
+				const isSmartGenerated =
+					Boolean(
+						assignment &&
+						assignment.smartGenerated === true
+					);
 
 
-		scanButton.addEventListener(
-			'click',
-			() => {
+				const overlay =
+					bayWrapper.querySelector(
+						'.modular-activity-bay-image-overlay'
+					);
+
 
 				if (
-					typeof window.startProductScanner ===
-					'function'
+					isAssigned
 				) {
 
-					window.startProductScanner(
-						{
-							onScan:
-								product => {
+					bayWrapper.classList.add(
+						'completed'
+					);
+
+
+					if (
+						!overlay
+					) {
+
+						const completionOverlay =
+							document.createElement(
+								'div'
+							);
+
+						completionOverlay.className =
+							'modular-activity-bay-image-overlay';
+
+
+						/* =====================================
+						   SMART MODE - WAND
+						===================================== */
+
+						if (
+							isSmartGenerated
+						) {
+
+							const wand =
+								document.createElementNS(
+									'http://www.w3.org/2000/svg',
+									'svg'
+								);
+
+							wand.classList.add(
+								'modular-activity-bay-smart-icon'
+							);
+
+							wand.setAttribute(
+								'viewBox',
+								'0 -4 24 28'
+							);
+
+							wand.setAttribute(
+								'aria-hidden',
+								'true'
+							);
+
+							/* =========================================================
+							SMART MODE WAND SVG
+							========================================================= */
+
+							wand.innerHTML = `
+
+							<!-- BLACK WAND BODY -->
+
+							<line
+								x1="4"
+								y1="20"
+								x2="17.2"
+								y2="6.8"
+								stroke="black"
+								stroke-width="4"
+								stroke-linecap="round"
+							/>
+
+
+							<!-- WHITE WAND TIP -->
+
+							<line
+								x1="16.2"
+								y1="7.8"
+								x2="17.5"
+								y2="6.5"
+								stroke="white"
+								stroke-width="4"
+								stroke-linecap="round"
+							/>
+
+
+									<!-- LARGE SPARKLE ABOVE -->
+
+									<path
+									d="
+										M22 -3
+										L22.7 -1
+										L24.7 -0.3
+										L22.7 0.4
+										L22 2.4
+										L21.3 0.4
+										L19.3 -0.3
+										L21.3 -1
+										Z
+									"
+									fill="black"
+									stroke="black"
+									stroke-width="0.5"
+								/>
+
+
+								<!-- SMALL SPARKLE LEFT -->
+
+								<path
+									d="
+										M8 5
+										L8.5 7
+										L10.5 7.5
+										L8.5 8
+										L8 10
+										L7.5 8
+										L5.5 7.5
+										L7.5 7
+										Z
+									"
+									fill="none"
+									stroke="black"
+									stroke-width="1.1"
+									stroke-linejoin="round"
+								/>
+
+
+								<!-- SMALL SPARKLE RIGHT -->
+
+								<path
+									d="
+										M20 11
+										L20.5 13
+										L22.5 13.5
+										L20.5 14
+										L20 16
+										L19.5 14
+										L17.5 13.5
+										L19.5 13
+										Z
+									"
+									fill="none"
+									stroke="black"
+									stroke-width="1.1"
+									stroke-linejoin="round"
+								/>
+
+							`;
+
+							completionOverlay.appendChild(
+								wand
+							);
+
+						}
+
+
+						/* =====================================
+						   STANDARD MODE - TICK
+						===================================== */
+
+						else {
+
+							const check =
+								document.createElement(
+									'div'
+								);
+
+							check.className =
+								'modular-activity-bay-check';
+
+							check.textContent =
+								'✓';
+
+
+							completionOverlay.appendChild(
+								check
+							);
+
+						}
+
+
+						bayWrapper.appendChild(
+							completionOverlay
+						);
+
+
+						lucide.createIcons();
+
+					}
+
+				}
+				else {
+
+					bayWrapper.classList.remove(
+						'completed'
+					);
+
+
+					if (
+						overlay
+					) {
+
+						overlay.remove();
+
+					}
+
+				}
+
+			}
+		);
+
+	};
+/* =========================================================
+   LOAD MODULAR NAME
+========================================================= */
+
+if (
+	modularActivityName
+) {
+
+	modularActivityName.textContent =
+		modularName ||
+		'MODULAR';
+
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+if (
+	modularActivityBack
+) {
+
+	modularActivityBack.addEventListener(
+		'click',
+		() => {
+
+			modularClearModalAction =
+				'end';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Cancel Modular Activity?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to cancel this Modular Activity? All progress will be lost';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'End Task';
+
+			}
+
+
+			openModularClearModal();
+		}
+	);
+
+}
+
+/* =========================================================
+   GET MODULAR BAY PRODUCTS
+========================================================= */
+
+const getModularBayProducts =
+	async (
+		planogramNumber
+	) => {
+
+		try {
+
+			const response =
+				await fetch(
+					`${API_BASE}/modular-bay/${encodeURIComponent(planogramNumber)}`
+				);
+
+
+			if (
+				!response.ok
+			) {
+
+				throw new Error(
+					`Failed to load modular bay products: ${response.status}`
+				);
+
+			}
+
+
+			const products =
+				await response.json();
+
+
+			return products;
+
+		}
+		catch (
+			error
+		) {
+
+			console.error(
+				'Failed to get modular bay products:',
+				error
+			);
+
+			return [];
+
+		}
+
+	};
+/* =========================================================
+   CREATE MODULAR BAY SNAPSHOTS
+========================================================= */
+
+const createModularBaySnapshot =
+	async (
+		planogramNumber
+	) => {
+
+		const products =
+			await getModularBayProducts(
+				planogramNumber
+			);
+
+		if (
+			!Array.isArray(products) ||
+			products.length === 0
+		) {
+			return null;
+		}
+
+
+		/* =====================================================
+		   SHARED BAY DIMENSIONS
+		===================================================== */
+
+		const shelfHeight =
+			90;
+
+		const gap =
+			8;
+
+		const bayWidth =
+			800;
+
+		const minimumBayHeight =
+			300;
+
+		const cropPadding =
+			0;
+
+
+		/* =====================================================
+		   CROP PRODUCT IMAGE TO VISIBLE CONTENT
+		===================================================== */
+
+		const cropProductImage =
+			imageUrl =>
+				new Promise(
+					resolve => {
+
+						const image =
+							new Image();
+
+						image.crossOrigin =
+							'anonymous';
+
+						image.onload =
+							() => {
+
+								try {
+
+									const naturalWidth =
+										image.naturalWidth;
+
+									const naturalHeight =
+										image.naturalHeight;
+
 
 									if (
-										!product
+										!naturalWidth ||
+										!naturalHeight
 									) {
+
+										resolve(
+											null
+										);
 
 										return;
 
 									}
 
 
-									shelf.products.push(
-										product
+									/* =================================
+									   CREATE SOURCE CANVAS
+									================================= */
+
+									const sourceCanvas =
+										document.createElement(
+											'canvas'
+										);
+
+									sourceCanvas.width =
+										naturalWidth;
+
+									sourceCanvas.height =
+										naturalHeight;
+
+
+									const sourceContext =
+										sourceCanvas.getContext(
+											'2d',
+											{
+												willReadFrequently:
+													true
+											}
+										);
+
+
+									sourceContext.drawImage(
+										image,
+										0,
+										0,
+										naturalWidth,
+										naturalHeight
 									);
 
 
-									markRegularModModified();
+									const imageData =
+										sourceContext.getImageData(
+											0,
+											0,
+											naturalWidth,
+											naturalHeight
+										);
 
 
-									renderShelfEditorProducts();
+									const pixels =
+										imageData.data;
 
 
-									renderModularVisual();
+									/* =================================
+									   FIND NON-WHITE CONTENT
+									================================= */
+
+									let left =
+										naturalWidth;
+
+									let right =
+										-1;
+
+									let top =
+										naturalHeight;
+
+									let bottom =
+										-1;
+
+
+									for (
+										let y = 0;
+										y < naturalHeight;
+										y++
+									) {
+
+										for (
+											let x = 0;
+											x < naturalWidth;
+											x++
+										) {
+
+											const index =
+												(
+													(
+														y *
+														naturalWidth
+													) +
+													x
+												) *
+												4;
+
+
+											const red =
+												pixels[
+													index
+												];
+
+											const green =
+												pixels[
+													index + 1
+												];
+
+											const blue =
+												pixels[
+													index + 2
+												];
+
+											const alpha =
+												pixels[
+													index + 3
+												];
+
+
+											/*
+											   Treat transparent
+											   and near-white pixels
+											   as background.
+											*/
+
+											const isTransparent =
+												alpha <
+												20;
+
+											const isWhite =
+												red >= 245 &&
+												green >= 245 &&
+												blue >= 245;
+
+
+											if (
+												!isTransparent &&
+												!isWhite
+											) {
+
+												left =
+													Math.min(
+														left,
+														x
+													);
+
+												right =
+													Math.max(
+														right,
+														x
+													);
+
+												top =
+													Math.min(
+														top,
+														y
+													);
+
+												bottom =
+													Math.max(
+														bottom,
+														y
+													);
+
+											}
+
+										}
+
+									}
+
+
+									/* =================================
+									   FALLBACK TO FULL IMAGE
+									================================= */
+
+									if (
+										right < left ||
+										bottom < top
+									) {
+
+										resolve({
+											url:
+												imageUrl,
+
+											width:
+												naturalWidth,
+
+											height:
+												naturalHeight
+										});
+
+										return;
+
+									}
+
+
+									/* =================================
+									   APPLY CROP PADDING
+									================================= */
+
+									left =
+										Math.max(
+											0,
+											left -
+											cropPadding
+										);
+
+									top =
+										Math.max(
+											0,
+											top -
+											cropPadding
+										);
+
+									right =
+										Math.min(
+											naturalWidth - 1,
+											right +
+											cropPadding
+										);
+
+									bottom =
+										Math.min(
+											naturalHeight - 1,
+											bottom +
+											cropPadding
+										);
+
+
+									const croppedWidth =
+										right -
+										left +
+										1;
+
+									const croppedHeight =
+										bottom -
+										top +
+										1;
+
+
+									/* =================================
+									   CREATE CROPPED CANVAS
+									================================= */
+
+									const croppedCanvas =
+										document.createElement(
+											'canvas'
+										);
+
+									croppedCanvas.width =
+										croppedWidth;
+
+									croppedCanvas.height =
+										croppedHeight;
+
+
+									const croppedContext =
+										croppedCanvas.getContext(
+											'2d'
+										);
+
+
+									croppedContext.drawImage(
+										image,
+
+										left,
+										top,
+										croppedWidth,
+										croppedHeight,
+
+										0,
+										0,
+										croppedWidth,
+										croppedHeight
+									);
+
+
+									resolve({
+										url:
+											croppedCanvas.toDataURL(
+												'image/png'
+											),
+
+										width:
+											croppedWidth,
+
+										height:
+											croppedHeight
+									});
 
 								}
-						}
-					);
+								catch (
+									error
+								) {
 
-				}
-				else {
+									console.error(
+										'Failed to crop product image:',
+										error
+									);
 
-					alert(
-						'Product scanner is not connected yet.'
-					);
+									resolve(
+										null
+									);
 
-				}
+								}
 
-			}
-		);
+							};
 
 
-		shelfEditorProducts.appendChild(
-			scanButton
-		);
-
-
-		if (
-			window.lucide
-		) {
-
-			lucide.createIcons();
-
-		}
-
-
-		updateShelfEditorSummary();
-
-	};
-
-
-/* =========================================================
-   OPEN SHELF EDITOR
-========================================================= */
-
-const openShelfEditor =
-	(
-		shelfIndex
-	) => {
-
-		if (
-			shelfIndex < 0 ||
-			shelfIndex >= regularModShelves.length
-		) {
-
-			return;
-
-		}
-
-
-		activeShelfIndex =
-			shelfIndex;
-
-
-		const shelf =
-			regularModShelves[
-				shelfIndex
-			];
-
-
-		if (
-			shelfEditorTitle
-		) {
-
-			shelfEditorTitle.textContent =
-				`Shelf ${shelf.shelf}`;
-
-		}
-
-
-		renderShelfEditorProducts();
-
-
-		if (
-			shelfEditor
-		) {
-
-			shelfEditor.hidden =
-				false;
-
-		}
-
-
-		if (
-			window.lucide
-		) {
-
-			lucide.createIcons();
-
-		}
-
-	};
-
-
-/* =========================================================
-   CLOSE SHELF EDITOR
-========================================================= */
-
-const closeShelfEditor =
-	() => {
-
-		if (
-			shelfEditor
-		) {
-
-			shelfEditor.hidden =
-				true;
-
-		}
-
-
-		activeShelfIndex =
-			null;
-
-
-		draggedProductIndex =
-			null;
-
-	};
-
-
-/* =========================================================
-   SHELF EDITOR CLOSE BUTTON
-========================================================= */
-
-if (shelfEditorClose) {
-
-	shelfEditorClose.addEventListener(
-		'click',
-		() => {
-
-			closeShelfEditor();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   SHELF EDITOR BACKDROP
-========================================================= */
-
-const shelfEditorBackdrop =
-	document.querySelector(
-		'.regular-mod-shelf-editor-backdrop'
-	);
-
-
-if (shelfEditorBackdrop) {
-
-	shelfEditorBackdrop.addEventListener(
-		'click',
-		() => {
-
-			closeShelfEditor();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   FINISH SHELF EDITOR
-========================================================= */
-
-if (shelfEditorFinish) {
-
-	shelfEditorFinish.addEventListener(
-		'click',
-		() => {
-
-			markRegularModModified();
-
-
-			activeShelfIndex = null;
-
-			activeShelfOriginalProducts = [];
-
-
-			if (shelfEditor) {
-
-				shelfEditor.hidden = true;
-
-			}
-
-
-			shelfEditor.classList.remove(
-				'active'
-			);
-
-
-			renderModularVisual();
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   NEXT SHELF
-========================================================= */
-
-if (shelfEditorNext) {
-
-	shelfEditorNext.addEventListener(
-		'click',
-		() => {
-
-			if (
-				activeShelfIndex === null
-			) {
-
-				return;
-
-			}
-
-
-			const nextShelfIndex =
-				activeShelfIndex + 1;
-
-
-			/* =============================================
-			   SAVE CURRENT SHELF
-			============================================= */
-
-			markRegularModModified();
-
-
-			/* =============================================
-			   INSERT EMPTY SHELF AFTER CURRENT
-			============================================= */
-
-			regularModShelves.splice(
-				nextShelfIndex,
-				0,
-				{
-					shelf: 0,
-					products: []
-				}
-			);
-
-
-			renumberRegularModShelves();
-
-
-			/* =============================================
-			   MOVE TO NEW SHELF
-			============================================= */
-
-			activeShelfIndex =
-				nextShelfIndex;
-
-
-			markRegularModModified();
-
-
-			renderModularVisual();
-
-
-			openShelfEditor(
-				nextShelfIndex
-			);
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   ENTER UPC
-========================================================= */
-
-if (shelfEditorEnterUpc) {
-
-	shelfEditorEnterUpc.addEventListener(
-		'click',
-		() => {
-
-			if (
-				activeShelfIndex === null
-			) {
-
-				return;
-
-			}
-
-
-			const upc =
-				window.prompt(
-					'Enter UPC'
-				);
-
-
-			if (
-				!upc
-			) {
-
-				return;
-
-			}
-
-
-			console.log(
-				'UPC entered:',
-				upc
-			);
-
-
-			/*
-				PRODUCT LOOKUP WILL BE CONNECTED
-				HERE ONCE THE UPC SEARCH ROUTE
-				IS WIRED INTO THIS PAGE.
-			*/
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   CANNOT SCAN
-========================================================= */
-
-if (shelfEditorCannotScan) {
-
-	shelfEditorCannotScan.addEventListener(
-		'click',
-		() => {
-
-			console.log(
-				'Cannot Scan selected.'
-			);
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   UNSTRUCTURED
-========================================================= */
-
-if (shelfEditorUnstructured) {
-
-	shelfEditorUnstructured.addEventListener(
-		'click',
-		() => {
-
-			console.log(
-				'Unstructured selected.'
-			);
-
-		}
-	);
-
-}
-
-
-/* =========================================================
-   RENDER REGULAR MOD VISUAL
-========================================================= */
-
-const renderModularVisual =
-	() => {
-
-		if (!modularVisual) {
-
-			return;
-
-		}
-
-
-		modularVisual.innerHTML =
-			'';
-
-
-		/* =====================================================
-		   NO SHELVES
-		===================================================== */
-
-		if (
-			regularModShelves.length === 0
-		) {
-
-			const plusButton =
-				document.createElement(
-					'button'
-				);
-
-
-			plusButton.type =
-				'button';
-
-
-			plusButton.className =
-				'regular-mod-shelf-add regular-mod-shelf-add-bottom';
-
-
-			plusButton.setAttribute(
-				'aria-label',
-				'Add shelf'
-			);
-
-
-			plusButton.innerHTML =
-				'<span>+</span>';
-
-
-			plusButton.addEventListener(
-				'click',
-				() => {
-
-					insertRegularModShelf(
-						0
-					);
-
-				}
-			);
-
-
-			modularVisual.appendChild(
-				plusButton
-			);
-
-
-			updateRegularModButton();
-
-
-			return;
-
-		}
-
-
-		/* =====================================================
-		   CREATE SHELVES
-		===================================================== */
-
-		regularModShelves.forEach(
-			(
-				shelfData,
-				shelfIndex
-			) => {
-
-				/* =============================================
-				   PLUS ABOVE SHELF
-				============================================= */
-
-				const plusAbove =
-					document.createElement(
-						'button'
-					);
-
-
-				plusAbove.type =
-					'button';
-
-
-				plusAbove.className =
-					'regular-mod-shelf-add';
-
-
-				plusAbove.setAttribute(
-					'aria-label',
-					`Add shelf above Shelf ${shelfData.shelf}`
-				);
-
-
-				plusAbove.innerHTML =
-					'<span>+</span>';
-
-
-				plusAbove.addEventListener(
-					'click',
-					event => {
-
-						event.stopPropagation();
-
-
-						insertRegularModShelf(
-							shelfIndex
-						);
-
-					}
-				);
-
-
-				modularVisual.appendChild(
-					plusAbove
-				);
-
-
-				/* =============================================
-				   SHELF
-				============================================= */
-
-				const shelfContainer =
-					document.createElement(
-						'div'
-					);
-
-
-				shelfContainer.className =
-					'regular-mod-shelf';
-
-
-				/* =============================================
-				   SHELF HEADER
-				============================================= */
-
-				const shelfHeader =
-					document.createElement(
-						'div'
-					);
-
-
-				shelfHeader.className =
-					'regular-mod-shelf-header';
-
-
-				/* =============================================
-				   LEFT SIDE
-				============================================= */
-
-				const shelfHeaderLeft =
-					document.createElement(
-						'div'
-					);
-
-
-				shelfHeaderLeft.className =
-					'regular-mod-shelf-header-left';
-
-
-				/* =============================================
-				   MORE BUTTON
-				============================================= */
-
-				const moreButton =
-					document.createElement(
-						'button'
-					);
-
-
-				moreButton.type =
-					'button';
-
-
-				moreButton.className =
-					'regular-mod-shelf-more';
-
-
-				moreButton.setAttribute(
-					'aria-label',
-					`Shelf ${shelfData.shelf} options`
-				);
-
-
-				moreButton.innerHTML = `
-
-					<i
-						data-lucide="more-vertical"
-						aria-hidden="true"
-					></i>
-
-				`;
-
-
-				/* =============================================
-				   SHELF LABEL
-				============================================= */
-
-				const shelfLabel =
-					document.createElement(
-						'div'
-					);
-
-
-				shelfLabel.className =
-					'regular-mod-shelf-label';
-
-
-				shelfLabel.textContent =
-					`Shelf ${shelfData.shelf}`;
-
-
-				/* =============================================
-				   UPC COUNT
-				============================================= */
-
-				const upcCount =
-					document.createElement(
-						'div'
-					);
-
-
-				upcCount.className =
-					'regular-mod-upc-count';
-
-
-				const uniqueUpcs =
-					new Set(
-						shelfData.products.map(
-							product =>
-								String(
-									product.upc ?? ''
-								).trim()
-						)
-					);
-
-
-				upcCount.textContent =
-					`UPCs ${uniqueUpcs.size}`;
-
-
-				shelfHeaderLeft.appendChild(
-					moreButton
-				);
-
-
-				shelfHeaderLeft.appendChild(
-					shelfLabel
-				);
-
-
-				shelfHeaderLeft.appendChild(
-					upcCount
-				);
-
-
-				/* =============================================
-				   REMOVE BUTTON
-				============================================= */
-
-				const removeButton =
-					document.createElement(
-						'button'
-					);
-
-
-				removeButton.type =
-					'button';
-
-
-				removeButton.className =
-					'regular-mod-shelf-remove';
-
-
-				removeButton.setAttribute(
-					'aria-label',
-					`Remove Shelf ${shelfData.shelf}`
-				);
-
-
-				removeButton.innerHTML =
-					'<span>−</span>';
-
-
-				removeButton.addEventListener(
-					'click',
-					event => {
-
-						event.stopPropagation();
-
-
-						confirmRemoveRegularModShelf(
-							shelfIndex
-						);
-
-					}
-				);
-
-
-				/* =============================================
-				   BUILD HEADER
-				============================================= */
-
-				shelfHeader.appendChild(
-					shelfHeaderLeft
-				);
-
-
-				shelfHeader.appendChild(
-					removeButton
-				);
-
-
-				/* =============================================
-				   PRODUCT AREA
-				============================================= */
-
-				const productsContainer =
-					document.createElement(
-						'div'
-					);
-
-
-				productsContainer.className =
-					'regular-mod-products';
-
-
-				/* =============================================
-				   PRODUCT AREA CLICK
-				============================================= */
-
-				productsContainer.addEventListener(
-					'click',
-					() => {
-
-						openShelfEditor(
-							shelfIndex
-						);
-
-					}
-				);
-
-
-				/* =============================================
-				   CREATE PRODUCTS
-				============================================= */
-
-				shelfData.products.forEach(
-					product => {
-
-						const productCard =
-							document.createElement(
-								'div'
-							);
-
-
-						productCard.className =
-							'regular-mod-product';
-
-
-						const image =
-							document.createElement(
-								'img'
-							);
-
-
-						const imageUrl =
-							product.image?.url ||
-							product.imageUrl ||
-							product.image_url ||
-							'';
+						image.onerror =
+							() =>
+								resolve(
+									null
+								);
 
 
 						image.src =
 							imageUrl;
 
-
-						image.alt =
-							product.image?.alt ||
-							product.description ||
-							'Product';
-
-
-						image.className =
-							'regular-mod-product-image';
-
-
-						productCard.appendChild(
-							image
-						);
-
-
-						productsContainer.appendChild(
-							productCard
-						);
-
 					}
 				);
 
 
-				/* =============================================
-				   BUILD SHELF
-				============================================= */
+		/* =====================================================
+		   GROUP PRODUCTS BY BAY
+		===================================================== */
 
-				shelfContainer.appendChild(
-					shelfHeader
-				);
+		const bays =
+			new Map();
 
+		products.forEach(
+			product => {
 
-				shelfContainer.appendChild(
-					productsContainer
-				);
+				const bayNumber =
+					String(
+						product.bayNumber ?? ''
+					).trim();
 
+				if (!bays.has(bayNumber)) {
 
-				modularVisual.appendChild(
-					shelfContainer
-				);
-
-
-				/* =============================================
-				   FINAL SHELF PLUS BELOW
-				============================================= */
-
-				if (
-					shelfIndex ===
-					regularModShelves.length - 1
-				) {
-
-					const plusBelow =
-						document.createElement(
-							'button'
-						);
-
-
-					plusBelow.type =
-						'button';
-
-
-					plusBelow.className =
-						'regular-mod-shelf-add regular-mod-shelf-add-bottom';
-
-
-					plusBelow.setAttribute(
-						'aria-label',
-						'Add shelf below'
-					);
-
-
-					plusBelow.innerHTML =
-						'<span>+</span>';
-
-
-					plusBelow.addEventListener(
-						'click',
-						event => {
-
-							event.stopPropagation();
-
-
-							insertRegularModShelf(
-								regularModShelves.length
-							);
-
-						}
-					);
-
-
-					modularVisual.appendChild(
-						plusBelow
+					bays.set(
+						bayNumber,
+						[]
 					);
 
 				}
 
+				bays
+					.get(bayNumber)
+					.push(product);
+
 			}
 		);
+				/* =====================================================
+		   SORT BAYS NUMERICALLY
+		===================================================== */
+
+		const sortedBays =
+			[
+				...bays.entries()
+			].sort(
+				(
+					[a],
+					[b]
+				) =>
+					Number(a) -
+					Number(b)
+			);
 
 
 		/* =====================================================
-		   INITIALISE LUCIDE ICONS
+		   CALCULATE SHARED BAY HEIGHT
 		===================================================== */
 
-		if (
-			window.lucide
+		const maxShelfCount =
+			Math.max(
+				...[
+					...bays.values()
+				].map(
+					bayProducts =>
+						new Set(
+							bayProducts.map(
+								product =>
+									String(
+										product.shelf ?? ''
+									).trim()
+							)
+						).size
+				)
+			);
+
+
+		const calculatedBayHeight =
+			(
+				maxShelfCount *
+				shelfHeight
+			) +
+			(
+				Math.max(
+					0,
+					maxShelfCount - 1
+				) *
+				gap
+			);
+
+
+		const bayHeight =
+			Math.max(
+				minimumBayHeight,
+				calculatedBayHeight
+			);
+
+
+		/* =====================================================
+		   GENERATE ONE SNAPSHOT PER BAY
+		===================================================== */
+
+		const snapshots = [];
+
+
+		/*
+		   Store the cropped canvas information first.
+
+		   This lets us find the widest snapshot before
+		   creating the final images.
+
+		   The widest snapshot naturally produces the
+		   smallest displayed height when all images use
+		   width: 100%.
+		*/
+
+		const pendingSnapshots = [];
+
+
+		for (
+			const [
+				bayNumber,
+				bayProducts
+			]
+			of sortedBays
 		) {
 
-			lucide.createIcons();
-
-		}
-
-
-		updateRegularModButton();
-
-	};
-
-
-/* =========================================================
-   LOAD SELECTED REGULAR MOD
-========================================================= */
-
-const loadRegularMod =
-	async (
-		modularId
-	) => {
-
-		try {
-
-			const products =
-				await getModularProducts(
-					modularId
-				);
-
-
-			regularModShelves =
-				[];
-
-
 			/* =================================================
-			   EMPTY MODULAR
+			   CREATE TEMPORARY MODULAR VISUAL
 			================================================= */
 
-			if (
-				!Array.isArray(products) ||
-				products.length === 0
-			) {
+			const modularVisual =
+				document.createElement(
+					'div'
+				);
 
-				regularModOriginalShelves =
-					[];
+			modularVisual.className =
+				'modular-visual';
 
+			modularVisual.style.width =
+				`${bayWidth}px`;
 
-				regularModModified =
-					false;
+			modularVisual.style.height =
+				`${bayHeight}px`;
 
+			modularVisual.style.minHeight =
+				`${bayHeight}px`;
 
-				renderModularVisual();
+			modularVisual.style.maxWidth =
+				'none';
 
+			modularVisual.style.boxSizing =
+				'border-box';
 
-				return;
+			modularVisual.style.background =
+				'#ffffff';
 
-			}
+			modularVisual.style.position =
+				'absolute';
+
+			modularVisual.style.left =
+				'-99999px';
+
+			modularVisual.style.top =
+				'0';
+
+			modularVisual.style.visibility =
+				'visible';
+
+			modularVisual.style.overflow =
+				'hidden';
+
+			document.body.appendChild(
+				modularVisual
+			);
 
 
 			/* =================================================
@@ -2929,36 +2362,15 @@ const loadRegularMod =
 			const shelves =
 				new Map();
 
-
-			products.forEach(
+			bayProducts.forEach(
 				product => {
 
 					const shelf =
-						parseInt(
-							String(
-								product.shelf ?? ''
-							).replace(
-								/[^0-9]/g,
-								''
-							),
-							10
-						);
+						String(
+							product.shelf ?? ''
+						).trim();
 
-
-					if (
-						Number.isNaN(
-							shelf
-						)
-					) {
-
-						return;
-
-					}
-
-
-					if (
-						!shelves.has(shelf)
-					) {
+					if (!shelves.has(shelf)) {
 
 						shelves.set(
 							shelf,
@@ -2967,159 +2379,1333 @@ const loadRegularMod =
 
 					}
 
-
 					shelves
 						.get(shelf)
-						.push(
-							product
-						);
+						.push(product);
 
 				}
 			);
 
 
 			/* =================================================
-			   CREATE SHELF STATE
-			================================================= */
+			   SORT SHELVES
+			===================================================== */
 
-			regularModShelves =
-				[
-					...shelves.entries()
-				]
+			const sortedShelves =
+				[...shelves.entries()]
 					.sort(
-						(
-							[
-								shelfA
-							],
-							[
-								shelfB
-							]
-						) => {
+						([shelfA], [shelfB]) => {
+
+							const numberA =
+								parseInt(
+									shelfA.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+							const numberB =
+								parseInt(
+									shelfB.replace(
+										/[^0-9]/g,
+										''
+									),
+									10
+								);
+
+							if (
+								Number.isNaN(
+									numberA
+								)
+							) {
+								return 1;
+							}
+
+							if (
+								Number.isNaN(
+									numberB
+								)
+							) {
+								return -1;
+							}
 
 							return (
-								shelfA -
-								shelfB
+								numberA -
+								numberB
 							);
-
-						}
-					)
-					.map(
-						(
-							[
-								shelf,
-								shelfProducts
-							]
-						) => {
-
-							shelfProducts.sort(
-								(
-									productA,
-									productB
-								) => {
-
-									const orderA =
-										Number(
-											productA.order
-										);
-
-
-									const orderB =
-										Number(
-											productB.order
-										);
-
-
-									if (
-										Number.isNaN(
-											orderA
-										)
-									) {
-
-										return 1;
-
-									}
-
-
-									if (
-										Number.isNaN(
-											orderB
-										)
-									) {
-
-										return -1;
-
-									}
-
-
-									return (
-										orderA -
-										orderB
-									);
-
-								}
-							);
-
-
-							return {
-
-								shelf,
-
-								products:
-									shelfProducts
-
-							};
 
 						}
 					);
 
 
 			/* =================================================
-			   NORMALISE SHELF NUMBERS
-			================================================= */
+			   CREATE SHELF ROWS
+			===================================================== */
 
-			renumberRegularModShelves();
+			sortedShelves.forEach(
+				([
+					shelf,
+					shelfProducts
+				]) => {
+
+					shelfProducts.sort(
+						(a, b) =>
+							Number(
+								a.shelfOrder ?? 0
+							) -
+							Number(
+								b.shelfOrder ?? 0
+							)
+					);
+
+
+					const shelfRow =
+						document.createElement(
+							'div'
+						);
+
+					shelfRow.className =
+						'modular-shelf';
+
+					shelfRow.style.width =
+						`${bayWidth}px`;
+
+					shelfRow.style.height =
+						`${shelfHeight}px`;
+
+					shelfRow.style.minHeight =
+						`${shelfHeight}px`;
+
+					shelfRow.style.flex =
+						`0 0 ${shelfHeight}px`;
+
+					shelfRow.style.boxSizing =
+						'border-box';
+
+					shelfRow.style.display =
+						'flex';
+
+					shelfRow.style.alignItems =
+						'center';
+
+					shelfRow.style.justifyContent =
+						'center';
+
+					shelfRow.style.overflow =
+						'hidden';
+
+
+					const productsContainer =
+						document.createElement(
+							'div'
+						);
+
+					productsContainer.className =
+						'modular-shelf-products';
+
+					productsContainer.style.display =
+						'flex';
+
+					productsContainer.style.alignItems =
+						'center';
+
+					productsContainer.style.justifyContent =
+						'center';
+
+					productsContainer.style.width =
+						'100%';
+
+					productsContainer.style.height =
+						`${shelfHeight}px`;
+
+					productsContainer.style.minHeight =
+						`${shelfHeight}px`;
+
+					productsContainer.style.gap =
+						`${gap}px`;
+
+					productsContainer.style.boxSizing =
+						'border-box';
+
+					productsContainer.style.overflow =
+						'hidden';
+
+
+					shelfRow.appendChild(
+						productsContainer
+					);
+
+					modularVisual.appendChild(
+						shelfRow
+					);
+
+				}
+			);
 
 
 			/* =================================================
-			   SAVE ORIGINAL STATE
-			================================================= */
+			   WAIT FOR SHELF LAYOUT
+			===================================================== */
 
-			regularModOriginalShelves =
-				JSON.parse(
-					JSON.stringify(
-						regularModShelves
+			await new Promise(
+				resolve =>
+					requestAnimationFrame(
+						resolve
+					)
+			);
+
+
+			/* =================================================
+			   RENDER EACH SHELF
+			===================================================== */
+
+			const shelfRows =
+				[
+					...modularVisual.querySelectorAll(
+						'.modular-shelf'
+					)
+				];
+
+
+			for (
+				let shelfIndex = 0;
+				shelfIndex < shelfRows.length;
+				shelfIndex++
+			) {
+
+				const shelfRow =
+					shelfRows[
+						shelfIndex
+					];
+
+				const productsContainer =
+					shelfRow.querySelector(
+						'.modular-shelf-products'
+					);
+
+
+				const [
+					,
+					shelfProducts
+				] =
+					sortedShelves[
+						shelfIndex
+					];
+
+
+				/* =============================================
+				   LOAD + CROP PRODUCT IMAGES
+				============================================= */
+
+				const loadedProducts =
+					await Promise.all(
+						shelfProducts
+							.filter(
+								product =>
+									product.image &&
+									product.image.url
+							)
+							.map(
+								async product => {
+
+									const croppedImage =
+										await cropProductImage(
+											product.image.url
+										);
+
+
+									if (
+										!croppedImage
+									) {
+										return null;
+									}
+
+
+									/*
+									   Scale the cropped
+									   content to the full
+									   shelf height while
+									   preserving its
+									   aspect ratio.
+									*/
+
+									const width =
+										(
+											croppedImage.width /
+											croppedImage.height
+										) *
+										shelfHeight;
+
+
+									return {
+										product,
+
+										url:
+											croppedImage.url,
+
+										width
+									};
+
+								}
+							)
+					);
+
+
+				const usableProducts =
+					loadedProducts.filter(
+						Boolean
+					);
+
+
+				if (
+					!usableProducts.length
+				) {
+					continue;
+				}
+
+
+				/* =============================================
+				   CALCULATE NATURAL SHELF WIDTH
+				============================================= */
+
+				const totalNaturalProductWidth =
+					usableProducts.reduce(
+						(total, { width, product }) => {
+
+							const facings =
+								Math.max(
+									1,
+									Number(
+										product.facings ?? 1
+									)
+								);
+
+							return (
+								total +
+								(
+									width *
+									facings
+								)
+							);
+
+						},
+						0
+					);
+
+
+				const totalProductGaps =
+					usableProducts.reduce(
+						(total, { product }) => {
+
+							const facings =
+								Math.max(
+									1,
+									Number(
+										product.facings ?? 1
+									)
+								);
+
+							return (
+								total +
+								Math.max(
+									0,
+									facings - 1
+								)
+							);
+
+						},
+						0
+					) *
+					gap;
+
+
+				const groupGaps =
+					Math.max(
+						0,
+						usableProducts.length - 1
+					) *
+					gap;
+
+
+				const naturalShelfWidth =
+					totalNaturalProductWidth +
+					totalProductGaps +
+					groupGaps;
+
+
+				/* =============================================
+				   DETERMINE DISPLAY SCALE
+				============================================= */
+
+				const shelfScale =
+					naturalShelfWidth > bayWidth
+						? bayWidth / naturalShelfWidth
+						: 1;
+
+
+				productsContainer.style.width =
+					`${naturalShelfWidth}px`;
+
+				productsContainer.style.flex =
+					'0 0 auto';
+
+				productsContainer.style.justifyContent =
+					'flex-start';
+
+
+				if (
+					shelfScale < 1
+				) {
+
+					productsContainer.style.transformOrigin =
+						'center center';
+
+					productsContainer.style.transform =
+						`scaleX(${shelfScale})`;
+
+				}
+
+
+				/* =============================================
+				   CREATE PRODUCT GROUPS + FACINGS
+				============================================= */
+
+				usableProducts.forEach(
+					({
+						product,
+						url,
+						width
+					}) => {
+
+						const productGroup =
+							document.createElement(
+								'div'
+							);
+
+						productGroup.className =
+							'modular-product-group';
+
+						productGroup.style.display =
+							'flex';
+
+						productGroup.style.flexDirection =
+							'row';
+
+						productGroup.style.alignItems =
+							'center';
+
+						productGroup.style.gap =
+							`${gap}px`;
+
+						productGroup.style.flex =
+							'0 0 auto';
+
+
+						const facings =
+							Math.max(
+								1,
+								Number(
+									product.facings ?? 1
+								)
+							);
+
+
+						/* =====================================
+						   CREATE ONE IMAGE PER FACING
+						===================================== */
+
+						for (
+							let i = 0;
+							i < facings;
+							i++
+						) {
+
+							const facing =
+								document.createElement(
+									'img'
+								);
+
+							facing.src =
+								url;
+
+							facing.alt =
+								product.image.alt ||
+								product.description ||
+								'Product';
+
+							facing.className =
+								'modular-product-image';
+
+
+							/* =================================
+							   CROPPED CONTENT FILLS HEIGHT
+							================================= */
+
+							facing.style.display =
+								'block';
+
+							facing.style.height =
+								`${shelfHeight}px`;
+
+							facing.style.width =
+								`${width}px`;
+
+							facing.style.minWidth =
+								`${width}px`;
+
+							facing.style.maxWidth =
+								`${width}px`;
+
+							facing.style.flex =
+								`0 0 ${width}px`;
+
+							facing.style.objectFit =
+								'fill';
+
+							facing.style.objectPosition =
+								'center center';
+
+
+							productGroup.appendChild(
+								facing
+							);
+
+						}
+
+
+						productsContainer.appendChild(
+							productGroup
+						);
+
+					}
+				);
+
+			}
+
+
+			/* =================================================
+			   WAIT FOR ALL IMAGES
+			===================================================== */
+
+			const images =
+				[
+					...modularVisual.querySelectorAll(
+						'img'
+					)
+				];
+
+
+			await Promise.all(
+				images.map(
+					image => {
+
+						if (
+							image.complete
+						) {
+							return Promise.resolve();
+						}
+
+						return new Promise(
+							resolve => {
+
+								image.onload =
+									resolve;
+
+								image.onerror =
+									resolve;
+
+							}
+						);
+
+					}
+				)
+			);
+
+
+			/* =================================================
+			   FINAL LAYOUT PASS
+			===================================================== */
+
+			await new Promise(
+				resolve =>
+					requestAnimationFrame(
+						() =>
+							requestAnimationFrame(
+								resolve
+							)
+					)
+			);
+
+
+			/* =================================================
+			   FIND ACTUAL HORIZONTAL CONTENT BOUNDS
+			===================================================== */
+
+			const renderedImages =
+				[
+					...modularVisual.querySelectorAll(
+						'img'
+					)
+				];
+
+
+			let contentLeft =
+				bayWidth;
+
+			let contentRight =
+				0;
+
+
+			renderedImages.forEach(
+				image => {
+
+					const rect =
+						image.getBoundingClientRect();
+
+					const visualRect =
+						modularVisual.getBoundingClientRect();
+
+					const left =
+						rect.left -
+						visualRect.left;
+
+					const right =
+						rect.right -
+						visualRect.left;
+
+					contentLeft =
+						Math.min(
+							contentLeft,
+							left
+						);
+
+					contentRight =
+						Math.max(
+							contentRight,
+							right
+						);
+
+				}
+			);
+
+
+			if (
+				contentRight <= contentLeft
+			) {
+
+				contentLeft =
+					0;
+
+				contentRight =
+					bayWidth;
+
+			}
+
+
+			contentLeft =
+				Math.max(
+					0,
+					Math.floor(
+						contentLeft -
+						cropPadding
+					)
+				);
+
+			contentRight =
+				Math.min(
+					bayWidth,
+					Math.ceil(
+						contentRight +
+						cropPadding
 					)
 				);
 
 
-			regularModModified =
-				false;
+			const croppedWidth =
+				Math.max(
+					1,
+					contentRight -
+					contentLeft
+				);
 
 
-			renderModularVisual();
+			/* =================================================
+			   CREATE FULL CANVAS
+			===================================================== */
+
+			const canvas =
+				await html2canvas(
+					modularVisual,
+					{
+						backgroundColor:
+							'#ffffff',
+
+						scale:
+							2,
+
+						useCORS:
+							true,
+
+						width:
+							bayWidth,
+
+						height:
+							bayHeight
+					}
+				);
+
+
+			/* =================================================
+			   CROP HORIZONTAL WHITE SPACE
+			===================================================== */
+
+			const cropCanvas =
+				document.createElement(
+					'canvas'
+				);
+
+			cropCanvas.width =
+				croppedWidth * 2;
+
+			cropCanvas.height =
+				bayHeight * 2;
+
+
+			const cropContext =
+				cropCanvas.getContext(
+					'2d'
+				);
+
+
+			cropContext.drawImage(
+				canvas,
+				contentLeft * 2,
+				0,
+				croppedWidth * 2,
+				bayHeight * 2,
+				0,
+				0,
+				croppedWidth * 2,
+				bayHeight * 2
+			);
+
+
+			/*
+			   Store the cropped canvas rather than
+			   immediately creating the final snapshot.
+
+			   We need to know the widest bay first so
+			   every snapshot can use the same aspect ratio.
+			*/
+
+			pendingSnapshots.push({
+				bayNumber,
+				cropCanvas,
+				croppedWidth
+			});
+
+
+			/* =================================================
+			   REMOVE TEMPORARY VISUAL
+			===================================================== */
+
+			modularVisual.remove();
 
 		}
-		catch (error) {
+
+
+		/* =====================================================
+		   FIND WIDEST SNAPSHOT
+		===================================================== */
+
+		const widestSnapshotWidth =
+			Math.max(
+				...pendingSnapshots.map(
+					snapshot =>
+						snapshot.croppedWidth
+				)
+			);
+
+
+		/* =====================================================
+		   NORMALISE SNAPSHOT WIDTHS
+		===================================================== */
+
+		pendingSnapshots.forEach(
+			({
+				bayNumber,
+				cropCanvas,
+				croppedWidth
+			}) => {
+
+				/*
+				   Every snapshot keeps the same height.
+
+				   The widest snapshot therefore determines
+				   the smallest displayed height.
+
+				   Narrower snapshots receive white space
+				   on the left and right so they share the
+				   exact same aspect ratio.
+				*/
+
+				const normalisedCanvas =
+					document.createElement(
+						'canvas'
+					);
+
+				normalisedCanvas.width =
+					widestSnapshotWidth * 2;
+
+				normalisedCanvas.height =
+					bayHeight * 2;
+
+
+				const normalisedContext =
+					normalisedCanvas.getContext(
+						'2d'
+					);
+
+
+				/* =============================================
+				   WHITE BACKGROUND
+				============================================= */
+
+				normalisedContext.fillStyle =
+					'#ffffff';
+
+				normalisedContext.fillRect(
+					0,
+					0,
+					normalisedCanvas.width,
+					normalisedCanvas.height
+				);
+
+
+				/* =============================================
+				   CENTRE ORIGINAL SNAPSHOT
+				============================================= */
+
+				const horizontalOffset =
+					(
+						widestSnapshotWidth -
+						croppedWidth
+					) *
+					2 /
+					2;
+
+
+				normalisedContext.drawImage(
+					cropCanvas,
+					horizontalOffset,
+					0
+				);
+
+
+				const snapshot =
+					normalisedCanvas.toDataURL(
+						'image/png'
+					);
+
+
+				snapshots.push({
+					bayNumber,
+					snapshot
+				});
+
+			}
+		);
+
+
+		return snapshots;
+
+	};
+/* =========================================================
+   LOAD MODULAR ACTIVITY BAYS
+========================================================= */
+
+const loadModularActivityBays =
+	async () => {
+
+		if (
+			!planogramNumber
+		) {
 
 			console.error(
-				'Failed to load modular:',
+				'No planogram number was provided.'
+			);
+
+			return;
+
+		}
+
+
+		/* =================================================
+		   FIND STEP 1
+		================================================= */
+
+		const step =
+			document.querySelector(
+				'.modular-activity-step'
+			);
+
+
+		if (
+			!step
+		) {
+
+			console.error(
+				'Modular activity Step 1 was not found.'
+			);
+
+			return;
+
+		}
+
+
+		/* =================================================
+		   CREATE LOADING STATE
+		================================================= */
+
+		const loading =
+			document.createElement(
+				'div'
+			);
+
+		loading.className =
+			'modular-activity-snapshot-loading';
+
+		loading.textContent =
+			'Loading modular bays...';
+
+
+		step.appendChild(
+			loading
+		);
+
+
+		try {
+
+			const snapshots =
+				await createModularBaySnapshot(
+					planogramNumber
+				);
+
+
+			/* =================================================
+			   REMOVE LOADING STATE
+			================================================= */
+
+			loading.remove();
+
+
+			if (
+				!Array.isArray(snapshots) ||
+				snapshots.length === 0
+			) {
+
+				console.warn(
+					'No modular bay snapshots found.'
+				);
+
+				return;
+
+			}
+			/* =================================================
+				SET REQUIRED MODULARS FROM BAY IMAGE ORDER
+				================================================= */
+
+				requiredModulars =
+					snapshots.map(
+						({
+							bayNumber
+						}) =>
+							Number(
+								bayNumber
+							)
+					);
+
+				updateModularActivityCounters();
+
+			/* =================================================
+			   CREATE SNAPSHOT CONTAINER
+			================================================= */
+
+			const snapshotContainer =
+				document.createElement(
+					'div'
+				);
+
+			snapshotContainer.className =
+				'modular-activity-snapshots';
+
+			const previewBayCount =
+				document.querySelector(
+					'#modular-preview-bay-count'
+				);
+			const modularActivityTotal =
+				document.querySelector(
+					'#modular-activity-total'
+				);
+
+
+			if (
+				modularActivityTotal
+			) {
+
+				modularActivityTotal.textContent =
+					snapshots.length;
+
+			}
+
+
+			if (
+				previewBayCount
+			) {
+
+				previewBayCount.textContent =
+					snapshots.length;
+
+			}
+			/* =================================================
+			   CREATE BAY SNAPSHOTS
+			================================================= */
+
+			snapshots.forEach(
+				({
+					bayNumber,
+					snapshot
+				}) => {
+
+					const bayContainer =
+						document.createElement(
+							'div'
+						);
+
+					bayContainer.className =
+						'modular-activity-bay';
+
+
+					/* =========================================
+					   BAY LABEL
+					========================================= */
+
+					const bayLabel =
+						document.createElement(
+							'div'
+						);
+
+					bayLabel.className =
+						'modular-activity-bay-label';
+
+					bayLabel.textContent =
+						`Bay ${bayNumber}`;
+
+
+					/* =========================================
+					BAY IMAGE
+					========================================= */
+
+					const bayImageWrapper =
+						document.createElement(
+							'div'
+						);
+
+
+					bayImageWrapper.className =
+						'modular-activity-bay-image-wrapper';
+
+
+					bayImageWrapper.dataset.bayNumber =
+						bayNumber;
+
+
+					const bayImage =
+						document.createElement(
+							'img'
+						);
+
+					bayImage.className =
+						'modular-activity-bay-image';
+
+					bayImage.src =
+						snapshot;
+
+					bayImage.alt =
+						`Modular bay ${bayNumber}`;
+
+					bayImage.draggable =
+						false;
+
+
+					bayImageWrapper.appendChild(
+						bayImage
+					);
+
+
+					bayContainer.appendChild(
+						bayLabel
+					);
+
+					bayContainer.appendChild(
+						bayImageWrapper
+					);
+
+					snapshotContainer.appendChild(
+						bayContainer
+					);
+
+				}
+			);
+
+
+			/* =================================================
+			   PLACE BAYS INSIDE STEP 1
+			================================================= */
+
+			step.appendChild(
+				snapshotContainer
+			);
+
+
+			/* =================================================
+			   ENABLE BAY IMAGE ZOOM
+			================================================= */
+
+			enableModularBayImageZoom();
+
+
+			/* =================================================
+			   REFRESH LUCIDE ICONS
+			================================================= */
+
+			lucide.createIcons();
+
+		}
+		catch (
+			error
+		) {
+
+			console.error(
+				'Failed to load modular activity bays:',
 				error
 			);
 
 
-			if (modularVisual) {
+			loading.textContent =
+				'Failed to load modular bays.';
 
-				modularVisual.innerHTML = `
+		}
 
-					<div class="regular-mod-empty">
+	};
 
-						Unable to load modular.
+/* =========================================================
+   BAY IMAGE ZOOM
+========================================================= */
 
-					</div>
+const enableModularBayImageZoom =
+	() => {
 
-				`;
+		const bayImages =
+			document.querySelectorAll(
+				'.modular-activity-bay-image'
+			);
+
+
+		bayImages.forEach(
+			bayImage => {
+
+				bayImage.addEventListener(
+					'click',
+					() => {
+
+						const overlay =
+							document.createElement(
+								'div'
+							);
+
+						overlay.className =
+							'modular-activity-snapshot-overlay';
+
+
+						const largeImage =
+							document.createElement(
+								'img'
+							);
+
+						largeImage.className =
+							'modular-activity-snapshot-large';
+
+						largeImage.src =
+							bayImage.src;
+
+						largeImage.alt =
+							bayImage.alt;
+
+
+						overlay.appendChild(
+							largeImage
+						);
+
+
+						document.body.appendChild(
+							overlay
+						);
+
+
+						overlay.addEventListener(
+							'click',
+							event => {
+
+								if (
+									event.target ===
+									overlay
+								) {
+
+									overlay.remove();
+
+								}
+
+							}
+						);
+
+					}
+				);
 
 			}
+		);
+
+	};
+/* =========================================================
+   MOD TAG CAMERA BUTTON
+========================================================= */
+
+const modularSearchCamera =
+	document.querySelector(
+		'#modular-search-camera'
+	);
+
+
+if (
+	modularSearchCamera
+) {
+
+	modularSearchCamera.addEventListener(
+		'click',
+		() => {
+
+			startModularTagScanner(
+				async (
+					modularTag
+				) => {
+
+					console.log(
+						'Mod tag scanned:',
+						modularTag
+					);
+
+
+					stopBarcodeScanner();
+
+
+					/*
+						Put the scanned Mod tag
+						into the search field.
+					*/
+
+					if (
+						modularSearchInput
+					) {
+
+						modularSearchInput.value =
+							modularTag;
+
+
+						/*
+							Trigger the existing
+							Mod tag search.
+						*/
+
+						if (
+							modularSearchButton
+						) {
+
+							modularSearchButton.click();
+
+						}
+
+					}
+
+				}
+			);
+
+		}
+	);
+
+}
+/* =========================================================
+   CLEAR ALL CONFIRMATION MODAL
+========================================================= */
+
+const modularClearButton =
+	document.querySelector(
+		'#modular-activity-clear'
+	);
+
+
+const modularClearModal =
+	document.querySelector(
+		'#modular-clear-modal'
+	);
+
+
+const modularClearModalCancel =
+	document.querySelector(
+		'#modular-clear-modal-cancel'
+	);
+
+
+const modularClearModalConfirm =
+	document.querySelector(
+		'#modular-clear-modal-confirm'
+	);
+
+
+const modularClearModalBackdrop =
+	document.querySelector(
+		'[data-clear-modal-close]'
+	);
+
+
+/* =========================================================
+   OPEN CLEAR MODAL
+========================================================= */
+
+const openModularClearModal =
+	() => {
+
+		if (
+			!modularClearModal
+		) {
+
+			return;
+
+		}
+
+
+		modularClearModal.hidden =
+			false;
+
+
+		lucide.createIcons();
+
+
+		if (
+			modularClearModalCancel
+		) {
+
+			modularClearModalCancel.focus();
 
 		}
 
@@ -3127,22 +3713,343 @@ const loadRegularMod =
 
 
 /* =========================================================
-   LOAD MODULAR
+   CLOSE CLEAR MODAL
 ========================================================= */
 
-if (selectedModularId) {
+const closeModularClearModal =
+	() => {
 
-	loadRegularMod(
-		selectedModularId
+		if (
+			!modularClearModal
+		) {
+
+			return;
+
+		}
+
+
+		modularClearModal.hidden =
+			true;
+
+	};
+
+/* =========================================================
+   ACTUALLY CLEAR ALL TAGS
+========================================================= */
+
+const clearAllModularTags =
+	() => {
+
+		/*
+			Clear all temporary Mod Tag assignments.
+		*/
+
+		modularTagAssignments.length =
+			0;
+
+
+		/*
+			Clear the displayed assignments.
+		*/
+
+		renderModularTagAssignments();
+
+
+		/*
+			Update counters.
+		*/
+
+		updateModularActivityCounters();
+
+
+		/*
+			Remove completion/check overlays
+			from every bay.
+		*/
+
+		updateModularBayCompletionStates();
+
+
+		/*
+			Re-enable Mod Tag entry.
+		*/
+
+		if (
+			modularSearchInput
+		) {
+
+			modularSearchInput.disabled =
+				false;
+
+			modularSearchInput.value =
+				'';
+
+			modularSearchInput.focus();
+
+		}
+
+
+		if (
+			modularSearchButton
+		) {
+
+			modularSearchButton.disabled =
+				false;
+
+		}
+
+
+		/*
+			Clear any visible search error.
+		*/
+
+		if (
+			modularSearchError
+		) {
+
+			modularSearchError.hidden =
+				true;
+
+			modularSearchError.textContent =
+				'';
+
+		}
+
+
+		/*
+			Clear any pending error timeout.
+		*/
+
+		if (
+			modularSearchErrorTimeout
+		) {
+
+			clearTimeout(
+				modularSearchErrorTimeout
+			);
+
+			modularSearchErrorTimeout =
+				null;
+
+		}
+
+
+		console.log(
+			'All temporary Mod Tag assignments cleared.'
+		);
+
+	};
+
+
+/* =========================================================
+   CLEAR BUTTON
+========================================================= */
+
+if (
+	modularClearButton
+) {
+
+	modularClearButton.addEventListener(
+		'click',
+		() => {
+
+			if (
+				modularTagAssignments.length === 0
+			) {
+
+				return;
+
+			}
+
+
+			modularClearModalAction =
+				'clear';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Clear Scanned Tags?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to remove all scanned tags?';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'Clear All';
+
+			}
+
+
+			openModularClearModal();
+
+		}
 	);
 
 }
-else {
+/* =========================================================
+   END TASK BUTTON
+========================================================= */
 
-	regularModShelves = [];
+if (
+	modularEndTaskButton
+) {
 
-	regularModOriginalShelves = [];
+	modularEndTaskButton.addEventListener(
+		'click',
+		() => {
 
-	renderModularVisual();
+			modularClearModalAction =
+				'end';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Cancel Modular Activity?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to cancel this Modular Activity? All progress will be lost';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'End Task';
+
+			}
+
+
+			openModularClearModal();
+
+		}
+	);
 
 }
+/* =========================================================
+   CANCEL
+========================================================= */
+
+if (
+	modularClearModalCancel
+) {
+
+	modularClearModalCancel.addEventListener(
+		'click',
+		closeModularClearModal
+	);
+
+}
+
+
+/* =========================================================
+   BACKDROP CLICK
+========================================================= */
+
+if (
+	modularClearModalBackdrop
+) {
+
+	modularClearModalBackdrop.addEventListener(
+		'click',
+		closeModularClearModal
+	);
+
+}
+
+
+/* =========================================================
+   CONFIRM
+========================================================= */
+
+if (
+	modularClearModalConfirm
+) {
+
+	modularClearModalConfirm.addEventListener(
+		'click',
+		() => {
+
+			if (
+				modularClearModalAction === 'clear'
+			) {
+
+				clearAllModularTags();
+
+			}
+
+
+			if (
+				modularClearModalAction === 'end'
+			) {
+
+				window.history.back();
+
+			}
+
+
+			closeModularClearModal();
+
+		}
+	);
+
+}
+
+
+/* =========================================================
+   ESCAPE KEY
+========================================================= */
+
+document.addEventListener(
+	'keydown',
+	event => {
+
+		if (
+			event.key === 'Escape' &&
+			modularClearModal &&
+			!modularClearModal.hidden
+		) {
+
+			closeModularClearModal();
+
+		}
+
+	}
+);
+
+/* =========================================================
+   INITIALISE
+========================================================= */
+
+lucide.createIcons();
+
+
+loadModularActivityBays();

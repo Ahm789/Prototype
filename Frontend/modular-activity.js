@@ -65,13 +65,17 @@ const searchUPC =
 		'upc'
 	) || '';
 
+
 const modularSearchError =
 	document.querySelector(
 		'#modular-search-error'
 	);
 
+
 let modularSearchErrorTimeout =
 	null;
+
+
 const modularRemainingCount =
 	document.querySelector(
 		'#modular-remaining-count'
@@ -88,14 +92,20 @@ const modularActivityTotal =
 	document.querySelector(
 		'#modular-activity-total'
 	);
+
+
 const modularTagAssignmentsContainer =
 	document.querySelector(
 		'#modular-tag-assignments'
 	);
+
+
 const scanModeToggle =
 	document.querySelector(
 		'#scan-mode-toggle'
 	);
+
+
 const isStandardScanMode =
 	() => {
 
@@ -105,18 +115,26 @@ const isStandardScanMode =
 		);
 
 	};
+
+
 const modularClearModalMessage =
 	document.querySelector(
 		'#modular-clear-modal-message'
 	);
+
+
 const modularEndTaskButton =
 	document.querySelector(
 		'#modular-activity-end'
 	);
+
+
 const modularClearModalTitle =
 	document.querySelector(
 		'#modular-clear-modal-title'
 	);
+
+
 /* =========================================================
    MODULAR SCAN MODE TITLE
 ========================================================= */
@@ -155,6 +173,7 @@ const updateModularActivityStepTitle =
 
 	};
 
+
 /* =========================================================
    SMART TAG RANGE
 ========================================================= */
@@ -167,6 +186,7 @@ const generateSmartTagRange =
 
 		const firstParts =
 			firstTag.split('-');
+
 
 		const lastParts =
 			lastTag.split('-');
@@ -184,6 +204,7 @@ const generateSmartTagRange =
 
 		const firstPrefix =
 			`${firstParts[0]}-${firstParts[1]}-${firstParts[2]}`;
+
 
 		const lastPrefix =
 			`${lastParts[0]}-${lastParts[1]}-${lastParts[2]}`;
@@ -207,6 +228,7 @@ const generateSmartTagRange =
 			Number(
 				firstParts[3]
 			);
+
 
 		const lastNumber =
 			Number(
@@ -244,6 +266,8 @@ const generateSmartTagRange =
 		return tags;
 
 	};
+
+
 /* =========================================================
    INITIAL TITLE
 ========================================================= */
@@ -265,63 +289,93 @@ if (
 	);
 
 }
+
+
 /* =========================================================
    MODULAR SEARCH
 ========================================================= */
-const showModularSearchError = (
-	message
-) => {
 
-	if (
-		!modularSearchError
-	) {
-		return;
-	}
+const showModularSearchError =
+	(
+		message
+	) => {
+
+		if (
+			!modularSearchError
+		) {
+			return;
+		}
 
 
-	if (
-		modularSearchErrorTimeout
-	) {
-
-		clearTimeout(
+		if (
 			modularSearchErrorTimeout
-		);
+		) {
 
-	}
+			clearTimeout(
+				modularSearchErrorTimeout
+			);
 
-
-	modularSearchError.textContent =
-		message;
-
-	modularSearchError.hidden =
-		false;
+		}
 
 
-	modularSearchErrorTimeout =
-		setTimeout(
-			() => {
+		modularSearchError.textContent =
+			message;
 
-				modularSearchError.hidden =
-					true;
 
-				modularSearchError.textContent =
-					'';
+		modularSearchError.hidden =
+			false;
 
-			},
-			5000
-		);
 
-};
+		modularSearchErrorTimeout =
+			setTimeout(
+				() => {
+
+					modularSearchError.hidden =
+						true;
+
+					modularSearchError.textContent =
+						'';
+
+				},
+				5000
+			);
+
+	};
+
+
 const modularSearchButton =
 	document.querySelector(
 		'#modular-search-mod-tag'
 	);
+
 
 const modularSearchInput =
 	document.querySelector(
 		'#modular-search-upc'
 	);
 
+
+/* =========================================================
+   TEMPORARY MOD TAG ASSIGNMENTS
+========================================================= */
+
+const modularTagAssignments = [];
+
+
+let requiredModulars = [];
+
+
+/* =========================================================
+   MODULAR CLEAR MODAL ACTION
+========================================================= */
+
+let modularClearModalAction =
+	null;
+
+
+/* =========================================================
+   MODULAR SEARCH TAG
+========================================================= */
 
 const searchModularTag =
 	async () => {
@@ -360,7 +414,7 @@ const searchModularTag =
 		}
 
 
-				try {
+		try {
 
 			const response =
 				await fetch(
@@ -475,7 +529,9 @@ const searchModularTag =
 
 					renderModularTagAssignments();
 
+
 					updateModularActivityCounters();
+
 
 					updateModularBayCompletionStates();
 
@@ -522,7 +578,7 @@ const searchModularTag =
 
 
 				/* =================================================
-				PREVENT SMART RANGE EXCEEDING AVAILABLE MODULARS
+				   PREVENT SMART RANGE EXCEEDING AVAILABLE MODULARS
 				================================================= */
 
 				if (
@@ -581,7 +637,9 @@ const searchModularTag =
 
 				renderModularTagAssignments();
 
+
 				updateModularActivityCounters();
+
 
 				updateModularBayCompletionStates();
 
@@ -646,7 +704,10 @@ const searchModularTag =
 
 			}
 
-		} catch (error) {
+		}
+		catch (
+			error
+		) {
 
 			console.error(
 				'Unable to find Mod Tag:',
@@ -703,14 +764,8 @@ if (
 	);
 
 }
-/* =========================================================
-   TEMPORARY MOD TAG ASSIGNMENTS
-========================================================= */
-
-const modularTagAssignments = [];
 
 
-let requiredModulars = [];
 /* =========================================================
    UPDATE MODULAR ACTIVITY COUNTERS
 ========================================================= */
@@ -798,10 +853,557 @@ const updateModularActivityCounters =
 
 
 /* =========================================================
+   SHOW UPDATE MODULAR
+========================================================= */
+
+const showUpdateModular =
+	() => {
+
+		const modularActivityStep1 =
+			document.querySelector(
+				'.modular-activity-step:not(.modular-activity-step-2)'
+			);
+
+
+		const modularActivityStep2 =
+			document.querySelector(
+				'#modular-activity-step-2'
+			);
+
+
+		const modularScanMode =
+			document.querySelector(
+				'div.modular-scan-mode'
+			);
+
+
+		const modularRemainingTags =
+			document.querySelector(
+				'.modular-activity-remaining:not(#modular-linked-tags)'
+			);
+
+
+		const modularLinkedTags =
+			document.querySelector(
+				'#modular-linked-tags'
+			);
+
+
+		const modularTagAssignments =
+			document.querySelector(
+				'#modular-tag-assignments'
+			);
+
+
+		const modularStep2Assignments =
+			document.querySelector(
+				'#modular-step-2-assignments'
+			);
+
+
+		const modularActivityEnd =
+			document.querySelector(
+				'#modular-activity-end'
+			);
+
+
+		const modularActivityClear =
+			document.querySelector(
+				'#modular-activity-clear'
+			);
+
+
+		const modularActivityNext =
+			document.querySelector(
+				'#modular-activity-next'
+			);
+
+
+		const modularActivityStepBack =
+			document.querySelector(
+				'#modular-activity-step-back'
+			);
+
+
+		const modularActivityFinish =
+			document.querySelector(
+				'#modular-activity-finish'
+			);
+
+
+		/*
+			Hide Step 1.
+		*/
+
+		if (
+			modularActivityStep1
+		) {
+
+			modularActivityStep1.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Step 2.
+		*/
+
+		if (
+			modularActivityStep2
+		) {
+
+			modularActivityStep2.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Scan Mode.
+		*/
+
+		if (
+			modularScanMode
+		) {
+
+			modularScanMode.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide Remaining Mod Tags.
+		*/
+
+		if (
+			modularRemainingTags
+		) {
+
+			modularRemainingTags.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Linked Mod Tags.
+		*/
+
+		if (
+			modularLinkedTags
+		) {
+
+			modularLinkedTags.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Step 1 Mod Tag Assignments.
+		*/
+
+		if (
+			modularTagAssignments
+		) {
+
+			modularTagAssignments.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Step 2 Mod Tag Assignments.
+		*/
+
+		if (
+			modularStep2Assignments
+		) {
+
+			modularStep2Assignments.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide End Task button.
+		*/
+
+		if (
+			modularActivityEnd
+		) {
+
+			modularActivityEnd.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide Clear All button.
+		*/
+
+		if (
+			modularActivityClear
+		) {
+
+			modularActivityClear.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide the Next button.
+		*/
+
+		if (
+			modularActivityNext
+		) {
+
+			modularActivityNext.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show the Step 2 Back button.
+		*/
+
+		if (
+			modularActivityStepBack
+		) {
+
+			modularActivityStepBack.hidden =
+				false;
+
+		}
+
+
+		/*
+			Show the Step 2 Finish button.
+		*/
+
+		if (
+			modularActivityFinish
+		) {
+
+			modularActivityFinish.hidden =
+				false;
+
+		}
+
+	};
+
+
+/* =========================================================
+   HIDE UPDATE MODULAR
+========================================================= */
+
+const hideUpdateModular =
+	() => {
+
+		const modularActivityStep1 =
+			document.querySelector(
+				'.modular-activity-step:not(.modular-activity-step-2)'
+			);
+
+
+		const modularActivityStep2 =
+			document.querySelector(
+				'#modular-activity-step-2'
+			);
+
+
+		const modularScanMode =
+			document.querySelector(
+				'div.modular-scan-mode'
+			);
+
+
+		const modularRemainingTags =
+			document.querySelector(
+				'.modular-activity-remaining:not(#modular-linked-tags)'
+			);
+
+
+		const modularLinkedTags =
+			document.querySelector(
+				'#modular-linked-tags'
+			);
+
+
+		const modularTagAssignments =
+			document.querySelector(
+				'#modular-tag-assignments'
+			);
+
+
+		const modularStep2Assignments =
+			document.querySelector(
+				'#modular-step-2-assignments'
+			);
+
+
+		const modularActivityEnd =
+			document.querySelector(
+				'#modular-activity-end'
+			);
+
+
+		const modularActivityClear =
+			document.querySelector(
+				'#modular-activity-clear'
+			);
+
+
+		const modularActivityNext =
+			document.querySelector(
+				'#modular-activity-next'
+			);
+
+
+		const modularActivityStepBack =
+			document.querySelector(
+				'#modular-activity-step-back'
+			);
+
+
+		const modularActivityFinish =
+			document.querySelector(
+				'#modular-activity-finish'
+			);
+
+
+		/*
+			Show Step 1.
+		*/
+
+		if (
+			modularActivityStep1
+		) {
+
+			modularActivityStep1.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Step 2.
+		*/
+
+		if (
+			modularActivityStep2
+		) {
+
+			modularActivityStep2.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Scan Mode.
+		*/
+
+		if (
+			modularScanMode
+		) {
+
+			modularScanMode.hidden =
+				false;
+
+		}
+
+
+		/*
+			Show Remaining Mod Tags.
+		*/
+
+		if (
+			modularRemainingTags
+		) {
+
+			modularRemainingTags.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Linked Mod Tags.
+		*/
+
+		if (
+			modularLinkedTags
+		) {
+
+			modularLinkedTags.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show Step 1 Mod Tag Assignments.
+		*/
+
+		if (
+			modularTagAssignments
+		) {
+
+			modularTagAssignments.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide Step 2 Mod Tag Assignments.
+		*/
+
+		if (
+			modularStep2Assignments
+		) {
+
+			modularStep2Assignments.hidden =
+				true;
+
+		}
+
+
+		/*
+			Show End Task button.
+		*/
+
+		if (
+			modularActivityEnd
+		) {
+
+			modularActivityEnd.hidden =
+				false;
+
+		}
+
+
+		/*
+			Show Clear All button.
+		*/
+
+		if (
+			modularActivityClear
+		) {
+
+			modularActivityClear.hidden =
+				false;
+
+		}
+
+
+		/*
+			Show the Next button.
+		*/
+
+		if (
+			modularActivityNext
+		) {
+
+			modularActivityNext.hidden =
+				false;
+
+		}
+
+
+		/*
+			Hide the Step 2 Back button.
+		*/
+
+		if (
+			modularActivityStepBack
+		) {
+
+			modularActivityStepBack.hidden =
+				true;
+
+		}
+
+
+		/*
+			Hide the Step 2 Finish button.
+		*/
+
+		if (
+			modularActivityFinish
+		) {
+
+			modularActivityFinish.hidden =
+				true;
+
+		}
+
+	};
+
+
+/* =========================================================
+   HANDLE MODULAR ACTIVITY NEXT
+========================================================= */
+
+const handleModularActivityNext =
+	() => {
+
+		/*
+			This is the main Next handler.
+
+			Any processing of the scanned Mod Tags,
+			changes, API calls, etc. will eventually
+			go here.
+
+			For now, simply move to Step 2.
+		*/
+
+		showUpdateModular();
+
+	};
+
+
+/* =========================================================
+   MODULAR ACTIVITY NEXT BUTTON
+========================================================= */
+
+const modularActivityNextButton =
+	document.querySelector(
+		'#modular-activity-next'
+	);
+
+
+if (
+	modularActivityNextButton
+) {
+
+	modularActivityNextButton.addEventListener(
+		'click',
+		handleModularActivityNext
+	);
+
+}
+
+
+/* =========================================================
    INITIALISE MODULAR ACTIVITY COUNTERS
 ========================================================= */
 
 updateModularActivityCounters();
+
+
+/* =========================================================
+   ADD MODULAR TAG ASSIGNMENT
+========================================================= */
 
 const addModularTagAssignment =
 	(
@@ -821,17 +1423,25 @@ const addModularTagAssignment =
 							)
 					)
 			);
+
+
 		if (
 			nextModular === undefined
 		) {
+
 			return;
+
 		}
 
 
 		modularTagAssignments.push({
-			modular: nextModular,
-			modularTag: modularTag
+			modular:
+				nextModular,
+
+			modularTag:
+				modularTag
 		});
+
 
 		modularTagAssignments.sort(
 			(
@@ -846,9 +1456,15 @@ const addModularTagAssignment =
 				)
 		);
 
+
 		renderModularTagAssignments();
+
+
 		updateModularActivityCounters();
+
+
 		updateModularBayCompletionStates();
+
 
 		console.log(
 			'Temporary Mod Tag Assignments:',
@@ -893,16 +1509,21 @@ const addModularTagAssignment =
 		}
 
 	};
+
+
 /* =========================================================
    MOD TAG ASSIGNMENTS RENDERING
 ========================================================= */
+
 const renderModularTagAssignments =
 	() => {
 
 		if (
 			!modularTagAssignmentsContainer
 		) {
+
 			return;
+
 		}
 
 
@@ -1057,6 +1678,7 @@ const renderModularTagAssignments =
 
 						updateModularActivityCounters();
 
+
 						updateModularBayCompletionStates();
 
 
@@ -1130,6 +1752,8 @@ const renderModularTagAssignments =
 		lucide.createIcons();
 
 	};
+
+
 /* =========================================================
    UPDATE MODULAR BAY COMPLETION STATES
 ========================================================= */
@@ -1199,6 +1823,7 @@ const updateModularBayCompletionStates =
 								'div'
 							);
 
+
 						completionOverlay.className =
 							'modular-activity-bay-image-overlay';
 
@@ -1217,22 +1842,26 @@ const updateModularBayCompletionStates =
 									'svg'
 								);
 
+
 							wand.classList.add(
 								'modular-activity-bay-smart-icon'
 							);
+
 
 							wand.setAttribute(
 								'viewBox',
 								'0 -4 24 28'
 							);
 
+
 							wand.setAttribute(
 								'aria-hidden',
 								'true'
 							);
 
+
 							/* =========================================================
-							SMART MODE WAND SVG
+							   SMART MODE WAND SVG
 							========================================================= */
 
 							wand.innerHTML = `
@@ -1263,68 +1892,69 @@ const updateModularBayCompletionStates =
 							/>
 
 
-									<!-- LARGE SPARKLE ABOVE -->
+							<!-- LARGE SPARKLE ABOVE -->
 
-									<path
-									d="
-										M22 -3
-										L22.7 -1
-										L24.7 -0.3
-										L22.7 0.4
-										L22 2.4
-										L21.3 0.4
-										L19.3 -0.3
-										L21.3 -1
-										Z
-									"
-									fill="black"
-									stroke="black"
-									stroke-width="0.5"
-								/>
-
-
-								<!-- SMALL SPARKLE LEFT -->
-
-								<path
-									d="
-										M8 5
-										L8.5 7
-										L10.5 7.5
-										L8.5 8
-										L8 10
-										L7.5 8
-										L5.5 7.5
-										L7.5 7
-										Z
-									"
-									fill="none"
-									stroke="black"
-									stroke-width="1.1"
-									stroke-linejoin="round"
-								/>
+							<path
+								d="
+									M22 -3
+									L22.7 -1
+									L24.7 -0.3
+									L22.7 0.4
+									L22 2.4
+									L21.3 0.4
+									L19.3 -0.3
+									L21.3 -1
+									Z
+								"
+								fill="black"
+								stroke="black"
+								stroke-width="0.5"
+							/>
 
 
-								<!-- SMALL SPARKLE RIGHT -->
+							<!-- SMALL SPARKLE LEFT -->
 
-								<path
-									d="
-										M20 11
-										L20.5 13
-										L22.5 13.5
-										L20.5 14
-										L20 16
-										L19.5 14
-										L17.5 13.5
-										L19.5 13
-										Z
-									"
-									fill="none"
-									stroke="black"
-									stroke-width="1.1"
-									stroke-linejoin="round"
-								/>
+							<path
+								d="
+									M8 5
+									L8.5 7
+									L10.5 7.5
+									L8.5 8
+									L8 10
+									L7.5 8
+									L5.5 7.5
+									L7.5 7
+									Z
+								"
+								fill="none"
+								stroke="black"
+								stroke-width="1.1"
+								stroke-linejoin="round"
+							/>
+
+
+							<!-- SMALL SPARKLE RIGHT -->
+
+							<path
+								d="
+									M20 11
+									L20.5 13
+									L22.5 13.5
+									L20.5 14
+									L20 16
+									L19.5 14
+									L17.5 13.5
+									L19.5 13
+									Z
+								"
+								fill="none"
+								stroke="black"
+								stroke-width="1.1"
+								stroke-linejoin="round"
+							/>
 
 							`;
+
 
 							completionOverlay.appendChild(
 								wand
@@ -1344,8 +1974,10 @@ const updateModularBayCompletionStates =
 									'div'
 								);
 
+
 							check.className =
 								'modular-activity-bay-check';
+
 
 							check.textContent =
 								'✓';
@@ -1389,6 +2021,8 @@ const updateModularBayCompletionStates =
 		);
 
 	};
+
+
 /* =========================================================
    LOAD MODULAR NAME
 ========================================================= */
@@ -1451,10 +2085,12 @@ if (
 
 
 			openModularClearModal();
+
 		}
 	);
 
 }
+
 
 /* =========================================================
    GET MODULAR BAY PRODUCTS
@@ -1500,11 +2136,14 @@ const getModularBayProducts =
 				error
 			);
 
+
 			return [];
 
 		}
 
 	};
+
+
 /* =========================================================
    CREATE MODULAR BAY SNAPSHOTS
 ========================================================= */
@@ -1519,11 +2158,14 @@ const createModularBaySnapshot =
 				planogramNumber
 			);
 
+
 		if (
 			!Array.isArray(products) ||
 			products.length === 0
 		) {
+
 			return null;
+
 		}
 
 
@@ -1534,14 +2176,18 @@ const createModularBaySnapshot =
 		const shelfHeight =
 			90;
 
+
 		const gap =
 			8;
+
 
 		const bayWidth =
 			800;
 
+
 		const minimumBayHeight =
 			300;
+
 
 		const cropPadding =
 			0;
@@ -1559,8 +2205,10 @@ const createModularBaySnapshot =
 						const image =
 							new Image();
 
+
 						image.crossOrigin =
 							'anonymous';
+
 
 						image.onload =
 							() => {
@@ -1569,6 +2217,7 @@ const createModularBaySnapshot =
 
 									const naturalWidth =
 										image.naturalWidth;
+
 
 									const naturalHeight =
 										image.naturalHeight;
@@ -1597,8 +2246,10 @@ const createModularBaySnapshot =
 											'canvas'
 										);
 
+
 									sourceCanvas.width =
 										naturalWidth;
+
 
 									sourceCanvas.height =
 										naturalHeight;
@@ -1643,11 +2294,14 @@ const createModularBaySnapshot =
 									let left =
 										naturalWidth;
 
+
 									let right =
 										-1;
 
+
 									let top =
 										naturalHeight;
+
 
 									let bottom =
 										-1;
@@ -1681,15 +2335,18 @@ const createModularBaySnapshot =
 													index
 												];
 
+
 											const green =
 												pixels[
 													index + 1
 												];
 
+
 											const blue =
 												pixels[
 													index + 2
 												];
+
 
 											const alpha =
 												pixels[
@@ -1698,14 +2355,15 @@ const createModularBaySnapshot =
 
 
 											/*
-											   Treat transparent
-											   and near-white pixels
-											   as background.
+												Treat transparent
+												and near-white pixels
+												as background.
 											*/
 
 											const isTransparent =
 												alpha <
 												20;
+
 
 											const isWhite =
 												red >= 245 &&
@@ -1724,17 +2382,20 @@ const createModularBaySnapshot =
 														x
 													);
 
+
 												right =
 													Math.max(
 														right,
 														x
 													);
 
+
 												top =
 													Math.min(
 														top,
 														y
 													);
+
 
 												bottom =
 													Math.max(
@@ -1785,6 +2446,7 @@ const createModularBaySnapshot =
 											cropPadding
 										);
 
+
 									top =
 										Math.max(
 											0,
@@ -1792,12 +2454,14 @@ const createModularBaySnapshot =
 											cropPadding
 										);
 
+
 									right =
 										Math.min(
 											naturalWidth - 1,
 											right +
 											cropPadding
 										);
+
 
 									bottom =
 										Math.min(
@@ -1811,6 +2475,7 @@ const createModularBaySnapshot =
 										right -
 										left +
 										1;
+
 
 									const croppedHeight =
 										bottom -
@@ -1827,8 +2492,10 @@ const createModularBaySnapshot =
 											'canvas'
 										);
 
+
 									croppedCanvas.width =
 										croppedWidth;
+
 
 									croppedCanvas.height =
 										croppedHeight;
@@ -1878,6 +2545,7 @@ const createModularBaySnapshot =
 										error
 									);
 
+
 									resolve(
 										null
 									);
@@ -1908,6 +2576,7 @@ const createModularBaySnapshot =
 		const bays =
 			new Map();
 
+
 		products.forEach(
 			product => {
 
@@ -1916,7 +2585,12 @@ const createModularBaySnapshot =
 						product.bayNumber ?? ''
 					).trim();
 
-				if (!bays.has(bayNumber)) {
+
+				if (
+					!bays.has(
+						bayNumber
+					)
+				) {
 
 					bays.set(
 						bayNumber,
@@ -1925,13 +2599,16 @@ const createModularBaySnapshot =
 
 				}
 
+
 				bays
 					.get(bayNumber)
 					.push(product);
 
 			}
 		);
-				/* =====================================================
+
+
+		/* =====================================================
 		   SORT BAYS NUMERICALLY
 		===================================================== */
 
@@ -2022,48 +2699,61 @@ const createModularBaySnapshot =
 
 			/* =================================================
 			   CREATE TEMPORARY MODULAR VISUAL
-			================================================= */
+			===================================================== */
 
 			const modularVisual =
 				document.createElement(
 					'div'
 				);
 
+
 			modularVisual.className =
 				'modular-visual';
+
 
 			modularVisual.style.width =
 				`${bayWidth}px`;
 
+
 			modularVisual.style.height =
 				`${bayHeight}px`;
+
 
 			modularVisual.style.minHeight =
 				`${bayHeight}px`;
 
+
 			modularVisual.style.maxWidth =
 				'none';
+
 
 			modularVisual.style.boxSizing =
 				'border-box';
 
+
 			modularVisual.style.background =
 				'#ffffff';
+
 
 			modularVisual.style.position =
 				'absolute';
 
+
 			modularVisual.style.left =
 				'-99999px';
+
 
 			modularVisual.style.top =
 				'0';
 
+
 			modularVisual.style.visibility =
 				'visible';
 
+
 			modularVisual.style.overflow =
 				'hidden';
+
 
 			document.body.appendChild(
 				modularVisual
@@ -2072,10 +2762,11 @@ const createModularBaySnapshot =
 
 			/* =================================================
 			   GROUP PRODUCTS BY SHELF
-			================================================= */
+			===================================================== */
 
 			const shelves =
 				new Map();
+
 
 			bayProducts.forEach(
 				product => {
@@ -2085,7 +2776,12 @@ const createModularBaySnapshot =
 							product.shelf ?? ''
 						).trim();
 
-					if (!shelves.has(shelf)) {
+
+					if (
+						!shelves.has(
+							shelf
+						)
+					) {
 
 						shelves.set(
 							shelf,
@@ -2093,6 +2789,7 @@ const createModularBaySnapshot =
 						);
 
 					}
+
 
 					shelves
 						.get(shelf)
@@ -2107,9 +2804,16 @@ const createModularBaySnapshot =
 			===================================================== */
 
 			const sortedShelves =
-				[...shelves.entries()]
+				[
+					...shelves.entries()
+				]
 					.sort(
-						([shelfA], [shelfB]) => {
+						([
+							shelfA
+						],
+						[
+							shelfB
+						]) => {
 
 							const numberA =
 								parseInt(
@@ -2120,6 +2824,7 @@ const createModularBaySnapshot =
 									10
 								);
 
+
 							const numberB =
 								parseInt(
 									shelfB.replace(
@@ -2129,21 +2834,28 @@ const createModularBaySnapshot =
 									10
 								);
 
+
 							if (
 								Number.isNaN(
 									numberA
 								)
 							) {
+
 								return 1;
+
 							}
+
 
 							if (
 								Number.isNaN(
 									numberB
 								)
 							) {
+
 								return -1;
+
 							}
+
 
 							return (
 								numberA -
@@ -2165,7 +2877,10 @@ const createModularBaySnapshot =
 				]) => {
 
 					shelfProducts.sort(
-						(a, b) =>
+						(
+							a,
+							b
+						) =>
 							Number(
 								a.shelfOrder ?? 0
 							) -
@@ -2180,32 +2895,42 @@ const createModularBaySnapshot =
 							'div'
 						);
 
+
 					shelfRow.className =
 						'modular-shelf';
+
 
 					shelfRow.style.width =
 						`${bayWidth}px`;
 
+
 					shelfRow.style.height =
 						`${shelfHeight}px`;
+
 
 					shelfRow.style.minHeight =
 						`${shelfHeight}px`;
 
+
 					shelfRow.style.flex =
 						`0 0 ${shelfHeight}px`;
+
 
 					shelfRow.style.boxSizing =
 						'border-box';
 
+
 					shelfRow.style.display =
 						'flex';
+
 
 					shelfRow.style.alignItems =
 						'center';
 
+
 					shelfRow.style.justifyContent =
 						'center';
+
 
 					shelfRow.style.overflow =
 						'hidden';
@@ -2216,32 +2941,42 @@ const createModularBaySnapshot =
 							'div'
 						);
 
+
 					productsContainer.className =
 						'modular-shelf-products';
+
 
 					productsContainer.style.display =
 						'flex';
 
+
 					productsContainer.style.alignItems =
 						'center';
+
 
 					productsContainer.style.justifyContent =
 						'center';
 
+
 					productsContainer.style.width =
 						'100%';
+
 
 					productsContainer.style.height =
 						`${shelfHeight}px`;
 
+
 					productsContainer.style.minHeight =
 						`${shelfHeight}px`;
+
 
 					productsContainer.style.gap =
 						`${gap}px`;
 
+
 					productsContainer.style.boxSizing =
 						'border-box';
+
 
 					productsContainer.style.overflow =
 						'hidden';
@@ -2250,6 +2985,7 @@ const createModularBaySnapshot =
 					shelfRow.appendChild(
 						productsContainer
 					);
+
 
 					modularVisual.appendChild(
 						shelfRow
@@ -2294,6 +3030,7 @@ const createModularBaySnapshot =
 						shelfIndex
 					];
 
+
 				const productsContainer =
 					shelfRow.querySelector(
 						'.modular-shelf-products'
@@ -2333,7 +3070,9 @@ const createModularBaySnapshot =
 									if (
 										!croppedImage
 									) {
+
 										return null;
+
 									}
 
 
@@ -2376,7 +3115,9 @@ const createModularBaySnapshot =
 				if (
 					!usableProducts.length
 				) {
+
 					continue;
+
 				}
 
 
@@ -2386,7 +3127,13 @@ const createModularBaySnapshot =
 
 				const totalNaturalProductWidth =
 					usableProducts.reduce(
-						(total, { width, product }) => {
+						(
+							total,
+							{
+								width,
+								product
+							}
+						) => {
 
 							const facings =
 								Math.max(
@@ -2395,6 +3142,7 @@ const createModularBaySnapshot =
 										product.facings ?? 1
 									)
 								);
+
 
 							return (
 								total +
@@ -2411,7 +3159,12 @@ const createModularBaySnapshot =
 
 				const totalProductGaps =
 					usableProducts.reduce(
-						(total, { product }) => {
+						(
+							total,
+							{
+								product
+							}
+						) => {
 
 							const facings =
 								Math.max(
@@ -2420,6 +3173,7 @@ const createModularBaySnapshot =
 										product.facings ?? 1
 									)
 								);
+
 
 							return (
 								total +
@@ -2462,8 +3216,10 @@ const createModularBaySnapshot =
 				productsContainer.style.width =
 					`${naturalShelfWidth}px`;
 
+
 				productsContainer.style.flex =
 					'0 0 auto';
+
 
 				productsContainer.style.justifyContent =
 					'flex-start';
@@ -2475,6 +3231,7 @@ const createModularBaySnapshot =
 
 					productsContainer.style.transformOrigin =
 						'center center';
+
 
 					productsContainer.style.transform =
 						`scaleX(${shelfScale})`;
@@ -2498,20 +3255,26 @@ const createModularBaySnapshot =
 								'div'
 							);
 
+
 						productGroup.className =
 							'modular-product-group';
+
 
 						productGroup.style.display =
 							'flex';
 
+
 						productGroup.style.flexDirection =
 							'row';
+
 
 						productGroup.style.alignItems =
 							'center';
 
+
 						productGroup.style.gap =
 							`${gap}px`;
+
 
 						productGroup.style.flex =
 							'0 0 auto';
@@ -2541,13 +3304,16 @@ const createModularBaySnapshot =
 									'img'
 								);
 
+
 							facing.src =
 								url;
+
 
 							facing.alt =
 								product.image.alt ||
 								product.description ||
 								'Product';
+
 
 							facing.className =
 								'modular-product-image';
@@ -2560,23 +3326,30 @@ const createModularBaySnapshot =
 							facing.style.display =
 								'block';
 
+
 							facing.style.height =
 								`${shelfHeight}px`;
+
 
 							facing.style.width =
 								`${width}px`;
 
+
 							facing.style.minWidth =
 								`${width}px`;
+
 
 							facing.style.maxWidth =
 								`${width}px`;
 
+
 							facing.style.flex =
 								`0 0 ${width}px`;
 
+
 							facing.style.objectFit =
 								'fill';
+
 
 							facing.style.objectPosition =
 								'center center';
@@ -2618,14 +3391,18 @@ const createModularBaySnapshot =
 						if (
 							image.complete
 						) {
+
 							return Promise.resolve();
+
 						}
+
 
 						return new Promise(
 							resolve => {
 
 								image.onload =
 									resolve;
+
 
 								image.onerror =
 									resolve;
@@ -2668,6 +3445,7 @@ const createModularBaySnapshot =
 			let contentLeft =
 				bayWidth;
 
+
 			let contentRight =
 				0;
 
@@ -2678,22 +3456,27 @@ const createModularBaySnapshot =
 					const rect =
 						image.getBoundingClientRect();
 
+
 					const visualRect =
 						modularVisual.getBoundingClientRect();
+
 
 					const left =
 						rect.left -
 						visualRect.left;
 
+
 					const right =
 						rect.right -
 						visualRect.left;
+
 
 					contentLeft =
 						Math.min(
 							contentLeft,
 							left
 						);
+
 
 					contentRight =
 						Math.max(
@@ -2712,6 +3495,7 @@ const createModularBaySnapshot =
 				contentLeft =
 					0;
 
+
 				contentRight =
 					bayWidth;
 
@@ -2726,6 +3510,7 @@ const createModularBaySnapshot =
 						cropPadding
 					)
 				);
+
 
 			contentRight =
 				Math.min(
@@ -2780,8 +3565,10 @@ const createModularBaySnapshot =
 					'canvas'
 				);
 
+
 			cropCanvas.width =
 				croppedWidth * 2;
+
 
 			cropCanvas.height =
 				bayHeight * 2;
@@ -2870,8 +3657,10 @@ const createModularBaySnapshot =
 						'canvas'
 					);
 
+
 				normalisedCanvas.width =
 					widestSnapshotWidth * 2;
+
 
 				normalisedCanvas.height =
 					bayHeight * 2;
@@ -2889,6 +3678,7 @@ const createModularBaySnapshot =
 
 				normalisedContext.fillStyle =
 					'#ffffff';
+
 
 				normalisedContext.fillRect(
 					0,
@@ -2936,6 +3726,8 @@ const createModularBaySnapshot =
 		return snapshots;
 
 	};
+
+
 /* =========================================================
    LOAD MODULAR ACTIVITY BAYS
 ========================================================= */
@@ -2988,8 +3780,10 @@ const loadModularActivityBays =
 				'div'
 			);
 
+
 		loading.className =
 			'modular-activity-snapshot-loading';
+
 
 		loading.textContent =
 			'Loading modular bays...';
@@ -3027,38 +3821,46 @@ const loadModularActivityBays =
 				return;
 
 			}
+
+
 			/* =================================================
-				SET REQUIRED MODULARS FROM BAY IMAGE ORDER
-				================================================= */
+			   SET REQUIRED MODULARS FROM BAY IMAGE ORDER
+			================================================= */
 
-				requiredModulars =
-					snapshots.map(
-						({
+			requiredModulars =
+				snapshots.map(
+					({
+						bayNumber
+					}) =>
+						Number(
 							bayNumber
-						}) =>
-							Number(
-								bayNumber
-							)
-					);
+						)
+				);
 
-				updateModularActivityCounters();
+
+			updateModularActivityCounters();
+
 
 			/* =================================================
 			   CREATE SNAPSHOT CONTAINER
-			================================================= */
+			===================================================== */
 
 			const snapshotContainer =
 				document.createElement(
 					'div'
 				);
 
+
 			snapshotContainer.className =
 				'modular-activity-snapshots';
+
 
 			const previewBayCount =
 				document.querySelector(
 					'#modular-preview-bay-count'
 				);
+
+
 			const modularActivityTotal =
 				document.querySelector(
 					'#modular-activity-total'
@@ -3083,9 +3885,11 @@ const loadModularActivityBays =
 					snapshots.length;
 
 			}
+
+
 			/* =================================================
 			   CREATE BAY SNAPSHOTS
-			================================================= */
+			===================================================== */
 
 			snapshots.forEach(
 				({
@@ -3097,6 +3901,7 @@ const loadModularActivityBays =
 						document.createElement(
 							'div'
 						);
+
 
 					bayContainer.className =
 						'modular-activity-bay';
@@ -3111,15 +3916,17 @@ const loadModularActivityBays =
 							'div'
 						);
 
+
 					bayLabel.className =
 						'modular-activity-bay-label';
+
 
 					bayLabel.textContent =
 						`Bay ${bayNumber}`;
 
 
 					/* =========================================
-					BAY IMAGE
+					   BAY IMAGE
 					========================================= */
 
 					const bayImageWrapper =
@@ -3141,14 +3948,18 @@ const loadModularActivityBays =
 							'img'
 						);
 
+
 					bayImage.className =
 						'modular-activity-bay-image';
+
 
 					bayImage.src =
 						snapshot;
 
+
 					bayImage.alt =
 						`Modular bay ${bayNumber}`;
+
 
 					bayImage.draggable =
 						false;
@@ -3163,9 +3974,11 @@ const loadModularActivityBays =
 						bayLabel
 					);
 
+
 					bayContainer.appendChild(
 						bayImageWrapper
 					);
+
 
 					snapshotContainer.appendChild(
 						bayContainer
@@ -3177,7 +3990,7 @@ const loadModularActivityBays =
 
 			/* =================================================
 			   PLACE BAYS INSIDE STEP 1
-			================================================= */
+			===================================================== */
 
 			step.appendChild(
 				snapshotContainer
@@ -3186,14 +3999,14 @@ const loadModularActivityBays =
 
 			/* =================================================
 			   ENABLE BAY IMAGE ZOOM
-			================================================= */
+			===================================================== */
 
 			enableModularBayImageZoom();
 
 
 			/* =================================================
 			   REFRESH LUCIDE ICONS
-			================================================= */
+			===================================================== */
 
 			lucide.createIcons();
 
@@ -3214,6 +4027,7 @@ const loadModularActivityBays =
 		}
 
 	};
+
 
 /* =========================================================
    BAY IMAGE ZOOM
@@ -3240,6 +4054,7 @@ const enableModularBayImageZoom =
 								'div'
 							);
 
+
 						overlay.className =
 							'modular-activity-snapshot-overlay';
 
@@ -3249,11 +4064,14 @@ const enableModularBayImageZoom =
 								'img'
 							);
 
+
 						largeImage.className =
 							'modular-activity-snapshot-large';
 
+
 						largeImage.src =
 							bayImage.src;
+
 
 						largeImage.alt =
 							bayImage.alt;
@@ -3292,6 +4110,8 @@ const enableModularBayImageZoom =
 		);
 
 	};
+
+
 /* =========================================================
    MOD TAG CAMERA BUTTON
 ========================================================= */
@@ -3359,6 +4179,8 @@ if (
 	);
 
 }
+
+
 /* =========================================================
    CLEAR ALL CONFIRMATION MODAL
 ========================================================= */
@@ -3390,6 +4212,16 @@ const modularClearModalConfirm =
 const modularClearModalBackdrop =
 	document.querySelector(
 		'[data-clear-modal-close]'
+	);
+
+
+/* =========================================================
+   STEP 2 BACK BUTTON
+========================================================= */
+
+const modularActivityStepBackButton =
+	document.querySelector(
+		'#modular-activity-step-back'
 	);
 
 
@@ -3448,6 +4280,7 @@ const closeModularClearModal =
 
 	};
 
+
 /* =========================================================
    ACTUALLY CLEAR ALL TAGS
 ========================================================= */
@@ -3496,8 +4329,10 @@ const clearAllModularTags =
 			modularSearchInput.disabled =
 				false;
 
+
 			modularSearchInput.value =
 				'';
+
 
 			modularSearchInput.focus();
 
@@ -3525,6 +4360,7 @@ const clearAllModularTags =
 			modularSearchError.hidden =
 				true;
 
+
 			modularSearchError.textContent =
 				'';
 
@@ -3542,6 +4378,7 @@ const clearAllModularTags =
 			clearTimeout(
 				modularSearchErrorTimeout
 			);
+
 
 			modularSearchErrorTimeout =
 				null;
@@ -3617,6 +4454,8 @@ if (
 	);
 
 }
+
+
 /* =========================================================
    END TASK BUTTON
 ========================================================= */
@@ -3669,6 +4508,62 @@ if (
 	);
 
 }
+
+
+/* =========================================================
+   STEP 2 BACK BUTTON
+========================================================= */
+
+if (
+	modularActivityStepBackButton
+) {
+
+	modularActivityStepBackButton.addEventListener(
+		'click',
+		() => {
+
+			modularClearModalAction =
+				'back';
+
+
+			if (
+				modularClearModalTitle
+			) {
+
+				modularClearModalTitle.textContent =
+					'Go Back?';
+
+			}
+
+
+			if (
+				modularClearModalMessage
+			) {
+
+				modularClearModalMessage.textContent =
+					'Are you sure you want to go back? All changes made on this page will be lost.';
+
+			}
+
+
+			if (
+				modularClearModalConfirm
+			) {
+
+				modularClearModalConfirm.textContent =
+					'Clear All';
+
+			}
+
+
+			openModularClearModal();
+
+		}
+	);
+
+}
+
+
 /* =========================================================
    CANCEL
 ========================================================= */
@@ -3679,7 +4574,11 @@ if (
 
 	modularClearModalCancel.addEventListener(
 		'click',
-		closeModularClearModal
+		() => {
+
+			closeModularClearModal();
+
+		}
 	);
 
 }
@@ -3714,7 +4613,8 @@ if (
 		() => {
 
 			if (
-				modularClearModalAction === 'clear'
+				modularClearModalAction ===
+				'clear'
 			) {
 
 				clearAllModularTags();
@@ -3723,12 +4623,41 @@ if (
 
 
 			if (
-				modularClearModalAction === 'end'
+				modularClearModalAction ===
+				'end'
 			) {
 
 				window.history.back();
 
 			}
+
+
+			if (
+				modularClearModalAction ===
+				'back'
+			) {
+
+				/*
+					Going back from Step 2 should
+					keep all scanned Mod Tag assignments.
+				*/
+
+				hideUpdateModular();
+
+
+				renderModularTagAssignments();
+
+
+				updateModularActivityCounters();
+
+
+				updateModularBayCompletionStates();
+
+			}
+
+
+			modularClearModalAction =
+				null;
 
 
 			closeModularClearModal();
@@ -3759,6 +4688,8 @@ document.addEventListener(
 
 	}
 );
+
+
 /* =========================================================
    INITIALISE
 ========================================================= */
@@ -3767,3 +4698,25 @@ lucide.createIcons();
 
 
 loadModularActivityBays();
+
+
+/* =========================================================
+   ESCAPE KEY
+========================================================= */
+
+document.addEventListener(
+	'keydown',
+	event => {
+
+		if (
+			event.key === 'Escape' &&
+			modularClearModal &&
+			!modularClearModal.hidden
+		) {
+
+			closeModularClearModal();
+
+		}
+
+	}
+);
