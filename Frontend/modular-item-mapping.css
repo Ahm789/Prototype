@@ -3098,3 +3098,18 @@
 	cursor: not-allowed;
 
 }
+/* =========================================================
+   ASSIGN MODE - ATTACH MODULAR BUTTON
+========================================================= */
+
+.regular-mod-shelf-add:has(span:nth-child(2)) {
+	width: auto;
+	min-width: 0;
+	padding: 8px 14px;
+	white-space: nowrap;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border-radius: 12px;
+}

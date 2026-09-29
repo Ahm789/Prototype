@@ -1,54 +1,3 @@
-assignButton.addEventListener(
-	'click',
-	() => {
-
-		modularClearModalTitle.textContent =
-			'Assign Modular Tag?';
-
-
-		modularClearModalMessage.textContent =
-			`Are you sure you want to assign ${
-				assignment.modularTag
-			} to Bay ${
-				assignment.modular
-			}?`;
-
-
-		if (modularClearModalConfirm) {
-
-			modularClearModalConfirm.style.backgroundColor =
-				'#16a34a';
-
-			modularClearModalConfirm.style.color =
-				'#ffffff';
-
-		}
-
-
-		modularClearModalAction =
-			() => {
-
-				console.log(
-					'Assign confirmed:',
-					{
-						index:
-							index + 1,
-
-						bay:
-							assignment.modular,
-
-						modularTag:
-							assignment.modularTag
-					}
-				);
-
-			};
-
-
-		openModularClearModal();
-
-	}
-);
 /* =========================================================
    API CONFIGURATION
 ========================================================= */
@@ -371,6 +320,7 @@ const regularModClear =
 		'#regular-modular-clear'
 	);
 
+
 /* =========================================================
    ASSIGN MODE - HIDE CLEAR BUTTON
 ========================================================= */
@@ -384,6 +334,8 @@ if (
 		true;
 
 }
+
+
 /* =========================================================
    CONFIRMATION MODAL ELEMENTS
 ========================================================= */
@@ -1064,6 +1016,220 @@ if (regularModUpdate) {
 			event.stopPropagation();
 
 
+			/* =====================================================
+			   ASSIGN MODE
+			===================================================== */
+
+			if (
+				isAssignMode
+			) {
+
+				/*
+					Find the assignment using the
+					modular tag.
+
+					The assignments currently look like:
+
+					{
+						modular: 1,
+						modularTag: "FF-14-L-1"
+					}
+				*/
+
+				const assignment =
+					assignAssignments.find(
+						item =>
+							item.modularTag ===
+							assignModularTag
+					);
+
+
+				if (!assignment) {
+
+					console.error(
+						'Could not find assignment for modular tag:',
+						assignModularTag,
+						assignAssignments
+					);
+
+
+					alert(
+						'Could not find the modular assignment.'
+					);
+
+
+					return;
+
+				}
+
+
+				/*
+					Build the final product arrangement
+					from the shelves currently displayed.
+
+					Each product records:
+
+					- itemId
+					- UPC if available
+					- shelf number
+					- order within that shelf
+				*/
+
+				const products = [];
+
+
+				regularModShelves.forEach(
+					shelfData => {
+
+						const shelfNumber =
+							Number(
+								shelfData.shelf
+							);
+
+
+						if (
+							!Array.isArray(
+								shelfData.products
+							)
+						) {
+
+							return;
+
+						}
+
+
+						shelfData.products.forEach(
+							(
+								product,
+								productIndex
+							) => {
+
+								const itemId =
+									product.item_id ??
+									product.itemId ??
+									null;
+
+
+								const upc =
+									product.upc ??
+									null;
+
+
+								/*
+									Use the current position
+									in the shelf as the final
+									order.
+
+									This means dragging products
+									automatically changes their
+									saved order.
+								*/
+
+								products.push({
+
+									itemId:
+
+										itemId,
+
+
+									upc:
+
+										upc,
+
+
+									shelf:
+
+										shelfNumber,
+
+
+									order:
+
+										productIndex + 1
+
+								});
+
+							}
+						);
+
+					}
+				);
+
+
+				/*
+					Add the database bay ID and the
+					final product arrangement to
+					this assignment.
+				*/
+
+				assignment.bayId =
+					assignTargetBayId;
+
+
+				assignment.products =
+					products;
+
+
+				/*
+					Update the assign context itself.
+				*/
+
+				assignContext.assignments =
+					assignAssignments;
+
+
+				console.log(
+					'Completed assignment:',
+					assignment
+				);
+
+
+				console.log(
+					'Updated assign context:',
+					assignContext
+				);
+
+
+				/*
+					Create the updated encoded
+					assignData.
+
+					This is now the complete data
+					that can be passed back to the
+					previous modular activity page.
+				*/
+
+				const updatedAssignData =
+					encodeURIComponent(
+						JSON.stringify(
+							assignContext
+						)
+					);
+
+
+				console.log(
+					'Updated assignData:',
+					updatedAssignData
+				);
+
+
+				/*
+					For now we stop here.
+
+					The assignment has been fully
+					updated in assignContext and
+					updatedAssignData contains the
+					complete encoded version.
+				*/
+
+				return;
+
+			}
+
+
+			/* =====================================================
+			   NORMAL MODE
+			===================================================== */
+
 			if (
 				!selectedModularId ||
 				!regularModModified
@@ -1142,7 +1308,7 @@ if (regularModUpdate) {
 
 
 				alert(
-					'Unable to update the modular.'
+					'Unable to update modular.'
 				);
 
 			}
@@ -2871,13 +3037,45 @@ const attachModular =
 									productB
 								) => {
 
-									return (
+									const orderA =
 										Number(
-											productA.order
-										) -
+											productA.order ??
+											productA.shelf_order
+										);
+
+
+									const orderB =
 										Number(
-											productB.order
+											productB.order ??
+											productB.shelf_order
+										);
+
+
+									if (
+										Number.isNaN(
+											orderA
 										)
+									) {
+
+										return 1;
+
+									}
+
+
+									if (
+										Number.isNaN(
+											orderB
+										)
+									) {
+
+										return -1;
+
+									}
+
+
+									return (
+										orderA -
+										orderB
 									);
 
 								}
@@ -3010,6 +3208,7 @@ const renderModularVisual =
 					async event => {
 
 						event.stopPropagation();
+
 
 						await attachModular(
 							0
@@ -3717,13 +3916,15 @@ const loadRegularMod =
 
 									const orderA =
 										Number(
-											productA.order
+											productA.order ??
+											productA.shelf_order
 										);
 
 
 									const orderB =
 										Number(
-											productB.order
+											productB.order ??
+											productB.shelf_order
 										);
 
 
@@ -3965,13 +4166,15 @@ const loadAssignModular =
 
 									const orderA =
 										Number(
-											productA.order
+											productA.order ??
+											productA.shelf_order
 										);
 
 
 									const orderB =
 										Number(
-											productB.order
+											productB.order ??
+											productB.shelf_order
 										);
 
 

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<meta
+		name="viewport"
+		content="width=device-width, initial-scale=1.0"
+	>
+
+	<title>Regular Mod</title>
+
+	<link
+		rel="stylesheet"
+		href="index.css"
+	>
+
+	<link
+		rel="stylesheet"
+		href="modular-activity.css"
+	>
+    <link
+		rel="stylesheet"
+		href="modular-item-mapping.css"
+	>
+	<script src="https://unpkg.com/lucide@latest"></script>
+
+</head>
+
+<!-- =====================================================
+     CLEAR ALL CONFIRMATION MODAL
+====================================================== -->
+
+<div
+	class="modular-clear-modal"
+	id="modular-clear-modal"
+	hidden
+>
+
+	<div
+		class="modular-clear-modal-backdrop"
+		data-clear-modal-close
+	></div>
+
+
+	<div
+		class="modular-clear-modal-dialog"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="modular-clear-modal-title"
+	>
+
+		<div class="modular-clear-modal-icon">
+
+			<i
+				data-lucide="triangle-alert"
+				aria-hidden="true"
+			></i>
+
+		</div>
+
+
+		<div class="modular-clear-modal-content">
+
+			<h2 id="modular-clear-modal-title">
+				Clear Scanned Tags?
+			</h2>
+
+
+			<p id="modular-clear-modal-message">
+                Are you sure you want to remove all scanned tags?
+            </p>
+
+		</div>
+
+
+		<div class="modular-clear-modal-actions">
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-cancel"
+				id="modular-clear-modal-cancel"
+			>
+				Cancel
+			</button>
+
+
+			<button
+				type="button"
+				class="modular-clear-modal-button modular-clear-modal-confirm"
+				id="modular-clear-modal-confirm"
+			>
+				Clear All
+			</button>
+
+		</div>
+
+	</div>
+
+</div>
+
+<!-- =====================================================
+     REGULAR MOD SHELF EDITOR
+====================================================== -->
+
+<div
+	class="regular-mod-shelf-modal"
+	id="regular-mod-shelf-modal"
+	hidden
+>
+
+	<div
+		class="regular-mod-shelf-modal-backdrop"
+		data-shelf-modal-close
+	></div>
+
+
+	<div
+		class="regular-mod-shelf-modal-dialog"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="regular-mod-shelf-modal-title"
+	>
+
+		<!-- =================================================
+		     HEADER
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-header">
+
+			<h2
+				id="regular-mod-shelf-modal-title"
+			>
+				Shelf 1
+			</h2>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-close"
+				id="regular-mod-shelf-modal-close"
+				aria-label="Close shelf"
+			>
+				<span>×</span>
+			</button>
+
+		</div>
+
+
+		<!-- =================================================
+		     UPC INFORMATION
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-info">
+
+			<div
+				class="regular-mod-shelf-modal-upc-label"
+				id="regular-mod-shelf-modal-upc-label"
+			>
+				Shelf 1&nbsp;&nbsp; UPC's 0
+			</div>
+
+
+			<div
+				class="regular-mod-shelf-modal-duplicates"
+				id="regular-mod-shelf-modal-duplicates"
+				hidden
+			>
+				Duplicates 0 pairs
+			</div>
+
+		</div>
+
+
+		<!-- =================================================
+		     PRODUCT EDITOR
+		================================================== -->
+
+		<div
+			class="regular-mod-shelf-modal-products"
+			id="regular-mod-shelf-modal-products"
+		>
+		</div>
+
+
+		<!-- =================================================
+		     PRODUCT ACTIONS
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-product-actions">
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-enter-upc"
+			>
+
+				<i
+					data-lucide="keyboard"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Enter UPC
+				</span>
+
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-cannot-scan"
+			>
+
+				<i
+					data-lucide="scan-line"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Cannot Scan
+				</span>
+
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-product-action"
+				id="regular-mod-shelf-unstructured"
+			>
+
+				<i
+					data-lucide="package-open"
+					aria-hidden="true"
+				></i>
+
+				<span>
+					Unstructured
+				</span>
+
+			</button>
+
+		</div>
+
+
+		<!-- =================================================
+		     FOOTER
+		================================================== -->
+
+		<div class="regular-mod-shelf-modal-footer">
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-finish"
+				id="regular-mod-shelf-finish"
+			>
+				Finish
+			</button>
+
+
+			<button
+				type="button"
+				class="regular-mod-shelf-modal-next"
+				id="regular-mod-shelf-next"
+			>
+				Next Shelf
+			</button>
+
+		</div>
+
+	</div>
+
+</div>
+
+<body>
+
+	<main class="device-shell">
+
+		<section
+			class="scanner-app"
+			aria-label="Asda regular mod"
+		>
+
+
+			<!-- =====================================================
+                TOP BAR
+            ====================================================== -->
+
+            <div class="app-titlebar">
+
+                <button
+                    class="icon-button modular-activity-back"
+                    type="button"
+                    id="regular-mod-back"
+                    aria-label="Back"
+                >
+                    <i
+                        data-lucide="arrow-left"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+
+
+                <div class="regular-mod-title-group">
+
+                    <div class="tasks-title modular-activity-title">
+
+                        <h1 id="regular-mod-name">
+                            UPDATING
+                        </h1>
+
+                        <div
+                            class="modular-activity-subtitle"
+                            id="regular-mod-subtitle"
+                        >
+                            REGULAR MOD
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="regular-mod-help"
+                        id="regular-mod-help"
+                    >
+                        HELP
+                    </button>
+
+                </div>
+
+
+                <button
+                    class="icon-button modular-activity-menu"
+                    type="button"
+                    id="regular-mod-menu"
+                    aria-label="More options"
+                >
+                    <i
+                        data-lucide="more-vertical"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+
+            </div>
+
+
+			<!-- =====================================================
+			     REGULAR MOD CONTENT
+			====================================================== -->
+
+			<div class="task-list">
+
+				<div
+					id="modular-visual"
+				></div>
+
+			</div>
+
+
+			<!-- =====================================================
+			     REGULAR MOD ACTION BAR
+			====================================================== -->
+
+			<div class="modular-activity-action-bar">
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-end"
+					id="regular-mod-cancel"
+				>
+					Cancel
+				</button>
+
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-clear"
+					id="regular-mod-reset"
+				>
+					Reset Modular
+				</button>
+
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-clear"
+					id="regular-modular-clear"
+				>
+					Clear Modular
+				</button>
+				<button
+					type="button"
+					class="modular-activity-action modular-activity-next"
+					id="regular-mod-update"
+				>
+					Finish
+				</button>
+
+			</div>
+
+		</section>
+
+	</main>
+
+
+	<!-- =========================================================
+	     JAVASCRIPT
+	========================================================= -->
+
+	<script>
+
+		if (
+			window.lucide
+		) {
+
+			lucide.createIcons();
+
+		}
+
+	</script>
+	<script src="https://unpkg.com/@zxing/browser@0.2.1"></script>
+    <script src="modular-test.js"></script>
+</body>
+
+</html>

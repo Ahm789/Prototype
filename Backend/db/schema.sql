@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS modular_bays (
 
 	planogram_number INTEGER NOT NULL,
 
-	modular_id INTEGER,
+	modular_id VARCHAR(128),
 
 	status TEXT,
 

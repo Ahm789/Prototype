@@ -3,7 +3,68 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
+router.get(
+	'/admin/modular-mapping-status',
+	async (req, res) => {
 
+		try {
+
+			const activityResult =
+				await pool.query(
+					`
+					SELECT DISTINCT
+						mb.modular_id
+
+					FROM modular_activity ma
+
+					INNER JOIN modular_bays mb
+						ON mb.planogram_number =
+							ma.planogram_number
+
+					WHERE mb.modular_id IS NOT NULL
+					`
+				);
+
+
+			const modularResult =
+				await pool.query(
+					`
+					SELECT DISTINCT
+						modular_id
+
+					FROM modulars
+
+					WHERE modular_id IS NOT NULL
+					`
+				);
+
+
+			res.json({
+				activityModulars:
+					activityResult.rows
+						.map(row => row.modular_id),
+
+				modulars:
+					modularResult.rows
+						.map(row => row.modular_id)
+			});
+
+		} catch (error) {
+
+			console.error(
+				'Unable to load modular mapping status:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Unable to load modular mapping status.'
+			});
+
+		}
+
+	}
+);
 /* =========================================================
    GET MODULAR TAG
 ========================================================= */
@@ -3215,23 +3276,28 @@ router.get(
 
 			const result =
 				await pool.query(`
-					SELECT
+					SELECT DISTINCT
 						TO_CHAR(
-							due_date,
+							ma.due_date,
 							'DD/MM/YYYY'
 						) AS due_date
 
-					FROM (
-						SELECT DISTINCT
-							ma.due_date::date AS due_date
+					FROM modular_activity ma
 
-						FROM modular_activity ma
+					WHERE EXISTS (
+						SELECT 1
 
-						INNER JOIN modular_bays mb
-							ON ma.planogram_number = mb.id
+						FROM modular_bays mb
 
-						WHERE mb.modular_id IS NULL
-					) dates
+						WHERE
+							mb.planogram_number =
+								ma.planogram_number
+
+							AND COALESCE(
+								mb.status,
+								''
+							) <> 'Complete'
+					)
 
 					ORDER BY
 						due_date;
@@ -3292,10 +3358,20 @@ router.get(
 
 				FROM modular_activity ma
 
-				INNER JOIN modular_bays mb
-					ON ma.planogram_number = mb.id
+				WHERE EXISTS (
+					SELECT 1
 
-				WHERE mb.modular_id IS NULL
+					FROM modular_bays mb
+
+					WHERE
+						mb.planogram_number =
+							ma.planogram_number
+
+						AND COALESCE(
+							mb.status,
+							''
+						) <> 'Complete'
+				)
 			`;
 
 
@@ -3348,9 +3424,16 @@ router.get(
 
 						FROM modular_items mi
 
+						INNER JOIN modular_bays mb_upc
+							ON mb_upc.id =
+								mi.modular_bay_id
+
 						WHERE
-							mi.modular_bay_id = mb.id
-							AND mi.upc = $${values.length}
+							mb_upc.planogram_number =
+								ma.planogram_number
+
+							AND mi.upc =
+								$${values.length}
 					)
 				`;
 
@@ -5485,5 +5568,145 @@ router.delete('/:upc', async (req, res) => {
 	}
 
 });
+router.get(
+	'/modular-bay/assign/:planogramNumber/:bayNumber/:modularId',
+	async (req, res) => {
 
+		const {
+			planogramNumber,
+			bayNumber,
+			modularId
+		} = req.params;
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						ARRAY_AGG(
+							CASE
+								WHEN modular_id = $3
+								THEN id
+							END
+						) FILTER (
+							WHERE modular_id = $3
+						) AS current_bay_ids,
+
+						MAX(
+							CASE
+								WHEN planogram_number = $1
+								AND bay_number = $2
+								THEN id
+							END
+						) AS target_bay_id
+
+					FROM modular_bays
+
+					WHERE
+						modular_id = $3
+						OR (
+							planogram_number = $1
+							AND bay_number = $2
+						)
+					`,
+					[
+						planogramNumber,
+						bayNumber,
+						modularId
+					]
+				);
+
+			res.json({
+				currentBayIds:
+					result.rows[0].current_bay_ids || [],
+
+				targetBayId:
+					result.rows[0].target_bay_id
+			});
+
+		} catch (
+			error
+		) {
+
+			console.error(
+				'Failed to load assign bays:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to load assign bays'
+			});
+
+		}
+
+	}
+);
+router.get(
+	'/modular-bay/:bayId/items',
+	async (
+		req,
+		res
+	) => {
+
+		const {
+			bayId
+		} = req.params;
+
+		try {
+
+			const result =
+				await pool.query(
+					`
+					SELECT
+						mi.id,
+						mi.item_id,
+						mi.upc,
+						i.description,
+						i.image_url,
+						mi.shelf,
+						mi.shelf_order,
+						mi.max_shelf,
+						mi.facings,
+						mi.modular_bay_id
+
+					FROM modular_items mi
+
+					LEFT JOIN items i
+						ON i.id = mi.item_id
+
+					WHERE
+						mi.modular_bay_id = $1
+
+					ORDER BY
+						mi.shelf,
+						mi.shelf_order
+					`,
+					[
+						bayId
+					]
+				);
+
+			res.json(
+				result.rows
+			);
+
+		}
+		catch (error) {
+
+			console.error(
+				'Failed to load modular bay items:',
+				error
+			);
+
+			res.status(500).json({
+				error:
+					'Failed to load modular bay items'
+			});
+
+		}
+
+	}
+);
 module.exports = router;

@@ -71,7 +71,10 @@ const modularSearchError =
 		'#modular-search-error'
 	);
 
-
+const modularActivityFinishButton =
+			document.querySelector(
+				'#modular-activity-finish'
+			);
 let modularSearchErrorTimeout =
 	null;
 
@@ -134,6 +137,12 @@ const modularClearModalTitle =
 		'#modular-clear-modal-title'
 	);
 
+let existingActivityModulars =
+	new Set();
+
+
+let existingModulars =
+	new Set();
 
 /* =========================================================
    MODULAR SCAN MODE TITLE
@@ -857,7 +866,76 @@ const updateModularActivityCounters =
 ========================================================= */
 
 const showUpdateModular =
-	() => {
+	async () => {
+
+		/*
+			Load existing modular mapping status.
+		*/
+
+		try {
+
+			const response =
+				await fetch(
+					`${API_BASE}/admin/modular-mapping-status`
+				);
+
+
+			if (
+				!response.ok
+			) {
+
+				throw new Error(
+					'Failed to load modular mapping status.'
+				);
+
+			}
+
+
+			const data =
+				await response.json();
+
+
+			existingActivityModulars =
+				new Set(
+					data.activityModulars || []
+				);
+
+
+			existingModulars =
+				new Set(
+					data.modulars || []
+				);
+
+
+			console.log(
+				'Existing modular activity IDs:',
+				[
+					...existingActivityModulars
+				]
+			);
+
+
+			console.log(
+				'Existing modular IDs:',
+				[
+					...existingModulars
+				]
+			);
+
+
+		} catch (error) {
+
+			console.error(
+				'Failed to check existing modular mappings:',
+				error
+			);
+
+		}
+
+
+		/*
+			The rest of the Step 2 setup.
+		*/
 
 		const modularActivityStep1 =
 			document.querySelector(
@@ -889,7 +967,7 @@ const showUpdateModular =
 			);
 
 
-		const modularTagAssignments =
+		const modularTagAssignmentsElement =
 			document.querySelector(
 				'#modular-tag-assignments'
 			);
@@ -929,7 +1007,6 @@ const showUpdateModular =
 			document.querySelector(
 				'#modular-activity-finish'
 			);
-
 
 		/*
 			Hide Step 1.
@@ -1006,10 +1083,10 @@ const showUpdateModular =
 		*/
 
 		if (
-			modularTagAssignments
+			modularTagAssignmentsElement
 		) {
 
-			modularTagAssignments.hidden =
+			modularTagAssignmentsElement.hidden =
 				true;
 
 		}
@@ -1097,6 +1174,7 @@ const showUpdateModular =
 				false;
 
 		}
+		renderLinkedModularTags();
 
 	};
 
@@ -1753,7 +1831,459 @@ const renderModularTagAssignments =
 
 	};
 
+/* =========================================================
+   RENDER LINKED MODULAR TAGS
+========================================================= */
+const modularStep2Assignments =
+	document.querySelector(
+		'#modular-step-2-assignments'
+	);
+const renderLinkedModularTags =
+	() => {
 
+		if (
+			!modularStep2Assignments
+		) {
+
+			return;
+
+		}
+
+
+		modularStep2Assignments.innerHTML =
+			'';
+
+		
+		let hasUnresolvedAssignments =
+			false;
+		/*
+			Always display assignments
+			in ascending modular/bay order.
+		*/
+
+		const sortedAssignments =
+			[
+				...modularTagAssignments
+			].sort(
+				(
+					a,
+					b
+				) =>
+					Number(
+						a.modular
+					) -
+					Number(
+						b.modular
+					)
+			);
+
+
+		sortedAssignments.forEach(
+			(
+				assignment,
+				index
+			) => {
+
+				const assignmentWrapper =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentWrapper.className =
+					'modular-tag-assignment';
+
+
+				const assignmentLabel =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentLabel.className =
+					'modular-tag-assignment-label';
+
+
+				assignmentLabel.textContent =
+					`Bay ${assignment.modular} mod tag`;
+
+
+				const assignmentRow =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentRow.className =
+					'modular-tag-assignment-row';
+
+
+				/* =====================================================
+				   INDEX
+				===================================================== */
+
+				const assignmentIndex =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentIndex.className =
+					'modular-tag-assignment-index';
+
+
+				assignmentIndex.textContent =
+					index + 1;
+
+
+				/* =====================================================
+				   MOD TAG
+				===================================================== */
+
+				const assignmentValue =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentValue.className =
+					'modular-tag-assignment-value';
+
+
+				assignmentValue.textContent =
+					assignment.modularTag;
+
+
+				/* =====================================================
+				   ACTIONS
+				===================================================== */
+
+				const assignmentActions =
+					document.createElement(
+						'div'
+					);
+
+
+				assignmentActions.className =
+					'modular-tag-assignment-actions';
+
+
+				/*
+					Check whether this Mod Tag already exists
+					in either database source.
+				*/
+
+				const hasExistingActivityMapping =
+					existingActivityModulars &&
+					existingActivityModulars.has(
+						assignment.modularTag
+					);
+
+
+				const hasExistingModular =
+					existingModulars &&
+					existingModulars.has(
+						assignment.modularTag
+					);
+
+
+				const hasExistingData =
+					hasExistingActivityMapping ||
+					hasExistingModular;
+
+				if (
+					hasExistingData &&
+					assignment.confirmed !== true
+				) {
+
+					modularActivityFinishButton.disabled = true;
+
+				}
+				/* =====================================================
+				ASSIGN / OVERWRITE
+				===================================================== */
+
+				if (
+					hasExistingData &&
+					assignment.confirmed !== true
+				) {
+
+					const assignButton =
+						document.createElement(
+							'button'
+						);
+
+
+					assignButton.type =
+						'button';
+
+
+					assignButton.className =
+						'modular-tag-assignment-button';
+
+
+					assignButton.textContent =
+						'Assign';
+
+
+					assignButton.addEventListener(
+						'click',
+						async () => {
+
+							try {
+
+								const response =
+									await fetch(
+										`${API_BASE}/modular-bay/assign/${
+											encodeURIComponent(
+												planogramNumber
+											)
+										}/${
+											encodeURIComponent(
+												assignment.modular
+											)
+										}/${
+											encodeURIComponent(
+												assignment.modularTag
+											)
+										}`
+									);
+
+								if (
+									!response.ok
+								) {
+
+									throw new Error(
+										`Failed to load assign bays: ${response.status}`
+									);
+
+								}
+
+								const data =
+									await response.json();
+
+								/* CHECK FOR EXISTING BAYS */
+								if (
+									!Array.isArray(
+										data.currentBayIds
+									) ||
+									data.currentBayIds.length === 0
+								) {
+
+									return;
+
+								}
+
+								const assignContext = {
+
+									currentBayIds:
+										data.currentBayIds,
+
+									targetBayId:
+										data.targetBayId,
+
+									modularTag:
+										assignment.modularTag,
+
+									assignments:
+										modularTagAssignments
+
+								};
+
+								console.log(
+									'assign:',
+									assignContext
+								);
+
+								const assignData =
+									encodeURIComponent(
+										JSON.stringify(
+											assignContext
+										)
+									);
+
+								window.location.href =
+									`modular-test.html?assign=${assignData}`;
+
+							} catch (
+								error
+							) {
+
+								console.error(
+									'Failed to prepare assign:',
+									error
+								);
+
+							}
+
+						}
+					);
+
+
+					const overwriteButton =
+						document.createElement(
+							'button'
+						);
+
+
+					overwriteButton.type =
+						'button';
+
+
+					overwriteButton.className =
+						'modular-tag-assignment-button';
+
+
+					overwriteButton.textContent =
+						'Overwrite';
+
+
+					overwriteButton.addEventListener(
+						'click',
+						() => {
+
+							modularClearModalTitle.textContent =
+								'Overwrite Modular Tag?';
+
+
+							modularClearModalMessage.textContent =
+								`Are you sure you want to overwrite ${
+									assignment.modularTag
+								} on Bay ${
+									assignment.modular
+								}?`;
+
+
+							modularClearModalAction =
+								'overwrite';
+
+
+							modularClearModalAssignment =
+								assignment;
+
+
+							console.log(
+								'Overwrite clicked:',
+								assignment
+							);
+
+							console.log(
+								'Current modularTagAssignments:',
+								modularTagAssignments
+							);
+
+							openModularClearModal();
+
+						}
+					);
+
+
+					assignmentActions.appendChild(
+						assignButton
+					);
+
+
+					assignmentActions.appendChild(
+						overwriteButton
+					);
+
+				}
+
+
+				/* =====================================================
+				   UPDATE MODULAR
+				===================================================== */
+
+				const updateModularButton =
+					document.createElement(
+						'button'
+					);
+
+
+				updateModularButton.type =
+					'button';
+
+
+				updateModularButton.className =
+					'modular-tag-assignment-button modular-tag-assignment-update';
+
+
+				updateModularButton.textContent =
+					'Update Modular';
+					
+				if (
+					hasExistingData &&
+					assignment.confirmed !== true
+				) {
+
+					updateModularButton.disabled =
+						true;
+
+				} else {
+
+					updateModularButton.disabled =
+						false;
+					updateModularButton.classList.add('ready');
+				}
+
+
+				updateModularButton.addEventListener(
+					'click',
+					() => {
+
+						updateModular(
+							index + 1
+						);
+
+					}
+				);
+
+
+				assignmentActions.appendChild(
+					updateModularButton
+				);
+
+
+				/* =====================================================
+				   BUILD ROW
+				===================================================== */
+
+				assignmentRow.appendChild(
+					assignmentIndex
+				);
+
+
+				assignmentRow.appendChild(
+					assignmentValue
+				);
+
+
+				assignmentRow.appendChild(
+					assignmentActions
+				);
+
+
+				assignmentWrapper.appendChild(
+					assignmentLabel
+				);
+
+
+				assignmentWrapper.appendChild(
+					assignmentRow
+				);
+
+
+				modularStep2Assignments.appendChild(
+					assignmentWrapper
+				);
+
+			}
+		);
+
+
+		lucide.createIcons();
+
+	};
 /* =========================================================
    UPDATE MODULAR BAY COMPLETION STATES
 ========================================================= */
@@ -2049,6 +2579,65 @@ if (
 	modularActivityBack.addEventListener(
 		'click',
 		() => {
+
+			if (
+				document.querySelector(
+					'#modular-activity-step-2'
+				) &&
+				!document.querySelector(
+					'#modular-activity-step-2'
+				).hidden
+			) {
+
+				modularClearModalAction =
+					'back';
+
+
+				if (
+					modularClearModalTitle
+				) {
+
+					modularClearModalTitle.textContent =
+						'Go Back?';
+
+				}
+
+
+				modularTagAssignments.forEach(
+					assignment => {
+
+						delete assignment.confirmed;
+
+					}
+				);
+
+
+				if (
+					modularClearModalMessage
+				) {
+
+					modularClearModalMessage.textContent =
+						'Are you sure you want to go back? All changes made on this page will be lost.';
+
+				}
+
+
+				if (
+					modularClearModalConfirm
+				) {
+
+					modularClearModalConfirm.textContent =
+						'Clear All';
+
+				}
+
+
+				openModularClearModal();
+
+				return;
+
+			}
+
 
 			modularClearModalAction =
 				'end';
@@ -4534,7 +5123,13 @@ if (
 					'Go Back?';
 
 			}
+			modularTagAssignments.forEach(
+				assignment => {
 
+					delete assignment.confirmed;
+
+				}
+			);
 
 			if (
 				modularClearModalMessage
@@ -4603,7 +5198,8 @@ if (
 /* =========================================================
    CONFIRM
 ========================================================= */
-
+let modularClearModalAssignment =
+	null;
 if (
 	modularClearModalConfirm
 ) {
@@ -4612,6 +5208,9 @@ if (
 		'click',
 		() => {
 
+			/*
+			 * CLEAR ALL
+			 */
 			if (
 				modularClearModalAction ===
 				'clear'
@@ -4622,6 +5221,9 @@ if (
 			}
 
 
+			/*
+			 * END TASK
+			 */
 			if (
 				modularClearModalAction ===
 				'end'
@@ -4632,15 +5234,23 @@ if (
 			}
 
 
+			/*
+			 * BACK FROM STEP 2
+			 */
 			if (
 				modularClearModalAction ===
 				'back'
 			) {
 
-				/*
-					Going back from Step 2 should
-					keep all scanned Mod Tag assignments.
-				*/
+				modularTagAssignments.forEach(
+					assignment => {
+
+						assignment.confirmed =
+							false;
+
+					}
+				);
+
 
 				hideUpdateModular();
 
@@ -4656,7 +5266,37 @@ if (
 			}
 
 
+			/*
+			* OVERWRITE
+			*/
+			if (
+				modularClearModalAction ===
+				'overwrite'
+			) {
+
+				if (
+					modularClearModalAssignment
+				) {
+
+					modularClearModalAssignment.confirmed =
+						true;
+
+
+					renderLinkedModularTags();
+
+				}
+
+			}
+
+
+			/*
+			 * RESET MODAL STATE
+			 */
 			modularClearModalAction =
+				null;
+
+
+			modularClearModalAssignment =
 				null;
 
 
