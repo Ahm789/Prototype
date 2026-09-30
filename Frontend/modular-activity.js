@@ -143,7 +143,6 @@ let existingActivityModulars =
 
 let existingModulars =
 	new Set();
-
 /* =========================================================
    MODULAR SCAN MODE TITLE
 ========================================================= */
@@ -370,6 +369,83 @@ const modularSearchInput =
 
 const modularTagAssignments = [];
 
+
+const assignResult =
+	params.get('assignResult');
+
+let returnedAssignContext =
+	null;
+
+
+if (assignResult) {
+
+	try {
+
+		returnedAssignContext =
+			JSON.parse(
+				assignResult
+			);
+
+		console.log(
+			'Returned assign context:',
+			returnedAssignContext
+		);
+
+
+		if (
+			Array.isArray(
+				returnedAssignContext.assignments
+			)
+		) {
+
+			modularTagAssignments.length =
+				0;
+
+			modularTagAssignments.push(
+				...returnedAssignContext.assignments
+			);
+
+
+			/* =============================================
+			   MARK RETURNED ASSIGNMENT AS COMPLETED
+			============================================= */
+
+			const returnedAssignment =
+				modularTagAssignments.find(
+					assignment =>
+						assignment.modularTag ===
+						returnedAssignContext.modularTag
+				);
+
+
+			if (
+				returnedAssignment &&
+				returnedAssignContext.assignFinished === true
+			) {
+
+				returnedAssignment.confirmed =
+					true;
+
+			}
+
+
+			console.log(
+				'Restored modular assignments:',
+				modularTagAssignments
+			);
+
+		}
+
+	} catch (error) {
+
+		console.error(
+			'Failed to load returned assign context:',
+			error
+		);
+
+	}
+
+}
 
 let requiredModulars = [];
 
@@ -2062,18 +2138,6 @@ const renderLinkedModularTags =
 								const data =
 									await response.json();
 
-								/* CHECK FOR EXISTING BAYS */
-								if (
-									!Array.isArray(
-										data.currentBayIds
-									) ||
-									data.currentBayIds.length === 0
-								) {
-
-									return;
-
-								}
-
 								const assignContext = {
 
 									currentBayIds:
@@ -2086,7 +2150,10 @@ const renderLinkedModularTags =
 										assignment.modularTag,
 
 									assignments:
-										modularTagAssignments
+										modularTagAssignments,
+
+									returnUrl:
+										window.location.href
 
 								};
 
@@ -2601,15 +2668,6 @@ if (
 						'Go Back?';
 
 				}
-
-
-				modularTagAssignments.forEach(
-					assignment => {
-
-						delete assignment.confirmed;
-
-					}
-				);
 
 
 				if (
@@ -5123,13 +5181,6 @@ if (
 					'Go Back?';
 
 			}
-			modularTagAssignments.forEach(
-				assignment => {
-
-					delete assignment.confirmed;
-
-				}
-			);
 
 			if (
 				modularClearModalMessage
@@ -5229,7 +5280,11 @@ if (
 				'end'
 			) {
 
-				window.history.back();
+				window.location.replace(
+					'index.html'
+				);
+
+				return;
 
 			}
 
@@ -5237,16 +5292,35 @@ if (
 			/*
 			 * BACK FROM STEP 2
 			 */
-			if (
-				modularClearModalAction ===
-				'back'
-			) {
+			if (modularClearModalAction === 'back') {
 
 				modularTagAssignments.forEach(
 					assignment => {
 
-						assignment.confirmed =
-							false;
+						const cleanedAssignment = {
+							modular:
+								assignment.modular,
+
+							modularTag:
+								assignment.modularTag
+						};
+
+
+						Object.keys(
+							assignment
+						).forEach(
+							key => {
+
+								delete assignment[key];
+
+							}
+						);
+
+
+						Object.assign(
+							assignment,
+							cleanedAssignment
+						);
 
 					}
 				);
@@ -5254,15 +5328,11 @@ if (
 
 				hideUpdateModular();
 
-
 				renderModularTagAssignments();
-
 
 				updateModularActivityCounters();
 
-
 				updateModularBayCompletionStates();
-
 			}
 
 
@@ -5273,6 +5343,24 @@ if (
 				modularClearModalAction ===
 				'overwrite'
 			) {
+				const assignment =
+					modularClearModalAssignment;
+
+
+				if (
+					assignment
+				) {
+
+					assignment.overwriteFinished =
+						true;
+
+				}
+
+
+				console.log(
+					'Overwrite completed:',
+					assignment
+				);
 
 				if (
 					modularClearModalAssignment
@@ -5337,7 +5425,26 @@ document.addEventListener(
 lucide.createIcons();
 
 
-loadModularActivityBays();
+loadModularActivityBays()
+	.then(async () => {
+
+		if (returnedAssignContext) {
+
+			await showUpdateModular();
+
+			renderLinkedModularTags();
+
+			updateModularBayCompletionStates();
+
+			sessionStorage.removeItem(
+				'modularActivityStep2'
+			);
+
+			return;
+
+		}
+
+	});
 
 
 /* =========================================================

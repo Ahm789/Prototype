@@ -117,9 +117,7 @@ if (
 
 		assignContext =
 			JSON.parse(
-				decodeURIComponent(
-					assignData
-				)
+				assignData
 			);
 
 	}
@@ -1019,7 +1017,7 @@ if (regularModUpdate) {
 			/* =====================================================
 			   ASSIGN MODE
 			===================================================== */
-
+			
 			if (
 				isAssignMode
 			) {
@@ -1125,25 +1123,27 @@ if (regularModUpdate) {
 									saved order.
 								*/
 
+								const image =
+									product.image_url ??
+									product.image ??
+									null;
+
+
 								products.push({
 
 									itemId:
-
 										itemId,
 
-
 									upc:
-
 										upc,
 
+									image:
+										image,
 
 									shelf:
-
 										shelfNumber,
 
-
 									order:
-
 										productIndex + 1
 
 								});
@@ -1173,15 +1173,10 @@ if (regularModUpdate) {
 					Update the assign context itself.
 				*/
 
-				assignContext.assignments =
-					assignAssignments;
-
-
-				console.log(
-					'Completed assignment:',
-					assignment
-				);
-
+				assignment.assignFinished =
+					true;
+				assignContext.assignFinished =
+					true;
 
 				console.log(
 					'Updated assign context:',
@@ -1210,7 +1205,8 @@ if (regularModUpdate) {
 					'Updated assignData:',
 					updatedAssignData
 				);
-
+				window.location.href =
+					`${assignContext.returnUrl}&assignResult=${updatedAssignData}`;
 
 				/*
 					For now we stop here.
@@ -1381,6 +1377,49 @@ const leaveRegularMod =
 		closeShelfEditor();
 
 		clearSelectedModular();
+
+
+		/* =====================================================
+		   ASSIGN MODE
+		===================================================== */
+
+		if (isAssignMode) {
+
+			const returnUrl =
+				assignContext.returnUrl;
+
+			if (returnUrl) {
+
+				const url =
+					new URL(
+						returnUrl,
+						window.location.href
+					);
+
+				url.searchParams.set(
+					'assignResult',
+					JSON.stringify(
+						assignContext
+					)
+				);
+
+				window.location.replace(
+					url.toString()
+				);
+				return;
+
+			}
+
+			console.warn(
+				'Assign mode has no returnUrl.'
+			);
+
+		}
+
+
+		/* =====================================================
+		   NORMAL MODE
+		===================================================== */
 
 		window.history.back();
 
@@ -3725,22 +3764,20 @@ const renderModularVisual =
 
 							event.stopPropagation();
 
-
 							if (
 								isAssignMode
 							) {
 
 								await attachModular(
-									regularModShelves.length
+									shelfIndex + 1
 								);
 
 								return;
 
 							}
 
-
 							insertRegularModShelf(
-								regularModShelves.length
+								shelfIndex + 1
 							);
 
 						}
