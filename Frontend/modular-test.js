@@ -90,7 +90,7 @@ const selectedModularId =
 
 
 /* =========================================================
-   ASSIGN CONTEXT
+   URL PARAMETERS
 ========================================================= */
 
 const modularTestParams =
@@ -98,6 +98,10 @@ const modularTestParams =
 		window.location.search
 	);
 
+
+/* =========================================================
+   ASSIGN CONTEXT
+========================================================= */
 
 const assignData =
 	modularTestParams.get(
@@ -136,6 +140,46 @@ if (
 
 
 /* =========================================================
+   UPDATE CONTEXT
+========================================================= */
+
+const updateData =
+	modularTestParams.get(
+		'update'
+	);
+
+
+let updateContext =
+	null;
+
+
+if (
+	updateData
+) {
+
+	try {
+
+		updateContext =
+			JSON.parse(
+				updateData
+			);
+
+	}
+	catch (
+		error
+	) {
+
+		console.error(
+			'Failed to load update context:',
+			error
+		);
+
+	}
+
+}
+
+
+/* =========================================================
    ASSIGN VALUES
 ========================================================= */
 
@@ -160,12 +204,65 @@ const assignAssignments =
 
 
 /* =========================================================
-   ASSIGN MODE
+   UPDATE VALUES
+========================================================= */
+
+const updateAssignmentIndex =
+	Number.isInteger(
+		updateContext?.assignmentIndex
+	)
+		? updateContext.assignmentIndex
+		: null;
+
+
+const updateAssignment =
+	updateContext?.assignment ??
+	null;
+
+
+const updateReturnUrl =
+	updateContext?.returnUrl ??
+	null;
+
+
+/* =========================================================
+   MODULAR TAG FOR UPDATE
+========================================================= */
+
+const updateModularTag =
+	updateAssignment?.modularTag ??
+	null;
+
+
+/* =========================================================
+   UPDATE STATE
+========================================================= */
+
+const updateIsAssignFinished =
+	updateAssignment?.assignFinished === true;
+
+
+const updateIsOverwriteFinished =
+	updateAssignment?.overwriteFinished === true;
+
+
+const updateIsReturned =
+	updateAssignment?.updateReturned === true;
+
+
+/* =========================================================
+   MODE
 ========================================================= */
 
 const isAssignMode =
 	Boolean(
 		assignContext
+	);
+
+
+const isUpdateMode =
+	Boolean(
+		updateContext
 	);
 
 
@@ -201,12 +298,95 @@ const getAssignModularProducts =
 
 
 /* =========================================================
+   GET UPDATE MODULAR PRODUCTS
+========================================================= */
+
+const getUpdateModularProducts =
+	async () => {
+
+		if (
+			!updateModularTag
+		) {
+
+			return [];
+
+		}
+
+
+		return apiRequest(
+			`${API_BASE}/modular/${encodeURIComponent(updateModularTag)}`
+		);
+
+	};
+
+const getOverwriteModularProducts =
+	async () => {
+
+		if (
+			!updateAssignment?.bayId
+		) {
+			return [];
+		}
+
+		return apiRequest(
+			`${API_BASE}/modular-bay/${
+				encodeURIComponent(
+					updateAssignment.bayId
+				)
+			}/items`
+		);
+
+	};
+/* =========================================================
+   PRODUCT SEARCH
+========================================================= */
+
+const searchProducts =
+	async (
+		query
+	) => {
+
+		const searchQuery =
+			String(
+				query ?? ''
+			).trim();
+
+
+		if (
+			!searchQuery
+		) {
+
+			return [];
+
+		}
+
+
+		/*
+			This uses the existing backend
+			route you already have for modular
+			bay product searching.
+		*/
+
+		return apiRequest(
+			`${API_ORIGIN}/api/products/admin/modular-activity/bay-items/search?q=${encodeURIComponent(searchQuery)}`
+		);
+
+	};
+
+
+/* =========================================================
    DEBUG
 ========================================================= */
 
 console.log(
 	'Selected modular:',
 	selectedModularId
+);
+
+
+console.log(
+	'Assign context:',
+	assignContext
 );
 
 
@@ -240,6 +420,54 @@ console.log(
 );
 
 
+console.log(
+	'Update context:',
+	updateContext
+);
+
+
+console.log(
+	'Update assignment index:',
+	updateAssignmentIndex
+);
+
+
+console.log(
+	'Update assignment:',
+	updateAssignment
+);
+
+
+console.log(
+	'Update modular tag:',
+	updateModularTag
+);
+
+
+console.log(
+	'Update assign finished:',
+	updateIsAssignFinished
+);
+
+
+console.log(
+	'Update overwrite finished:',
+	updateIsOverwriteFinished
+);
+
+
+console.log(
+	'Update returned:',
+	updateIsReturned
+);
+
+
+console.log(
+	'Update mode:',
+	isUpdateMode
+);
+
+
 /* =========================================================
    REGULAR MOD NAME
 ========================================================= */
@@ -250,7 +478,9 @@ const regularModName =
 	);
 
 
-if (regularModName) {
+if (
+	regularModName
+) {
 
 	if (
 		isAssignMode &&
@@ -259,6 +489,15 @@ if (regularModName) {
 
 		regularModName.textContent =
 			`UPDATING (${assignModularTag})`;
+
+	}
+	else if (
+		isUpdateMode &&
+		updateModularTag
+	) {
+
+		regularModName.textContent =
+			`UPDATING (${updateModularTag})`;
 
 	}
 	else if (
@@ -320,11 +559,14 @@ const regularModClear =
 
 
 /* =========================================================
-   ASSIGN MODE - HIDE CLEAR BUTTON
+   HIDE CLEAR BUTTON IN NON-NORMAL MODES
 ========================================================= */
 
 if (
-	isAssignMode &&
+	(
+		isAssignMode ||
+		isUpdateMode
+	) &&
 	regularModClear
 ) {
 
@@ -612,7 +854,9 @@ const startBarcodeScanner =
 				);
 
 
-			if (!selectedDevice) {
+			if (
+				!selectedDevice
+			) {
 
 				selectedDevice =
 					devices[
@@ -868,7 +1112,9 @@ const openConfirmationModal =
 const closeConfirmationModal =
 	() => {
 
-		if (!clearModal) {
+		if (
+			!clearModal
+		) {
 
 			return;
 
@@ -889,7 +1135,9 @@ const closeConfirmationModal =
    CONFIRMATION MODAL - CANCEL
 ========================================================= */
 
-if (clearModalCancel) {
+if (
+	clearModalCancel
+) {
 
 	clearModalCancel.addEventListener(
 		'click',
@@ -907,7 +1155,9 @@ if (clearModalCancel) {
    CONFIRMATION MODAL - BACKDROP
 ========================================================= */
 
-if (clearModalBackdrop) {
+if (
+	clearModalBackdrop
+) {
 
 	clearModalBackdrop.addEventListener(
 		'click',
@@ -925,7 +1175,9 @@ if (clearModalBackdrop) {
    CONFIRMATION MODAL - CONFIRM
 ========================================================= */
 
-if (clearModalConfirm) {
+if (
+	clearModalConfirm
+) {
 
 	clearModalConfirm.addEventListener(
 		'click',
@@ -959,7 +1211,9 @@ if (clearModalConfirm) {
 const updateRegularModButton =
 	() => {
 
-		if (!regularModUpdate) {
+		if (
+			!regularModUpdate
+		) {
 
 			return;
 
@@ -1001,10 +1255,278 @@ const markRegularModModified =
 
 
 /* =========================================================
+   BUILD PRODUCTS FROM CURRENT SHELVES
+========================================================= */
+
+const buildCurrentModularProducts =
+	() => {
+
+		const products = [];
+
+
+		regularModShelves.forEach(
+			shelfData => {
+
+				const shelfNumber =
+					Number(
+						shelfData.shelf
+					);
+
+
+				if (
+					!Array.isArray(
+						shelfData.products
+					)
+				) {
+
+					return;
+
+				}
+
+
+				shelfData.products.forEach(
+					(
+						product,
+						productIndex
+					) => {
+
+						const itemId =
+							product.item_id ??
+							product.itemId ??
+							null;
+
+
+						const upc =
+							product.upc ??
+							null;
+
+
+						const image =
+							product.image_url ??
+							product.image ??
+							product.imageUrl ??
+							null;
+
+
+						products.push({
+
+							itemId:
+								itemId,
+
+							upc:
+								upc,
+
+							image:
+								image,
+
+							image_url:
+								product.image_url ??
+								null,
+
+							image_alt:
+								product.image_alt ??
+								product.image?.alt ??
+								null,
+
+							description:
+								product.description ??
+								null,
+
+							shelf:
+								shelfNumber,
+
+							order:
+								productIndex + 1
+
+						});
+
+					}
+				);
+
+			}
+		);
+
+
+		return products;
+
+	};
+
+
+/* =========================================================
+   BUILD SHELVES FROM PRODUCTS
+========================================================= */
+
+const buildShelvesFromProducts =
+	(
+		products
+	) => {
+
+		if (
+			!Array.isArray(products) ||
+			products.length === 0
+		) {
+
+			return [];
+
+		}
+
+
+		const shelves =
+			new Map();
+
+
+		products.forEach(
+			product => {
+
+				const shelf =
+					parseInt(
+						String(
+							product.shelf ?? ''
+						).replace(
+							/[^0-9]/g,
+							''
+						),
+						10
+					);
+
+
+				if (
+					Number.isNaN(shelf)
+				) {
+
+					return;
+
+				}
+
+
+				if (
+					!shelves.has(shelf)
+				) {
+
+					shelves.set(
+						shelf,
+						[]
+					);
+
+				}
+
+
+				shelves
+					.get(shelf)
+					.push(
+						product
+					);
+
+			}
+		);
+
+
+		const result =
+			[
+				...shelves.entries()
+			]
+				.sort(
+					(
+						[
+							shelfA
+						],
+						[
+							shelfB
+						]
+					) => {
+
+						return (
+							shelfA -
+							shelfB
+						);
+
+					}
+				)
+				.map(
+					(
+						[
+							shelf,
+							shelfProducts
+						]
+					) => {
+
+						shelfProducts.sort(
+							(
+								productA,
+								productB
+							) => {
+
+								const orderA =
+									Number(
+										productA.order ??
+										productA.shelf_order
+									);
+
+
+								const orderB =
+									Number(
+										productB.order ??
+										productB.shelf_order
+									);
+
+
+								if (
+									Number.isNaN(
+										orderA
+									)
+								) {
+
+									return 1;
+
+								}
+
+
+								if (
+									Number.isNaN(
+										orderB
+									)
+								) {
+
+									return -1;
+
+								}
+
+
+								return (
+									orderA -
+									orderB
+								);
+
+							}
+						);
+
+
+						return {
+
+							shelf:
+								shelf,
+
+							products:
+								shelfProducts
+
+						};
+
+					}
+				);
+
+
+		return result;
+
+	};
+
+
+/* =========================================================
    FINISH REGULAR MODULAR
 ========================================================= */
 
-if (regularModUpdate) {
+if (
+	regularModUpdate
+) {
 
 	regularModUpdate.addEventListener(
 		'click',
@@ -1017,22 +1539,10 @@ if (regularModUpdate) {
 			/* =====================================================
 			   ASSIGN MODE
 			===================================================== */
-			
+
 			if (
 				isAssignMode
 			) {
-
-				/*
-					Find the assignment using the
-					modular tag.
-
-					The assignments currently look like:
-
-					{
-						modular: 1,
-						modularTag: "FF-14-L-1"
-					}
-				*/
 
 				const assignment =
 					assignAssignments.find(
@@ -1042,7 +1552,9 @@ if (regularModUpdate) {
 					);
 
 
-				if (!assignment) {
+				if (
+					!assignment
+				) {
 
 					console.error(
 						'Could not find assignment for modular tag:',
@@ -1061,105 +1573,9 @@ if (regularModUpdate) {
 				}
 
 
-				/*
-					Build the final product arrangement
-					from the shelves currently displayed.
+				const products =
+					buildCurrentModularProducts();
 
-					Each product records:
-
-					- itemId
-					- UPC if available
-					- shelf number
-					- order within that shelf
-				*/
-
-				const products = [];
-
-
-				regularModShelves.forEach(
-					shelfData => {
-
-						const shelfNumber =
-							Number(
-								shelfData.shelf
-							);
-
-
-						if (
-							!Array.isArray(
-								shelfData.products
-							)
-						) {
-
-							return;
-
-						}
-
-
-						shelfData.products.forEach(
-							(
-								product,
-								productIndex
-							) => {
-
-								const itemId =
-									product.item_id ??
-									product.itemId ??
-									null;
-
-
-								const upc =
-									product.upc ??
-									null;
-
-
-								/*
-									Use the current position
-									in the shelf as the final
-									order.
-
-									This means dragging products
-									automatically changes their
-									saved order.
-								*/
-
-								const image =
-									product.image_url ??
-									product.image ??
-									null;
-
-
-								products.push({
-
-									itemId:
-										itemId,
-
-									upc:
-										upc,
-
-									image:
-										image,
-
-									shelf:
-										shelfNumber,
-
-									order:
-										productIndex + 1
-
-								});
-
-							}
-						);
-
-					}
-				);
-
-
-				/*
-					Add the database bay ID and the
-					final product arrangement to
-					this assignment.
-				*/
 
 				assignment.bayId =
 					assignTargetBayId;
@@ -1169,29 +1585,19 @@ if (regularModUpdate) {
 					products;
 
 
-				/*
-					Update the assign context itself.
-				*/
-
 				assignment.assignFinished =
 					true;
+
+
 				assignContext.assignFinished =
 					true;
+
 
 				console.log(
 					'Updated assign context:',
 					assignContext
 				);
 
-
-				/*
-					Create the updated encoded
-					assignData.
-
-					This is now the complete data
-					that can be passed back to the
-					previous modular activity page.
-				*/
 
 				const updatedAssignData =
 					encodeURIComponent(
@@ -1205,17 +1611,159 @@ if (regularModUpdate) {
 					'Updated assignData:',
 					updatedAssignData
 				);
-				window.location.href =
-					`${assignContext.returnUrl}&assignResult=${updatedAssignData}`;
+
 
 				/*
-					For now we stop here.
+					IMPORTANT:
 
-					The assignment has been fully
-					updated in assignContext and
-					updatedAssignData contains the
-					complete encoded version.
+					Use the stored return URL but
+					remove any previous assignResult
+					before adding the new one.
+
+					This prevents the recursive URL
+					problem that caused the 431 error.
 				*/
+
+				const returnUrl =
+					new URL(
+						assignContext.returnUrl,
+						window.location.href
+					);
+
+
+				returnUrl.searchParams.delete(
+					'assignResult'
+				);
+
+
+				returnUrl.searchParams.set(
+					'assignResult',
+					JSON.stringify(
+						assignContext
+					)
+				);
+
+
+				window.location.replace(
+					returnUrl.toString()
+				);
+
+
+				return;
+
+			}
+
+
+			/* =====================================================
+			   UPDATE MODE
+			===================================================== */
+
+			if (
+				isUpdateMode
+			) {
+
+				if (
+					!updateAssignment
+				) {
+
+					console.error(
+						'Update mode has no assignment.'
+					);
+
+
+					alert(
+						'Could not find the modular assignment.'
+					);
+
+
+					return;
+
+				}
+
+
+				/*
+					The current editor contents are now
+					the information that must be returned
+					to Modular Activity.
+				*/
+
+				updateAssignment.products =
+					buildCurrentModularProducts();
+
+
+				/*
+					This marks that the Update Modular
+					page has been visited and its current
+					state has been returned.
+
+					We deliberately do NOT set
+					assignFinished or overwriteFinished.
+				*/
+
+				updateAssignment.updateReturned =
+					true;
+
+
+				updateContext.assignment =
+					updateAssignment;
+
+
+				updateContext.updateReturned =
+					true;
+
+
+				console.log(
+					'Updated update context:',
+					updateContext
+				);
+
+
+				const updatedUpdateData =
+					encodeURIComponent(
+						JSON.stringify(
+							updateContext
+						)
+					);
+
+
+				if (
+					!updateReturnUrl
+				) {
+
+					console.warn(
+						'Update mode has no returnUrl.'
+					);
+
+
+					return;
+
+				}
+
+
+				const returnUrl =
+					new URL(
+						updateReturnUrl,
+						window.location.href
+					);
+
+
+				returnUrl.searchParams.delete(
+					'updateResult'
+				);
+
+
+				returnUrl.searchParams.set(
+					'updateResult',
+					JSON.stringify(
+						updateContext
+					)
+				);
+
+
+				window.location.replace(
+					returnUrl.toString()
+				);
+
 
 				return;
 
@@ -1383,18 +1931,29 @@ const leaveRegularMod =
 		   ASSIGN MODE
 		===================================================== */
 
-		if (isAssignMode) {
+		if (
+			isAssignMode
+		) {
 
 			const returnUrl =
 				assignContext.returnUrl;
 
-			if (returnUrl) {
+
+			if (
+				returnUrl
+			) {
 
 				const url =
 					new URL(
 						returnUrl,
 						window.location.href
 					);
+
+
+				url.searchParams.delete(
+					'assignResult'
+				);
+
 
 				url.searchParams.set(
 					'assignResult',
@@ -1403,16 +1962,102 @@ const leaveRegularMod =
 					)
 				);
 
+
 				window.location.replace(
 					url.toString()
 				);
+
+
 				return;
 
 			}
 
+
 			console.warn(
 				'Assign mode has no returnUrl.'
 			);
+
+		}
+
+
+		/* =====================================================
+		   UPDATE MODE
+		===================================================== */
+
+		if (
+			isUpdateMode
+		) {
+
+			if (
+				!updateReturnUrl
+			) {
+
+				console.warn(
+					'Update mode has no returnUrl.'
+				);
+
+
+				return;
+
+			}
+
+
+			/*
+				Back does not mark the update as
+				finished.
+
+				It simply passes the current
+				in-memory modular information
+				back to Modular Activity.
+
+				This is what allows the next
+				Update Modular click to reuse
+				the information instead of
+				querying the DB again.
+			*/
+
+			updateAssignment.products =
+				buildCurrentModularProducts();
+
+
+			updateAssignment.updateReturned =
+				true;
+
+
+			updateContext.assignment =
+				updateAssignment;
+
+
+			updateContext.updateReturned =
+				true;
+
+
+			const url =
+				new URL(
+					updateReturnUrl,
+					window.location.href
+				);
+
+
+			url.searchParams.delete(
+				'updateResult'
+			);
+
+
+			url.searchParams.set(
+				'updateResult',
+				JSON.stringify(
+					updateContext
+				)
+			);
+
+
+			window.location.replace(
+				url.toString()
+			);
+
+
+			return;
 
 		}
 
@@ -1456,7 +2101,9 @@ const confirmLeaveRegularMod =
    REGULAR MOD BACK BUTTON
 ========================================================= */
 
-if (regularModBack) {
+if (
+	regularModBack
+) {
 
 	regularModBack.addEventListener(
 		'click',
@@ -1474,7 +2121,9 @@ if (regularModBack) {
    REGULAR MOD CANCEL BUTTON
 ========================================================= */
 
-if (regularModCancel) {
+if (
+	regularModCancel
+) {
 
 	regularModCancel.addEventListener(
 		'click',
@@ -1509,10 +2158,6 @@ const resetRegularMod =
 		regularModModified =
 			false;
 
-
-		/* =============================================
-		   SHOW ATTACH MODULAR BUTTONS AGAIN
-		============================================= */
 
 		attachModularButtonsHidden =
 			false;
@@ -1576,7 +2221,9 @@ const confirmClearRegularMod =
    REGULAR MOD CLEAR BUTTON
 ========================================================= */
 
-if (regularModClear) {
+if (
+	regularModClear
+) {
 
 	regularModClear.addEventListener(
 		'click',
@@ -1620,7 +2267,9 @@ const confirmResetRegularMod =
    REGULAR MOD RESET BUTTON
 ========================================================= */
 
-if (regularModReset) {
+if (
+	regularModReset
+) {
 
 	regularModReset.addEventListener(
 		'click',
@@ -1827,7 +2476,9 @@ const getDuplicatePairCount =
 					).trim();
 
 
-				if (!upc) {
+				if (
+					!upc
+				) {
 
 					return;
 
@@ -1895,7 +2546,9 @@ const updateShelfEditorSummary =
 			];
 
 
-		if (!shelf) {
+		if (
+			!shelf
+		) {
 
 			return;
 
@@ -1913,7 +2566,9 @@ const updateShelfEditorSummary =
 			);
 
 
-		if (shelfEditorUpcs) {
+		if (
+			shelfEditorUpcs
+		) {
 
 			shelfEditorUpcs.innerHTML = `
 
@@ -1991,7 +2646,9 @@ const renderShelfEditorProducts =
 			];
 
 
-		if (!shelf) {
+		if (
+			!shelf
+		) {
 
 			return;
 
@@ -2054,8 +2711,8 @@ const renderShelfEditorProducts =
 						try {
 
 							const results =
-								await apiRequest(
-									`${API_BASE}/search?q=${encodeURIComponent(barcode)}`
+								await searchProducts(
+									barcode
 								);
 
 
@@ -2535,10 +3192,6 @@ const openShelfEditor =
 			];
 
 
-		/* =============================================
-		   SAVE ORIGINAL SHELF STATE
-		============================================= */
-
 		activeShelfOriginalProducts =
 			JSON.parse(
 				JSON.stringify(
@@ -2590,10 +3243,6 @@ const closeShelfEditor =
 		saveChanges = false
 	) => {
 
-		/* =============================================
-		   REMOVE EMPTY SHELF CREATED BY NEXT
-		============================================= */
-
 		if (
 			!saveChanges &&
 			freshShelfCreatedByNext &&
@@ -2613,11 +3262,6 @@ const closeShelfEditor =
 			renumberRegularModShelves();
 
 		}
-
-		/* =============================================
-		   CANCEL - RESTORE ORIGINAL SHELF
-		============================================= */
-
 		else if (
 			!saveChanges &&
 			activeShelfIndex !== null &&
@@ -2635,10 +3279,6 @@ const closeShelfEditor =
 
 		}
 
-
-		/* =============================================
-		   CLOSE POPUP
-		============================================= */
 
 		if (
 			shelfEditor
@@ -2675,7 +3315,9 @@ const closeShelfEditor =
    SHELF EDITOR CLOSE BUTTON
 ========================================================= */
 
-if (shelfEditorClose) {
+if (
+	shelfEditorClose
+) {
 
 	shelfEditorClose.addEventListener(
 		'click',
@@ -2697,7 +3339,9 @@ if (shelfEditorClose) {
    SHELF EDITOR BACKDROP
 ========================================================= */
 
-if (shelfEditorBackdrop) {
+if (
+	shelfEditorBackdrop
+) {
 
 	shelfEditorBackdrop.addEventListener(
 		'click',
@@ -2719,7 +3363,9 @@ if (shelfEditorBackdrop) {
    FINISH SHELF EDITOR
 ========================================================= */
 
-if (shelfEditorFinish) {
+if (
+	shelfEditorFinish
+) {
 
 	shelfEditorFinish.addEventListener(
 		'click',
@@ -2755,7 +3401,9 @@ if (shelfEditorFinish) {
    NEXT SHELF
 ========================================================= */
 
-if (shelfEditorNext) {
+if (
+	shelfEditorNext
+) {
 
 	shelfEditorNext.addEventListener(
 		'click',
@@ -2774,20 +3422,12 @@ if (shelfEditorNext) {
 			}
 
 
-			/* =============================================
-			   SAVE CURRENT SHELF
-			============================================= */
-
 			markRegularModModified();
 
 
 			const nextShelfIndex =
 				activeShelfIndex + 1;
 
-
-			/* =============================================
-			   INSERT FRESH NEXT SHELF
-			============================================= */
 
 			regularModShelves.splice(
 				nextShelfIndex,
@@ -2801,10 +3441,6 @@ if (shelfEditorNext) {
 
 			renumberRegularModShelves();
 
-
-			/* =============================================
-			   MOVE TO NEW SHELF
-			============================================= */
 
 			activeShelfIndex =
 				nextShelfIndex;
@@ -2824,10 +3460,6 @@ if (shelfEditorNext) {
 			renderModularVisual();
 
 
-			/* =============================================
-			   OPEN FRESH SHELF
-			============================================= */
-
 			openShelfEditor(
 				nextShelfIndex
 			);
@@ -2842,7 +3474,9 @@ if (shelfEditorNext) {
    ENTER UPC
 ========================================================= */
 
-if (shelfEditorEnterUpc) {
+if (
+	shelfEditorEnterUpc
+) {
 
 	shelfEditorEnterUpc.addEventListener(
 		'click',
@@ -2882,11 +3516,62 @@ if (shelfEditorEnterUpc) {
 			);
 
 
-			/*
-				PRODUCT LOOKUP WILL BE CONNECTED
-				HERE ONCE THE UPC SEARCH ROUTE
-				IS WIRED INTO THIS PAGE.
-			*/
+			searchProducts(
+				upc
+			)
+				.then(
+					results => {
+
+						if (
+							!Array.isArray(results) ||
+							results.length === 0
+						) {
+
+							alert(
+								`No product found for barcode ${upc}.`
+							);
+
+							return;
+
+						}
+
+
+						const product =
+							results[0];
+
+
+						regularModShelves[
+							activeShelfIndex
+						].products.push(
+							product
+						);
+
+
+						markRegularModModified();
+
+
+						renderShelfEditorProducts();
+
+
+						renderModularVisual();
+
+					}
+				)
+				.catch(
+					error => {
+
+						console.error(
+							'Failed to search UPC:',
+							error
+						);
+
+
+						alert(
+							'Unable to find the product.'
+						);
+
+					}
+				);
 
 		}
 	);
@@ -2898,7 +3583,9 @@ if (shelfEditorEnterUpc) {
    CANNOT SCAN
 ========================================================= */
 
-if (shelfEditorCannotScan) {
+if (
+	shelfEditorCannotScan
+) {
 
 	shelfEditorCannotScan.addEventListener(
 		'click',
@@ -2922,7 +3609,9 @@ if (shelfEditorCannotScan) {
    UNSTRUCTURED
 ========================================================= */
 
-if (shelfEditorUnstructured) {
+if (
+	shelfEditorUnstructured
+) {
 
 	shelfEditorUnstructured.addEventListener(
 		'click',
@@ -2983,160 +3672,11 @@ const attachModular =
 			}
 
 
-			/* =============================================
-			   GROUP PRODUCTS BY PLANOGRAM SHELF
-			============================================= */
-
-			const shelves =
-				new Map();
-
-
-			products.forEach(
-				product => {
-
-					const shelf =
-						parseInt(
-							String(
-								product.shelf ?? ''
-							).replace(
-								/[^0-9]/g,
-								''
-							),
-							10
-						);
-
-
-					if (
-						Number.isNaN(shelf)
-					) {
-
-						return;
-
-					}
-
-
-					if (
-						!shelves.has(shelf)
-					) {
-
-						shelves.set(
-							shelf,
-							[]
-						);
-
-					}
-
-
-					shelves
-						.get(shelf)
-						.push(
-							product
-						);
-
-				}
-			);
-
-
-			/* =============================================
-			   CREATE SHELVES
-			============================================= */
-
 			const newShelves =
-				[
-					...shelves.entries()
-				]
-					.sort(
-						(
-							[
-								shelfA
-							],
-							[
-								shelfB
-							]
-						) => {
+				buildShelvesFromProducts(
+					products
+				);
 
-							return (
-								shelfA -
-								shelfB
-							);
-
-						}
-					)
-					.map(
-						(
-							[
-								,
-								shelfProducts
-							]
-						) => {
-
-							shelfProducts.sort(
-								(
-									productA,
-									productB
-								) => {
-
-									const orderA =
-										Number(
-											productA.order ??
-											productA.shelf_order
-										);
-
-
-									const orderB =
-										Number(
-											productB.order ??
-											productB.shelf_order
-										);
-
-
-									if (
-										Number.isNaN(
-											orderA
-										)
-									) {
-
-										return 1;
-
-									}
-
-
-									if (
-										Number.isNaN(
-											orderB
-										)
-									) {
-
-										return -1;
-
-									}
-
-
-									return (
-										orderA -
-										orderB
-									);
-
-								}
-							);
-
-
-							return {
-
-								shelf: 0,
-
-								products:
-									shelfProducts
-
-							};
-
-						}
-					);
-
-
-			/* =============================================
-			   INSERT ATTACHED MODULAR
-			============================================= */
 
 			regularModShelves.splice(
 				insertIndex,
@@ -3145,19 +3685,11 @@ const attachModular =
 			);
 
 
-			/* =============================================
-			   RENUMBER ALL SHELVES
-			============================================= */
-
 			renumberRegularModShelves();
 
 
 			markRegularModModified();
 
-
-			/* =============================================
-			   HIDE ATTACH MODULAR BUTTONS
-			============================================= */
 
 			attachModularButtonsHidden =
 				true;
@@ -3190,7 +3722,9 @@ const attachModular =
 const renderModularVisual =
 	() => {
 
-		if (!modularVisual) {
+		if (
+			!modularVisual
+		) {
 
 			return;
 
@@ -3208,10 +3742,6 @@ const renderModularVisual =
 		if (
 			regularModShelves.length === 0
 		) {
-
-			/* =============================================
-			   ASSIGN MODE ATTACH BUTTON
-			============================================= */
 
 			if (
 				isAssignMode &&
@@ -3262,13 +3792,9 @@ const renderModularVisual =
 				);
 
 			}
-
-			/* =============================================
-			   NORMAL MODE ADD SHELF BUTTON
-			============================================= */
-
 			else if (
-				!isAssignMode
+				!isAssignMode &&
+				!isUpdateMode
 			) {
 
 				const plusButton =
@@ -3543,43 +4069,39 @@ const renderModularVisual =
 
 
 				/* =============================================
-				   REMOVE BUTTON
+				REMOVE BUTTON
 				============================================= */
+
+				let removeButton = null;
 
 				if (
 					!isAssignMode
 				) {
 
-					const removeButton =
+					removeButton =
 						document.createElement(
 							'button'
 						);
 
-
 					removeButton.type =
 						'button';
 
-
 					removeButton.className =
 						'regular-mod-shelf-remove';
-
 
 					removeButton.setAttribute(
 						'aria-label',
 						`Remove Shelf ${shelfData.shelf}`
 					);
 
-
 					removeButton.innerHTML =
 						'<span>−</span>';
-
 
 					removeButton.addEventListener(
 						'click',
 						event => {
 
 							event.stopPropagation();
-
 
 							confirmRemoveRegularModShelf(
 								shelfIndex
@@ -3588,21 +4110,26 @@ const renderModularVisual =
 						}
 					);
 
+				}
+
+
+				/* =============================================
+				BUILD HEADER
+				============================================= */
+
+				shelfHeader.appendChild(
+					shelfHeaderLeft
+				);
+
+				if (
+					removeButton
+				) {
 
 					shelfHeader.appendChild(
 						removeButton
 					);
 
 				}
-
-
-				/* =============================================
-				   BUILD HEADER
-				============================================= */
-
-				shelfHeader.appendChild(
-					shelfHeaderLeft
-				);
 
 
 				/* =============================================
@@ -3618,10 +4145,6 @@ const renderModularVisual =
 				productsContainer.className =
 					'regular-mod-products';
 
-
-				/* =============================================
-				   PRODUCT AREA CLICK
-				============================================= */
 
 				if (
 					!isAssignMode
@@ -3764,6 +4287,7 @@ const renderModularVisual =
 
 							event.stopPropagation();
 
+
 							if (
 								isAssignMode
 							) {
@@ -3775,6 +4299,7 @@ const renderModularVisual =
 								return;
 
 							}
+
 
 							insertRegularModShelf(
 								shelfIndex + 1
@@ -3794,10 +4319,6 @@ const renderModularVisual =
 		);
 
 
-		/* =====================================================
-		   INITIALISE LUCIDE ICONS
-		===================================================== */
-
 		if (
 			window.lucide
 		) {
@@ -3808,6 +4329,48 @@ const renderModularVisual =
 
 
 		updateRegularModButton();
+
+	};
+
+
+/* =========================================================
+   LOAD PRODUCTS INTO MODULAR EDITOR
+========================================================= */
+
+const loadProductsIntoRegularMod =
+	(
+		products
+	) => {
+
+		regularModShelves =
+			buildShelvesFromProducts(
+				products
+			);
+
+
+		renumberRegularModShelves();
+
+
+		regularModOriginalShelves =
+			JSON.parse(
+				JSON.stringify(
+					regularModShelves
+				)
+			);
+
+
+		regularModModified =
+			false;
+
+
+		attachModularButtonsHidden =
+			false;
+
+		console.log(
+			'PRODUCTS BEFORE UPDATE RENDER:',
+			regularModShelves
+		);
+		renderModularVisual();
 
 	};
 
@@ -3829,18 +4392,14 @@ const loadRegularMod =
 				);
 
 
-			regularModShelves =
-				[];
-
-
-			/* =================================================
-			   EMPTY MODULAR
-			================================================= */
-
 			if (
 				!Array.isArray(products) ||
 				products.length === 0
 			) {
+
+				regularModShelves =
+					[];
+
 
 				regularModOriginalShelves =
 					[];
@@ -3858,181 +4417,9 @@ const loadRegularMod =
 			}
 
 
-			/* =================================================
-			   GROUP PRODUCTS BY SHELF
-			================================================= */
-
-			const shelves =
-				new Map();
-
-
-			products.forEach(
-				product => {
-
-					const shelf =
-						parseInt(
-							String(
-								product.shelf ?? ''
-							).replace(
-								/[^0-9]/g,
-								''
-							),
-							10
-						);
-
-
-					if (
-						Number.isNaN(shelf)
-					) {
-
-						return;
-
-					}
-
-
-					if (
-						!shelves.has(shelf)
-					) {
-
-						shelves.set(
-							shelf,
-							[]
-						);
-
-					}
-
-
-					shelves
-						.get(shelf)
-						.push(
-							product
-						);
-
-				}
+			loadProductsIntoRegularMod(
+				products
 			);
-
-
-			/* =================================================
-			   CREATE SHELF STATE
-			================================================= */
-
-			regularModShelves =
-				[
-					...shelves.entries()
-				]
-					.sort(
-						(
-							[
-								shelfA
-							],
-							[
-								shelfB
-							]
-						) => {
-
-							return (
-								shelfA -
-								shelfB
-							);
-
-						}
-					)
-					.map(
-						(
-							[
-								shelf,
-								shelfProducts
-							]
-						) => {
-
-							shelfProducts.sort(
-								(
-									productA,
-									productB
-								) => {
-
-									const orderA =
-										Number(
-											productA.order ??
-											productA.shelf_order
-										);
-
-
-									const orderB =
-										Number(
-											productB.order ??
-											productB.shelf_order
-										);
-
-
-									if (
-										Number.isNaN(
-											orderA
-										)
-									) {
-
-										return 1;
-
-									}
-
-
-									if (
-										Number.isNaN(
-											orderB
-										)
-									) {
-
-										return -1;
-
-									}
-
-
-									return (
-										orderA -
-										orderB
-									);
-
-								}
-							);
-
-
-							return {
-
-								shelf,
-
-								products:
-									shelfProducts
-
-							};
-
-						}
-					);
-
-
-			/* =================================================
-			   NORMALISE SHELF NUMBERS
-			================================================= */
-
-			renumberRegularModShelves();
-
-
-			/* =================================================
-			   SAVE ORIGINAL STATE
-			================================================= */
-
-			regularModOriginalShelves =
-				JSON.parse(
-					JSON.stringify(
-						regularModShelves
-					)
-				);
-
-
-			regularModModified =
-				false;
-
-
-			renderModularVisual();
 
 		}
 		catch (error) {
@@ -4043,7 +4430,9 @@ const loadRegularMod =
 			);
 
 
-			if (modularVisual) {
+			if (
+				modularVisual
+			) {
 
 				modularVisual.innerHTML = `
 
@@ -4071,22 +4460,62 @@ const loadAssignModular =
 
 		try {
 
+			/*
+				If Assign has already returned products
+				from a previous visit, use those
+				directly.
+
+				Otherwise load the original modular
+				from the database.
+			*/
+
+			const assignment =
+				assignAssignments.find(
+					item =>
+						item.modularTag ===
+						assignModularTag
+				);
+
+
+			if (
+				assignment &&
+				assignment.assignFinished === true &&
+				Array.isArray(
+					assignment.products
+				)
+			) {
+
+				console.log(
+					'Loading Assign products from returned assignment.'
+				);
+
+
+				loadProductsIntoRegularMod(
+					assignment.products
+				);
+
+
+				attachModularButtonsHidden =
+					false;
+
+
+				return;
+
+			}
+
+
 			const products =
 				await getAssignModularProducts();
 
-
-			regularModShelves =
-				[];
-
-
-			/* =================================================
-			   EMPTY MODULAR
-			================================================= */
 
 			if (
 				!Array.isArray(products) ||
 				products.length === 0
 			) {
+
+				regularModShelves =
+					[];
+
 
 				regularModOriginalShelves =
 					[];
@@ -4108,178 +4537,9 @@ const loadAssignModular =
 			}
 
 
-			/* =================================================
-			   GROUP PRODUCTS BY SHELF
-			================================================= */
-
-			const shelves =
-				new Map();
-
-
-			products.forEach(
-				product => {
-
-					const shelf =
-						parseInt(
-							String(
-								product.shelf ?? ''
-							).replace(
-								/[^0-9]/g,
-								''
-							),
-							10
-						);
-
-
-					if (
-						Number.isNaN(shelf)
-					) {
-
-						return;
-
-					}
-
-
-					if (
-						!shelves.has(shelf)
-					) {
-
-						shelves.set(
-							shelf,
-							[]
-						);
-
-					}
-
-
-					shelves
-						.get(shelf)
-						.push(
-							product
-						);
-
-				}
+			loadProductsIntoRegularMod(
+				products
 			);
-
-
-			/* =================================================
-			   CREATE SHELF STATE
-			================================================= */
-
-			regularModShelves =
-				[
-					...shelves.entries()
-				]
-					.sort(
-						(
-							[
-								shelfA
-							],
-							[
-								shelfB
-							]
-						) => {
-
-							return (
-								shelfA -
-								shelfB
-							);
-
-						}
-					)
-					.map(
-						(
-							[
-								shelf,
-								shelfProducts
-							]
-						) => {
-
-							shelfProducts.sort(
-								(
-									productA,
-									productB
-								) => {
-
-									const orderA =
-										Number(
-											productA.order ??
-											productA.shelf_order
-										);
-
-
-									const orderB =
-										Number(
-											productB.order ??
-											productB.shelf_order
-										);
-
-
-									if (
-										Number.isNaN(
-											orderA
-										)
-									) {
-
-										return 1;
-
-									}
-
-
-									if (
-										Number.isNaN(
-											orderB
-										)
-									) {
-
-										return -1;
-
-									}
-
-
-									return (
-										orderA -
-										orderB
-									);
-
-								}
-							);
-
-
-							return {
-
-								shelf,
-
-								products:
-									shelfProducts
-
-							};
-
-						}
-					);
-
-
-			/* =================================================
-			   NORMALISE SHELF NUMBERS
-			================================================= */
-
-			renumberRegularModShelves();
-
-
-			/* =================================================
-			   SAVE ORIGINAL STATE
-			================================================= */
-
-			regularModOriginalShelves =
-				JSON.parse(
-					JSON.stringify(
-						regularModShelves
-					)
-				);
-
-
-			regularModModified =
-				false;
 
 
 			attachModularButtonsHidden =
@@ -4297,7 +4557,186 @@ const loadAssignModular =
 			);
 
 
-			if (modularVisual) {
+			if (
+				modularVisual
+			) {
+
+				modularVisual.innerHTML = `
+
+					<div class="regular-mod-empty">
+
+						Unable to load modular.
+
+					</div>
+
+				`;
+
+			}
+
+		}
+
+	};
+
+
+/* =========================================================
+   LOAD UPDATE MODULAR
+========================================================= */
+
+const loadUpdateModular =
+	async () => {
+
+		try {
+
+			if (
+				!updateAssignment
+			) {
+
+				throw new Error(
+					'Update context does not contain an assignment.'
+				);
+
+			}
+
+
+			/* =================================================
+			STATE 1
+			RETURNED FROM UPDATE
+			================================================= */
+
+			if (
+				updateIsReturned &&
+				Array.isArray(
+					updateAssignment.products
+				)
+			) {
+
+				console.log(
+					'Update Modular: loading products returned from previous Update Modular visit.'
+				);
+
+
+				loadProductsIntoRegularMod(
+					updateAssignment.products
+				);
+
+
+				return;
+
+			}
+
+
+			/* =================================================
+			STATE 2
+			OVERWRITE FINISHED
+			================================================= */
+
+			if (
+				updateIsOverwriteFinished
+			) {
+
+				console.log(
+					'Update Modular: overwrite finished, loading modular_items from bay.'
+				);
+
+
+				const products =
+					await getOverwriteModularProducts();
+
+
+				loadProductsIntoRegularMod(
+					products
+				);
+
+
+				return;
+
+			}
+
+
+			/* =================================================
+			STATE 3
+			ASSIGN FINISHED
+			================================================= */
+
+			if (
+				updateIsAssignFinished &&
+				Array.isArray(
+					updateAssignment.products
+				)
+			) {
+
+				console.log(
+					'Update Modular: loading products from Assign.'
+				);
+
+
+				loadProductsIntoRegularMod(
+					updateAssignment.products
+				);
+
+
+				return;
+
+			}
+
+			/* =================================================
+			STATE 4
+			NORMAL UPDATE
+			================================================= */
+
+			if (
+				!updateIsOverwriteFinished &&
+				!updateIsAssignFinished
+			) {
+
+				console.log(
+					'Update Modular: no returned state, loading modular_items from bay.'
+				);
+
+
+				const products =
+					await getOverwriteModularProducts();
+
+
+				loadProductsIntoRegularMod(
+					products
+				);
+
+
+				return;
+
+			}
+
+			/* =================================================
+			   FALLBACK
+			   INITIAL UPDATE
+			================================================= */
+
+			console.log(
+				'Update Modular: no returned state, loading from database.'
+			);
+
+
+			const products =
+				await getUpdateModularProducts();
+
+
+			loadProductsIntoRegularMod(
+				products
+			);
+
+		}
+		catch (error) {
+
+			console.error(
+				'Failed to load update modular:',
+				error
+			);
+
+
+			if (
+				modularVisual
+			) {
 
 				modularVisual.innerHTML = `
 
@@ -4328,6 +4767,13 @@ if (
 
 }
 else if (
+	isUpdateMode
+) {
+
+	loadUpdateModular();
+
+}
+else if (
 	selectedModularId
 ) {
 
@@ -4338,10 +4784,12 @@ else if (
 }
 else {
 
-	regularModShelves = [];
+	regularModShelves =
+		[];
 
 
-	regularModOriginalShelves = [];
+	regularModOriginalShelves =
+		[];
 
 
 	renderModularVisual();

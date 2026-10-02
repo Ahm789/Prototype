@@ -446,7 +446,117 @@ if (assignResult) {
 	}
 
 }
+/* =========================================================
+   UPDATE MODULAR RETURN
+========================================================= */
 
+const updateResult =
+	params.get('updateResult');
+
+let returnedUpdateContext =
+	null;
+
+
+if (updateResult) {
+
+	try {
+
+		returnedUpdateContext =
+			JSON.parse(
+				updateResult
+			);
+
+
+		console.log(
+			'Returned update context:',
+			returnedUpdateContext
+		);
+
+
+		/* =============================================
+		   RESTORE ALL ASSIGNMENTS
+		============================================= */
+
+		if (
+			Array.isArray(
+				returnedUpdateContext.assignments
+			)
+		) {
+
+			modularTagAssignments.length =
+				0;
+
+			modularTagAssignments.push(
+				...returnedUpdateContext.assignments
+			);
+
+		}
+
+
+		/* =============================================
+		   RESTORE CURRENTLY UPDATED ASSIGNMENT
+		============================================= */
+
+		const returnedAssignment =
+			returnedUpdateContext.assignment;
+
+
+		if (
+			returnedAssignment &&
+			returnedAssignment.modularTag
+		) {
+
+			const assignmentIndex =
+				modularTagAssignments.findIndex(
+					assignment =>
+						assignment.modularTag ===
+						returnedAssignment.modularTag
+				);
+
+
+			if (
+				assignmentIndex !== -1
+			) {
+
+				modularTagAssignments[
+					assignmentIndex
+				] = {
+					...modularTagAssignments[
+						assignmentIndex
+					],
+					...returnedAssignment
+				};
+
+			}
+			else {
+
+				modularTagAssignments.push(
+					returnedAssignment
+				);
+
+			}
+
+		}
+
+
+		console.log(
+			'Restored updated modular assignments:',
+			modularTagAssignments
+		);
+
+	}
+	catch (
+		error
+	) {
+
+		console.error(
+			'Failed to load returned update context:',
+			error
+		);
+
+	}
+
+}
 let requiredModulars = [];
 
 
@@ -1915,7 +2025,7 @@ const modularStep2Assignments =
 		'#modular-step-2-assignments'
 	);
 const renderLinkedModularTags =
-	() => {
+	async () => {
 
 		if (
 			!modularStep2Assignments
@@ -2028,8 +2138,66 @@ const renderLinkedModularTags =
 
 				assignmentValue.textContent =
 					assignment.modularTag;
+				/* =====================================================
+				   BAY ID
+				===================================================== */
 
+				if (
+					!assignment.bayId
+				) {
 
+					fetch(
+						`${API_BASE}/modular-bay/assign/${
+							encodeURIComponent(
+								planogramNumber
+							)
+						}/${
+							encodeURIComponent(
+								assignment.modular
+							)
+						}/${
+							encodeURIComponent(
+								assignment.modularTag
+							)
+						}`
+					)
+						.then(
+							response => {
+
+								if (
+									!response.ok
+								) {
+
+									throw new Error(
+										`Failed to load bay ID: ${response.status}`
+									);
+
+								}
+
+								return response.json();
+
+							}
+						)
+						.then(
+							data => {
+
+								assignment.bayId =
+									data.targetBayId;
+
+							}
+						)
+						.catch(
+							error => {
+
+								console.error(
+									'Failed to resolve bay ID:',
+									error
+								);
+
+							}
+						);
+
+				}
 				/* =====================================================
 				   ACTIONS
 				===================================================== */
@@ -2258,7 +2426,7 @@ const renderLinkedModularTags =
 
 
 				/* =====================================================
-				   UPDATE MODULAR
+				UPDATE MODULAR
 				===================================================== */
 
 				const updateModularButton =
@@ -2277,7 +2445,8 @@ const renderLinkedModularTags =
 
 				updateModularButton.textContent =
 					'Update Modular';
-					
+
+
 				if (
 					hasExistingData &&
 					assignment.confirmed !== true
@@ -2290,7 +2459,11 @@ const renderLinkedModularTags =
 
 					updateModularButton.disabled =
 						false;
-					updateModularButton.classList.add('ready');
+
+					updateModularButton.classList.add(
+						'ready'
+					);
+
 				}
 
 
@@ -2298,9 +2471,129 @@ const renderLinkedModularTags =
 					'click',
 					() => {
 
-						updateModular(
-							index + 1
+						/*
+							Build a clean return URL.
+
+							This removes any previous result data so
+							the URL does not recursively grow every
+							time Update Modular is opened.
+						*/
+
+						const returnUrl =
+							new URL(
+								window.location.href
+							);
+
+						returnUrl.searchParams.delete(
+							'assignResult'
 						);
+
+						returnUrl.searchParams.delete(
+							'updateResult'
+						);
+
+
+						/*
+							Pass the complete assignment so
+							modular-test.html knows exactly which
+							modular is being updated.
+
+							This allows the Update Modular page
+							to handle:
+
+							1. assignFinished
+							-> use assignment.products
+
+							2. overwriteFinished
+							-> load the modular from the DB
+
+							3. products already returned
+							-> use those products directly
+						*/
+
+						const updateContext = {
+
+							assignmentIndex:
+								index,
+
+							/* =============================================
+							KEEP ALL MODULAR ASSIGNMENTS
+							============================================= */
+
+							assignments:
+								modularTagAssignments.map(
+									assignment => ({
+										...assignment,
+
+										updateReturned:
+											assignment.updateReturned,
+
+										products:
+											Array.isArray(
+												assignment.products
+											)
+												? assignment.products.map(
+													product => ({
+														...product
+													})
+												)
+												: undefined
+									})
+								),
+
+							/* =============================================
+							CURRENT ASSIGNMENT BEING EDITED
+							============================================= */
+
+							assignment:
+								{
+									...assignment,
+
+									updateReturned:
+										assignment.updateReturned,
+
+									products:
+										Array.isArray(
+											assignment.products
+										)
+											? assignment.products.map(
+												product => ({
+													...product
+												})
+											)
+											: undefined
+								},
+
+							returnUrl:
+								returnUrl.toString()
+
+						};
+
+
+						console.log(
+							'Update Modular context:',
+							updateContext
+						);
+
+
+						/*
+							Store the context for modular-test.html.
+
+							Nothing about the existing
+							updateModular() functionality is
+							changed.
+						*/
+
+						const updateData =
+							encodeURIComponent(
+								JSON.stringify(
+									updateContext
+								)
+							);
+
+
+						window.location.href =
+							`modular-test.html?update=${updateData}`;
 
 					}
 				);
@@ -5257,7 +5550,7 @@ if (
 
 	modularClearModalConfirm.addEventListener(
 		'click',
-		() => {
+		async () => {
 
 			/*
 			 * CLEAR ALL
@@ -5340,41 +5633,88 @@ if (
 			* OVERWRITE
 			*/
 			if (
-				modularClearModalAction ===
-				'overwrite'
-			) {
-				const assignment =
-					modularClearModalAssignment;
+	modularClearModalAction ===
+	'overwrite'
+) {
+
+	const assignment =
+		modularClearModalAssignment;
 
 
-				if (
-					assignment
-				) {
+	if (
+		assignment
+	) {
 
-					assignment.overwriteFinished =
-						true;
+		try {
 
-				}
-
-
-				console.log(
-					'Overwrite completed:',
-					assignment
+			const response =
+				await fetch(
+					`${API_BASE}/modular-bay/assign/${
+						encodeURIComponent(
+							planogramNumber
+						)
+					}/${
+						encodeURIComponent(
+							assignment.modular
+						)
+					}/${
+						encodeURIComponent(
+							assignment.modularTag
+						)
+					}`
 				);
 
-				if (
-					modularClearModalAssignment
-				) {
 
-					modularClearModalAssignment.confirmed =
-						true;
+			if (
+				!response.ok
+			) {
 
-
-					renderLinkedModularTags();
-
-				}
+				throw new Error(
+					`Failed to load overwrite bay: ${response.status}`
+				);
 
 			}
+
+
+			const data =
+				await response.json();
+
+
+			assignment.bayId =
+				data.targetBayId;
+
+
+			assignment.overwriteFinished =
+				true;
+
+
+			assignment.confirmed =
+				true;
+
+
+			console.log(
+				'Overwrite completed:',
+				assignment
+			);
+
+
+			renderLinkedModularTags();
+
+		}
+		catch (
+			error
+		) {
+
+			console.error(
+				'Failed to prepare overwrite:',
+				error
+			);
+
+		}
+
+	}
+
+}
 
 
 			/*
@@ -5428,7 +5768,10 @@ lucide.createIcons();
 loadModularActivityBays()
 	.then(async () => {
 
-		if (returnedAssignContext) {
+		if (
+			returnedAssignContext ||
+			returnedUpdateContext
+		) {
 
 			await showUpdateModular();
 
